@@ -1,0 +1,780 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'dart:convert';
+import 'app_models.dart';
+import 'api_service.dart';
+
+class AppState extends GetxController {
+  AppState() {
+    // Start with a guest user or attempt to load from local storage.
+    // For demo/testing, we fallback to a local mock if not logged in.
+    _currentUser = const AppUser(
+      name: 'Guest User',
+      role: 'Client',
+      tagline: 'Please log in to continue',
+      avatar: 'assets/images/onboard3.jpg',
+    );
+  }
+
+  late AppUser _currentUser;
+  List<TaskItem> _tasks = [];
+  List<BidItem> _bids = [];
+  List<ChatThread> _threads = [];
+  List<WalletTransaction> _walletTransactions = [];
+  List<ServiceItem> _services = [];
+  final Set<String> _savedServiceIds = {};
+  double _walletBalance = 0.0;
+  double _pendingBalance = 0.0;
+
+  List<Map<String, dynamic>> _publicCompanies = [];
+  List<Map<String, dynamic>> _publicPros = [];
+  List<Map<String, dynamic>> _faqPages = [];
+  List<dynamic> _searchResults = [];
+
+  String? _companyRegistrationStatus;
+  String? _companyRegistrationSummary;
+  String? _verificationStatus;
+  String? _verificationSummary;
+
+  AppUser get currentUser => _currentUser;
+  String get currentRole => _currentUser.role;
+  List<TaskItem> get tasks => List.unmodifiable(_tasks);
+  List<BidItem> get bids => List.unmodifiable(_bids);
+  List<ChatThread> get threads => List.unmodifiable(_threads);
+  List<WalletTransaction> get walletTransactions => List.unmodifiable(_walletTransactions);
+  List<ServiceItem> get services => List.unmodifiable(_services);
+  List<ServiceItem> get savedServices => _services.where((service) => _savedServiceIds.contains(service.id)).toList();
+  List<Map<String, dynamic>> get publicCompanies => List.unmodifiable(_publicCompanies);
+  List<Map<String, dynamic>> get publicPros => List.unmodifiable(_publicPros);
+  List<Map<String, dynamic>> get faqPages => List.unmodifiable(_faqPages);
+  List<dynamic> get searchResults => List.unmodifiable(_searchResults);
+  String? get companyRegistrationStatus => _companyRegistrationStatus;
+  String? get companyRegistrationSummary => _companyRegistrationSummary;
+  String? get verificationStatus => _verificationStatus;
+  String? get verificationSummary => _verificationSummary;
+
+  List<TaskItem> get openMarketplaceTasks =>
+      _tasks.where((task) => task.status != 'Completed' && task.status != 'Cancelled').toList();
+
+  List<TaskItem> get clientTasks => _tasks;
+
+  double get walletBalance => _walletBalance;
+  double get pendingBalance => _pendingBalance;
+
+  // Helper to map Django backend roles to Flutter title case roles
+  String _mapRole(String backendRole) {
+    switch (backendRole.toUpperCase()) {
+      case 'CLIENT':
+        return 'Client';
+      case 'TECHNICIAN':
+        return 'Technician';
+      case 'COMPANY':
+        return 'Company';
+      case 'ADMIN':
+        return 'Admin';
+      default:
+        return 'Client';
+    }
+  }
+
+  // Helper to map Django task status to Flutter status labels
+  String _mapStatus(String backendStatus) {
+    switch (backendStatus.toLowerCase()) {
+      case 'draft':
+        return 'Draft';
+      case 'open':
+        return 'Open';
+      case 'in_progress':
+        return 'In Progress';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return 'Open';
+    }
+  }
+
+  // ─── AUTHENTICATION ACTIONS ────────────────────────────────────────────────
+
+  Future<void> loginUser(String username, String password) async {
+    await ApiService.instance.login(username, password);
+    await syncAll();
+  }
+
+  Future<void> registerAndLogin({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+    required String phone,
+    required String role,
+  }) async {
+    if (role == 'Client') {
+      await ApiService.instance.registerClient(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: password,
+        phone: phone,
+      );
+    } else if (role == 'Technician') {
+      await ApiService.instance.registerTechnician(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: password,
+        phone: phone,
+      );
+    } else {
+      await ApiService.instance.registerCompany(
+        companyName: '$firstName $lastName'.trim(),
+        email: email,
+        password: password,
+        phone: phone,
+      );
+    }
+    // Auto-login after successful registration
+    await loginUser(email, password);
+  }
+
+  void loginAs(String role) {
+    // Maintain mock login as a fallback dev tool
+    final dummyName = role == 'Technician' ? 'Kofi Mensah' : (role == 'Company' ? 'BuildRight Construction' : 'Amina Bello');
+    final dummyAvatar = role == 'Technician'
+        ? 'assets/images/onboard1.jpg'
+        : (role == 'Company' ? 'assets/images/work2.png' : 'assets/images/onboard3.jpg');
+
+    _currentUser = AppUser(
+      name: dummyName,
+      role: role,
+      tagline: '$role Account',
+      avatar: dummyAvatar,
+      location: 'Lagos, Nigeria',
+    );
+    _walletBalance = role == 'Client' ? 2450.0 : 1250.0;
+    _pendingBalance = role == 'Client' ? 0.0 : 420.0;
+    
+    // Seed some local services for UI listings
+    _services = [
+      ServiceItem(
+        id: 'service_1',
+        title: 'Professional Home Electrical Wiring',
+        category: 'Electrical',
+        description: 'Residential and commercial wiring with compliance checks.',
+        priceLabel: 'From \$55/hr',
+        providerName: 'BuildRight Electric',
+        providerAvatar: 'assets/images/onboard1.jpg',
+        providerRole: 'Technician',
+        serviceType: 'On-site',
+        coverageArea: 'Brooklyn, Queens, Manhattan',
+        availability: 'Weekdays 9 AM - 6 PM',
+        pricingModel: 'Hourly Rate',
+      ),
+      ServiceItem(
+        id: 'service_2',
+        title: 'Emergency Pipe Repair',
+        category: 'Plumbing',
+        description: 'Leak repair, replacements, and urgent plumbing fixes.',
+        priceLabel: 'From \$40/hr',
+        providerName: 'BuildRight Plumbing',
+        providerAvatar: 'assets/images/work2.png',
+        providerRole: 'Company',
+        serviceType: 'On-site',
+        coverageArea: 'Lagos Mainland',
+        availability: '24/7 Emergency',
+        pricingModel: 'Hourly Rate',
+      ),
+    ];
+    update();
+  }
+
+  void logout() {
+    ApiService.instance.clearTokens();
+    _currentUser = const AppUser(
+      name: 'Guest User',
+      role: 'Client',
+      tagline: 'Please log in to continue',
+      avatar: 'assets/images/onboard3.jpg',
+    );
+    _tasks.clear();
+    _bids.clear();
+    _threads.clear();
+    _walletTransactions.clear();
+    _walletBalance = 0.0;
+    _pendingBalance = 0.0;
+    update();
+  }
+
+  // ─── STATE SYNCHRONIZATION ──────────────────────────────────────────────────
+
+  Future<void> syncAll() async {
+    await syncProfile();
+    await syncTasks();
+    await syncWallet();
+    await syncConversations();
+    await syncPublicData();
+    await syncMyServices();
+  }
+
+  Future<void> syncProfile() async {
+    try {
+      final profile = await ApiService.instance.fetchProfile();
+      final String firstName = profile['first_name'] ?? '';
+      final String lastName = profile['last_name'] ?? '';
+      final String username = profile['username'] ?? '';
+      final String name = (firstName.isEmpty && lastName.isEmpty) ? username : '$firstName $lastName'.trim();
+      
+      _currentUser = AppUser(
+        name: name,
+        role: _mapRole(profile['role'] ?? 'CLIENT'),
+        tagline: profile['tagline'] ?? '${_mapRole(profile['role'] ?? 'CLIENT')} Account',
+        avatar: profile['avatar_url']?.toString().isNotEmpty == true ? profile['avatar_url'] : 'assets/images/onboard3.jpg',
+        location: profile['country'] ?? 'Lagos, Nigeria',
+      );
+      
+      if (profile['is_verified'] == true) {
+        _verificationStatus = 'Verified';
+        _verificationSummary = 'Your account has been fully verified.';
+      } else {
+        _verificationStatus = null;
+      }
+      update();
+    } catch (e) {
+      debugPrint('Sync Profile Error: $e');
+    }
+  }
+
+  Future<void> syncTasks() async {
+    try {
+      List<dynamic> backendTasks = [];
+      if (currentRole == 'Client') {
+        backendTasks = await ApiService.instance.fetchMyTasks();
+      } else {
+        backendTasks = await ApiService.instance.fetchTasks();
+      }
+
+      _tasks = backendTasks.map((t) {
+        final double budgetMin = double.tryParse(t['budget_min']?.toString() ?? '0') ?? 0.0;
+        final double budgetMax = double.tryParse(t['budget_max']?.toString() ?? '0') ?? 0.0;
+        
+        return TaskItem(
+          id: t['id']?.toString() ?? '',
+          title: t['title'] ?? '',
+          description: t['description'] ?? '',
+          category: t['category_name'] ?? 'General',
+          location: t['location'] ?? 'Lagos, Nigeria',
+          clientName: t['client_name'] ?? 'Client',
+          clientAvatar: 'assets/images/onboard3.jpg',
+          clientRating: 4.9,
+          budget: budgetMax > 0 ? budgetMax : budgetMin,
+          status: _mapStatus(t['status'] ?? 'open'),
+          createdLabel: t['created_at']?.toString().substring(0, 10) ?? 'Just now',
+          schedule: t['schedule'] ?? 'Immediate',
+          urgency: t['urgency']?.toString().toUpperCase() == 'URGENT' ? 'Urgent' : 'Flexible',
+          paymentMethod: 'Escrow / Wallet',
+          tags: [
+            t['service_type'] ?? 'On-site',
+            t['urgency'] ?? 'Flexible',
+          ],
+          bidsCount: t['bids_count'] ?? 0,
+          acceptedBidId: t['assigned_to']?.toString(),
+        );
+      }).toList();
+      update();
+    } catch (e) {
+      debugPrint('Sync Tasks Error: $e');
+    }
+  }
+
+  Future<void> syncWallet() async {
+    try {
+      final wallet = await ApiService.instance.fetchWallet();
+      _walletBalance = double.tryParse(wallet['available_balance']?.toString() ?? '0.0') ?? 0.0;
+      _pendingBalance = double.tryParse(wallet['pending_escrow']?.toString() ?? '0.0') ?? 0.0;
+
+      final backendTransactions = await ApiService.instance.fetchTransactions();
+      _walletTransactions = backendTransactions.map((tx) {
+        final double amountVal = double.tryParse(tx['amount']?.toString() ?? '0.0') ?? 0.0;
+        final bool isCredit = tx['type']?.toString().toLowerCase() == 'credit' || tx['type']?.toString().toLowerCase() == 'pending';
+        return WalletTransaction(
+          title: tx['description'] ?? 'Transaction',
+          date: tx['created_at']?.toString().substring(0, 10) ?? 'Today',
+          amount: '${isCredit ? "+" : "-"}\$${amountVal.toStringAsFixed(2)}',
+          status: tx['status']?.toString().toUpperCase() == 'COMPLETED' ? 'Completed' : 'Pending',
+          isIncome: isCredit,
+        );
+      }).toList();
+      update();
+    } catch (e) {
+      debugPrint('Sync Wallet Error: $e');
+    }
+  }
+
+  Future<void> syncConversations() async {
+    try {
+      final conversations = await ApiService.instance.fetchConversations();
+      _threads = conversations.map((conv) {
+        final int id = conv['id'] ?? 0;
+        final otherUser = conv['other_user'] ?? {};
+        final String name = '${otherUser['first_name'] ?? ''} ${otherUser['last_name'] ?? ''}'.trim().isNotEmpty
+            ? '${otherUser['first_name']} ${otherUser['last_name']}'.trim()
+            : (otherUser['username'] ?? 'User');
+        final String avatar = otherUser['avatar_url'] ?? 'assets/images/onboard2.jpg';
+        
+        final List<dynamic> rawMsgs = conv['last_messages'] ?? [];
+        final List<ChatMessage> messages = rawMsgs.map((m) {
+          final int senderId = m['sender'] ?? 0;
+          final int myId = otherUser['my_id'] ?? 0; // standard backend can return a key matching current user ID
+          return ChatMessage(
+            text: m['text'] ?? '',
+            time: m['created_at']?.toString().substring(11, 16) ?? '12:00',
+            isMe: senderId != otherUser['id'],
+          );
+        }).toList();
+
+        return ChatThread(
+          id: id.toString(),
+          name: name,
+          image: avatar,
+          online: true,
+          messages: messages,
+        );
+      }).toList();
+      update();
+    } catch (e) {
+      debugPrint('Sync Conversations Error: $e');
+    }
+  }
+
+  Future<void> syncPublicData() async {
+    try {
+      final companies = await ApiService.instance.fetchCompanies();
+      _publicCompanies = List<Map<String, dynamic>>.from(companies);
+    } catch (e) {
+      debugPrint('Sync Companies Error: $e');
+    }
+
+    try {
+      final pros = await ApiService.instance.fetchPublicUsers(role: 'TECHNICIAN');
+      _publicPros = List<Map<String, dynamic>>.from(pros);
+    } catch (e) {
+      debugPrint('Sync Pros Error: $e');
+    }
+
+    try {
+      final pages = await ApiService.instance.fetchPublicCmsPages();
+      _faqPages = List<Map<String, dynamic>>.from(pages);
+    } catch (e) {
+      debugPrint('Sync CMS Pages Error: $e');
+    }
+
+    try {
+      final searchRes = await ApiService.instance.searchEverything(tab: 'services');
+      final List<dynamic> results = searchRes['results'] ?? [];
+      _services = results.map((item) {
+        final double priceVal = double.tryParse(item['price']?.toString() ?? '') ?? 0.0;
+        final String priceLbl = priceVal > 0 ? '\$${priceVal.toStringAsFixed(0)}/hr' : (item['priceLabel'] ?? 'hourly');
+        return ServiceItem(
+          id: item['id']?.toString() ?? '',
+          title: item['name'] ?? '',
+          category: item['category'] ?? 'General',
+          description: item['description'] ?? '',
+          priceLabel: priceLbl,
+          providerName: item['role'] ?? 'Provider',
+          providerAvatar: item['image']?.toString().isNotEmpty == true ? item['image'] : 'assets/images/onboard1.jpg',
+          providerRole: item['type']?.toString().toLowerCase() == 'company' ? 'Company' : 'Technician',
+          serviceType: item['serviceType'] ?? 'On-site',
+          coverageArea: item['location'] ?? 'Lagos, Nigeria',
+          availability: 'Flexible Availability',
+          pricingModel: item['pricingModel'] ?? 'Hourly Rate',
+        );
+      }).toList();
+    } catch (e) {
+      debugPrint('Sync Public Services Error: $e');
+    }
+    update();
+  }
+
+  Future<void> syncMyServices() async {
+    try {
+      List<dynamic> backendServices = [];
+      if (currentRole == 'Technician') {
+        backendServices = await ApiService.instance.fetchTechnicianServices();
+      } else if (currentRole == 'Company') {
+        backendServices = await ApiService.instance.fetchCompanyServices();
+      }
+
+      if (backendServices.isNotEmpty) {
+        final mapped = backendServices.map((item) {
+          final double priceMin = double.tryParse(item['pricing_min']?.toString() ?? '') ?? 0.0;
+          final double priceMax = double.tryParse(item['pricing_max']?.toString() ?? '') ?? 0.0;
+          final priceLabel = priceMin > 0 ? '\$${priceMin.toStringAsFixed(0)}/hr' : (item['pricing_model'] ?? 'hourly');
+          return ServiceItem(
+            id: item['id']?.toString() ?? '',
+            title: item['title'] ?? '',
+            category: item['category_name'] ?? 'General',
+            description: item['description'] ?? '',
+            priceLabel: priceLabel,
+            providerName: currentUser.name,
+            providerAvatar: currentUser.avatar,
+            providerRole: currentRole,
+            serviceType: item['service_type'] == 'remote' ? 'Remote' : 'On-site',
+            coverageArea: item['coverage_area'] ?? 'Lagos, Nigeria',
+            availability: 'Weekdays 9 AM - 6 PM',
+            pricingModel: item['pricing_model'] ?? 'Hourly Rate',
+          );
+        }).toList();
+        
+        for (final mySvc in mapped) {
+          _services.removeWhere((element) => element.id == mySvc.id);
+          _services.insert(0, mySvc);
+        }
+      }
+      update();
+    } catch (e) {
+      debugPrint('Sync My Services Error: $e');
+    }
+  }
+
+  Future<void> performSearch(String query, {String? category, String? location, String? tab, String? type}) async {
+    try {
+      final res = await ApiService.instance.searchEverything(
+        query: query,
+        category: category,
+        location: location,
+        tab: tab,
+        type: type,
+      );
+      _searchResults = res['results'] ?? [];
+      update();
+    } catch (e) {
+      debugPrint('Search Error: $e');
+    }
+  }
+
+  // ─── USER & TASK OPERATION METHODS ─────────────────────────────────────────
+
+  TaskItem? findTask(String taskId) {
+    for (final task in _tasks) {
+      if (task.id == taskId) {
+        return task;
+      }
+    }
+    return null;
+  }
+
+  Future<List<BidItem>> bidsForTask(String taskId) async {
+    try {
+      final int id = int.tryParse(taskId) ?? 0;
+      final backendBids = await ApiService.instance.fetchTaskBids(id);
+      return backendBids.map((b) {
+        return BidItem(
+          id: b['id']?.toString() ?? '',
+          taskId: taskId,
+          bidderName: b['technician_name'] ?? 'Technician',
+          skill: 'Professional Provider',
+          rating: double.tryParse(b['technician_rating']?.toString() ?? '4.8') ?? 4.8,
+          reviews: 50,
+          price: double.tryParse(b['amount']?.toString() ?? '0') ?? 0.0,
+          timeline: b['duration'] ?? '3 days',
+          message: b['message'] ?? '',
+          avatar: 'assets/images/onboard1.jpg',
+          role: 'Technician',
+          isAccepted: b['status']?.toString().toLowerCase() == 'accepted',
+        );
+      }).toList();
+    } catch (e) {
+      debugPrint('Fetch Task Bids Error: $e');
+      return [];
+    }
+  }
+
+  Future<TaskItem> publishTask(TaskDraft draft) async {
+    // 1. Fetch categories to get category ID (or just match standard category ID)
+    // For demo simplicity, we query category 1 (Plumbing) or category 2 (Electrical)
+    int categoryId = 1;
+    if (draft.category.toLowerCase().contains('elec')) {
+      categoryId = 2;
+    } else if (draft.category.toLowerCase().contains('clean')) {
+      categoryId = 3;
+    }
+    
+    // 2. Create task draft
+    final taskData = {
+      'title': draft.title,
+      'description': draft.description,
+      'category': categoryId,
+      'budget_min': draft.budget,
+      'budget_max': draft.budget,
+      'budget_mode': 'fixed',
+      'urgency': draft.urgency.toLowerCase() == 'urgent' ? 'urgent' : 'flexible',
+      'service_type': draft.locationType == 'On-site' ? 'onsite' : 'remote',
+      'location': draft.location,
+      'city': 'Lagos',
+      'schedule': draft.timeline,
+      'deadline': null,
+      'materials_provided': 'none',
+      'contact_methods': ['chat'],
+      'skills': [],
+    };
+
+    final createdTask = await ApiService.instance.createTask(taskData);
+    final int createdId = createdTask['id'] ?? 0;
+    
+    // 3. Publish task
+    final published = await ApiService.instance.publishTask(createdId);
+    await syncTasks();
+
+    final double budgetMin = double.tryParse(published['budget_min']?.toString() ?? '0') ?? 0.0;
+    final double budgetMax = double.tryParse(published['budget_max']?.toString() ?? '0') ?? 0.0;
+    
+    return TaskItem(
+      id: published['id']?.toString() ?? '',
+      title: published['title'] ?? '',
+      description: published['description'] ?? '',
+      category: published['category_name'] ?? 'General',
+      location: published['location'] ?? 'Lagos, Nigeria',
+      clientName: published['client_name'] ?? 'Client',
+      clientAvatar: 'assets/images/onboard3.jpg',
+      clientRating: 4.9,
+      budget: budgetMax > 0 ? budgetMax : budgetMin,
+      status: _mapStatus(published['status'] ?? 'open'),
+      createdLabel: published['created_at']?.toString().substring(0, 10) ?? 'Just now',
+      schedule: published['schedule'] ?? 'Immediate',
+      urgency: published['urgency']?.toString().toUpperCase() == 'URGENT' ? 'Urgent' : 'Flexible',
+      paymentMethod: 'Escrow / Wallet',
+      tags: [
+        published['service_type'] ?? 'On-site',
+        published['urgency'] ?? 'Flexible',
+      ],
+      bidsCount: published['bids_count'] ?? 0,
+      acceptedBidId: published['assigned_to']?.toString(),
+    );
+  }
+
+  Future<ServiceItem> publishService({
+    required String title,
+    required String category,
+    required String description,
+    required String priceLabel,
+    required String providerName,
+    required String providerAvatar,
+    required String providerRole,
+    required String serviceType,
+    required String coverageArea,
+    required String availability,
+    required String pricingModel,
+  }) async {
+    int categoryId = 1;
+    if (category.toLowerCase().contains('elec')) {
+      categoryId = 2;
+    } else if (category.toLowerCase().contains('clean')) {
+      categoryId = 3;
+    }
+
+    double priceVal = double.tryParse(priceLabel.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 50.0;
+
+    if (currentRole == 'Technician') {
+      final data = {
+        'title': title,
+        'category': categoryId,
+        'description': description,
+        'service_type': serviceType.toLowerCase().contains('remote') ? 'remote' : 'onsite',
+        'coverage_area': coverageArea,
+        'pricing_model': pricingModel.toLowerCase().contains('hour') ? 'hourly' : 'fixed',
+        'pricing_min': priceVal,
+        'pricing_max': priceVal,
+        'is_active': true,
+      };
+      final published = await ApiService.instance.publishTechnicianService(data);
+      await syncMyServices();
+      return ServiceItem(
+        id: published['id']?.toString() ?? '',
+        title: published['title'] ?? '',
+        category: category,
+        description: published['description'] ?? '',
+        priceLabel: '\$${priceVal.toStringAsFixed(0)}/hr',
+        providerName: providerName,
+        providerAvatar: providerAvatar,
+        providerRole: providerRole,
+        serviceType: serviceType,
+        coverageArea: coverageArea,
+        availability: availability,
+        pricingModel: pricingModel,
+      );
+    } else {
+      final data = {
+        'title': title,
+        'description': description,
+      };
+      final published = await ApiService.instance.publishCompanyService(data);
+      await syncMyServices();
+      return ServiceItem(
+        id: published['id']?.toString() ?? '',
+        title: published['title'] ?? '',
+        category: category,
+        description: published['description'] ?? '',
+        priceLabel: '\$${priceVal.toStringAsFixed(0)}/hr',
+        providerName: providerName,
+        providerAvatar: providerAvatar,
+        providerRole: providerRole,
+        serviceType: serviceType,
+        coverageArea: coverageArea,
+        availability: availability,
+        pricingModel: pricingModel,
+      );
+    }
+  }
+
+  Future<void> submitBid({
+    required String taskId,
+    required double price,
+    required String timeline,
+    required String message,
+  }) async {
+    final int id = int.tryParse(taskId) ?? 0;
+    await ApiService.instance.submitBid(
+      taskId: id,
+      amount: price,
+      timeline: timeline,
+      message: message,
+    );
+    await syncTasks();
+  }
+
+  Future<void> acceptBid(String taskId, String bidId) async {
+    final int tId = int.tryParse(taskId) ?? 0;
+    final int bId = int.tryParse(bidId) ?? 0;
+    
+    // Fetch bids for task to get the correct bid amount
+    final bidsList = await bidsForTask(taskId);
+    final bid = bidsList.firstWhere((element) => element.id == bidId);
+
+    // Call deposit escrow endpoint to trigger bid acceptance
+    await ApiService.instance.depositEscrow(
+      taskId: tId,
+      bidId: bId,
+      amount: bid.price,
+    );
+    await syncTasks();
+    await syncWallet();
+  }
+
+  Future<void> sendMessage(String threadId, String text) async {
+    final int convId = int.tryParse(threadId) ?? 0;
+    await ApiService.instance.sendMessage(convId, text);
+    await syncConversations();
+  }
+
+  Future<void> createOrOpenThread({
+    required String otherPartyName,
+    required String otherPartyImage,
+    String initialMessage = '',
+  }) async {
+    // For demo integration, we look up the user by name or create a standard thread
+    // To wire completely, we would fetch users list, find correct id, and call createConversation.
+    // If not found, we fallback to opening thread 1.
+    try {
+      final usersResponse = await ApiService.instance.get('/auth/users/');
+      final List<dynamic> users = jsonDecode(usersResponse.body);
+      int otherUserId = 1;
+      for (final u in users) {
+        final name = '${u['first_name'] ?? ''} ${u['last_name'] ?? ''}'.trim();
+        if (name.toLowerCase() == otherPartyName.toLowerCase()) {
+          otherUserId = u['id'];
+          break;
+        }
+      }
+      final conv = await ApiService.instance.createConversation(otherUserId);
+      final int convId = conv['id'] ?? 1;
+      if (initialMessage.isNotEmpty) {
+        await ApiService.instance.sendMessage(convId, initialMessage);
+      }
+      await syncConversations();
+    } catch (e) {
+      debugPrint('Create Thread Error: $e');
+    }
+  }
+
+  Future<void> requestWithdrawal({
+    required double amount,
+    required String method,
+  }) async {
+    await ApiService.instance.requestWithdrawal(amount, method);
+    await syncWallet();
+  }
+
+  // ─── LOCAL STATE PREFS ─────────────────────────────────────────────────────
+
+  bool isServiceSaved(String serviceId) => _savedServiceIds.contains(serviceId);
+
+  void toggleSavedService(String serviceId) {
+    if (_savedServiceIds.contains(serviceId)) {
+      _savedServiceIds.remove(serviceId);
+    } else {
+      _savedServiceIds.add(serviceId);
+    }
+    update();
+  }
+
+  Future<void> submitCompanyRegistration({
+    required Map<String, String> details,
+  }) async {
+    final body = {
+      'company_name': details['companyName'] ?? '',
+      'registration_number': details['registrationNumber'] ?? '',
+      'website': (details['website'] != null && details['website']!.startsWith('http')) ? details['website'] : 'https://${details['website']}',
+      'headquarters': details['address'] ?? '',
+      'about': 'Industry: ${details['industry']}',
+    };
+    await ApiService.instance.updateCompanyProfile(body);
+    _companyRegistrationStatus = 'Pending Review';
+    _companyRegistrationSummary = '${details['companyName']} submitted for compliance review.';
+    update();
+  }
+
+  Future<void> submitVerification({
+    required Map<String, String> details,
+  }) async {
+    final body = {
+      'first_name': currentUser.name.split(' ').first,
+      'last_name': currentUser.name.split(' ').length > 1 ? currentUser.name.split(' ').sublist(1).join(' ') : '',
+      'phone': details['license'] ?? '',
+    };
+    await ApiService.instance.updateTechnicianProfile(body);
+    _verificationStatus = 'Pending Review';
+    _verificationSummary = 'Professional verification details submitted for review. Specialization: ${details['specialization']}. Bio: ${details['bio']}';
+    update();
+  }
+
+  Future<void> createDispute({
+    required String taskId,
+    required String reason,
+    required String title,
+    required String description,
+  }) async {
+    final tId = int.tryParse(taskId) ?? 0;
+    final task = findTask(taskId);
+    int? againstId;
+    if (task != null && task.acceptedBidId != null) {
+      againstId = int.tryParse(task.acceptedBidId!);
+    }
+    
+    await ApiService.instance.createDispute(
+      taskId: tId,
+      reason: reason,
+      title: title,
+      description: description,
+      againstId: againstId,
+    );
+  }
+}
+
+class AppStateScope {
+  const AppStateScope._();
+
+  static AppState of(BuildContext context) {
+    return Get.find<AppState>();
+  }
+}
