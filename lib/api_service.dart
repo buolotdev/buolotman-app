@@ -14,8 +14,8 @@ class ApiService {
         return 'http://$host:8000/api';
       }
     }
-    // Fallback for non-web environments (e.g. localhost or 10.0.2.2 for Android emulator)
-    return 'http://127.0.0.1:8000/api';
+    // Fallback for non-web environments (use host local IP so physical devices and simulators can connect)
+    return 'http://192.168.0.101:8000/api';
   }
 
   String? _accessToken;
