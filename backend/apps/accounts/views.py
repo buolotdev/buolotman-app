@@ -113,7 +113,19 @@ def verify_phone_otp(request):
             ip_address=request.META.get("REMOTE_ADDR"),
         )
 
-    return Response({"message": "OTP verified", "verified": True, "purpose": challenge.purpose})
+    response_data = {
+        "message": "OTP verified",
+        "verified": True,
+        "purpose": challenge.purpose,
+    }
+    if challenge.user:
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(challenge.user)
+        response_data["access"] = str(refresh.access_token)
+        response_data["refresh"] = str(refresh)
+        response_data["role"] = challenge.user.role
+
+    return Response(response_data)
 
 
 @api_view(['POST'])
@@ -192,13 +204,12 @@ def me(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-@cached("list_users", ttl=120)
 def list_users(request):
     from django.contrib.auth import get_user_model
     User = get_user_model()
     role = request.query_params.get('role', '').upper()
     limit = int(request.query_params.get('limit', '12'))
-    qs = User.objects.filter(is_active=True)
+    qs = User.objects.filter(is_active=True).select_related('technician_profile', 'company_profile').prefetch_related('technician_services', 'technician_profile__skills')
     if role in ('TECHNICIAN', 'CLIENT', 'COMPANY', 'ADMIN'):
         qs = qs.filter(role=role)
     qs = qs.order_by('-created_at')[:max(1, min(limit, 50))]
@@ -493,7 +504,7 @@ def admin_list_users(request):
     if err: return err
     from django.contrib.auth import get_user_model
     User = get_user_model()
-    qs = User.objects.all().order_by('-created_at')
+    qs = User.objects.all().select_related('technician_profile', 'company_profile').prefetch_related('technician_services', 'technician_profile__skills').order_by('-created_at')
     role = request.query_params.get('role', '').upper()
     if role in ('TECHNICIAN', 'CLIENT', 'COMPANY', 'ADMIN'):
         qs = qs.filter(role=role)

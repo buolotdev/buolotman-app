@@ -442,18 +442,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildPopularServices(AppState appState) {
-    final services = appState.services.isEmpty
-        ? [
-            {'title': 'Deep Home Cleaning Service', 'price': 'From \$50/hr', 'rating': '4.9', 'image': 'assets/images/work1.png'},
-          ]
-        : appState.services
-            .map((service) => {
-                  'title': service.title,
-                  'price': service.priceLabel,
-                  'rating': '4.8',
-                  'image': service.id.endsWith('1') ? 'assets/images/work1.png' : 'assets/images/work2.png',
-                })
-            .toList();
+    if (appState.services.isEmpty) {
+      return Container(
+        height: 100,
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: const Center(
+          child: Text(
+            "No services registered yet.",
+            style: TextStyle(color: Color(0xFF64748B), fontSize: 14, fontWeight: FontWeight.w500),
+          ),
+        ),
+      );
+    }
+
+    final services = appState.services
+        .map((service) => {
+              'title': service.title,
+              'price': service.priceLabel,
+              'rating': '4.8',
+              'image': service.id.endsWith('1') ? 'assets/images/work1.png' : 'assets/images/work2.png',
+            })
+        .toList();
 
     return SizedBox(
       height: 200,
@@ -738,43 +752,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildTopProfessionals(AppState appState) {
-    final professionals = appState.publicPros.isNotEmpty
-        ? appState.publicPros.map((user) {
-            final String name = '${user['first_name'] ?? ''} ${user['last_name'] ?? ''}'.trim().isNotEmpty
-                ? '${user['first_name']} ${user['last_name']}'.trim()
-                : (user['username'] ?? 'Technician');
-            final String avatar = user['avatar_url']?.toString().isNotEmpty == true ? user['avatar_url'] : 'assets/images/onboard1.jpg';
-            final skills = user['skills'] is List ? (user['skills'] as List).join(', ') : 'Technician';
-            final double rating = double.tryParse(user['average_rating']?.toString() ?? '4.8') ?? 4.8;
-            final int completedJobs = int.tryParse(user['completed_jobs']?.toString() ?? '10') ?? 10;
-            final double rate = double.tryParse(user['hourly_rate']?.toString() ?? '45') ?? 45.0;
-            return {
-              'name': name,
-              'skill': skills.isNotEmpty ? skills : 'Professional Specialist',
-              'rating': '$rating ($completedJobs)',
-              'success': '98%',
-              'price': '\$${rate.toStringAsFixed(0)}/hr',
-              'avatar': avatar,
-            };
-          }).toList()
-        : [
-            {
-              'name': appState.currentRole == 'Technician' ? appState.currentUser.name : 'Alex M.',
-              'skill': appState.currentRole == 'Technician' ? appState.currentUser.tagline : 'Master Plumber',
-              'rating': '4.9 (120)',
-              'success': '98%',
-              'price': '\$45/hr',
-              'avatar': appState.currentRole == 'Technician' ? appState.currentUser.avatar : 'assets/images/onboard1.jpg'
-            },
-            {
-              'name': 'Sarah T.',
-              'skill': 'Certified Electrician',
-              'rating': '4.8 (85)',
-              'success': '100%',
-              'price': '\$55/hr',
-              'avatar': 'assets/images/onboard2.jpg'
-            },
-          ];
+    if (appState.publicPros.isEmpty) {
+      return Container(
+        height: 100,
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: const Center(
+          child: Text(
+            "No professionals registered yet.",
+            style: TextStyle(color: Color(0xFF64748B), fontSize: 14, fontWeight: FontWeight.w500),
+          ),
+        ),
+      );
+    }
+
+    final professionals = appState.publicPros.map((user) {
+        final String name = '${user['first_name'] ?? ''} ${user['last_name'] ?? ''}'.trim().isNotEmpty
+            ? '${user['first_name']} ${user['last_name']}'.trim()
+            : (user['username'] ?? 'Technician');
+        final String avatar = user['avatar_url']?.toString().isNotEmpty == true ? user['avatar_url'] : 'assets/images/onboard1.jpg';
+        final skills = user['skills'] is List ? (user['skills'] as List).join(', ') : 'Technician';
+        final double rating = double.tryParse(user['average_rating']?.toString() ?? '4.8') ?? 4.8;
+        final int completedJobs = int.tryParse(user['completed_jobs']?.toString() ?? '10') ?? 10;
+        final double rate = double.tryParse(user['hourly_rate']?.toString() ?? '45') ?? 45.0;
+        return {
+          'name': name,
+          'skill': skills.isNotEmpty ? skills : 'Professional Specialist',
+          'rating': '$rating ($completedJobs)',
+          'success': '98%',
+          'price': '\$${rate.toStringAsFixed(0)}/hr',
+          'avatar': avatar,
+        };
+      }).toList();
 
     return SizedBox(
       height: 160,
@@ -853,37 +866,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildFeaturedCompanies(AppState appState) {
-    final companies = appState.publicCompanies.isNotEmpty
-        ? appState.publicCompanies.map((c) {
-            final String name = c['company_name'] ?? 'Company';
-            final String industry = c['services_offered'] is List && (c['services_offered'] as List).isNotEmpty
-                ? (c['services_offered'] as List).first.toString()
-                : 'Service Company';
-            final double rating = double.tryParse(c['average_rating']?.toString() ?? '4.8') ?? 4.8;
-            final String logo = c['logo_url']?.toString().isNotEmpty == true
-                ? c['logo_url']
-                : 'https://plus.unsplash.com/premium_photo-1661877737564-3dfd7282efcb?w=800&auto=format&fit=crop&q=60';
-            return {
-              'name': name,
-              'industry': industry,
-              'rating': rating.toStringAsFixed(1),
-              'image': logo,
-            };
-          }).toList()
-        : [
-            {
-              'name': 'BuildRight Construction',
-              'industry': 'General Contractor',
-              'rating': '4.9',
-              'image': 'https://plus.unsplash.com/premium_photo-1661877737564-3dfd7282efcb?w=800&auto=format&fit=crop&q=60'
-            },
-            {
-              'name': appState.currentRole == 'Company' ? appState.currentUser.name : 'Sparky Pro Services',
-              'industry': appState.currentRole == 'Company' ? appState.currentUser.tagline : 'Electrical Experts',
-              'rating': '4.8',
-              'image': 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&auto=format&fit=crop&q=60'
-            },
-          ];
+    if (appState.publicCompanies.isEmpty) {
+      return Container(
+        height: 100,
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: const Center(
+          child: Text(
+            "No registered companies yet.",
+            style: TextStyle(color: Color(0xFF64748B), fontSize: 14, fontWeight: FontWeight.w500),
+          ),
+        ),
+      );
+    }
+
+    final companies = appState.publicCompanies.map((c) {
+        final String name = c['company_name'] ?? 'Company';
+        final String industry = c['services_offered'] is List && (c['services_offered'] as List).isNotEmpty
+            ? (c['services_offered'] as List).first.toString()
+            : 'Service Company';
+        final double rating = double.tryParse(c['average_rating']?.toString() ?? '4.8') ?? 4.8;
+        final String logo = c['logo_url']?.toString().isNotEmpty == true
+            ? c['logo_url']
+            : 'https://plus.unsplash.com/premium_photo-1661877737564-3dfd7282efcb?w=800&auto=format&fit=crop&q=60';
+        return {
+          'name': name,
+          'industry': industry,
+          'rating': rating.toStringAsFixed(1),
+          'image': logo,
+        };
+      }).toList();
 
     return SizedBox(
       height: 140,
@@ -947,6 +963,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildCompanyStats(AppState appState) {
+    final activeProjects = appState.clientTasks.where((t) => t.status == 'In Progress').length.toString();
+    final teamSize = appState.companyProfile?['team_size']?.toString() ?? '1';
+    final balance = '\$${appState.walletBalance.toStringAsFixed(0)}';
+    final compliance = appState.companyProfile?['is_verified'] == true ? '100%' : 'Pending';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -959,17 +980,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildStatCard("Active Projects", appState.openMarketplaceTasks.length.toString(), Icons.assignment, Colors.blue),
+              _buildStatCard("Active Projects", activeProjects, Icons.assignment, Colors.blue),
               const SizedBox(width: 12),
-              _buildStatCard("Team Members", "45", Icons.group, Colors.orange),
+              _buildStatCard("Team Members", teamSize, Icons.group, Colors.orange),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              _buildStatCard("Revenue", "\$12.5k", Icons.payments, Colors.green),
+              _buildStatCard("Revenue", balance, Icons.payments, Colors.green),
               const SizedBox(width: 12),
-              _buildStatCard("Compliance", "98%", Icons.verified_user, Colors.purple),
+              _buildStatCard("Compliance", compliance, Icons.verified_user, Colors.purple),
             ],
           ),
         ],

@@ -48,7 +48,7 @@ class _ChatScreenState extends State<ChatScreen> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: Image.asset(widget.image, width: 32, height: 32, fit: BoxFit.cover),
+                  child: buildAvatarImage(widget.image, width: 32, height: 32, fit: BoxFit.cover),
                 ),
                 const SizedBox(width: 10),
                 Expanded(

@@ -4,7 +4,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.dev')
 from .base import *
 
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.0.101', '*']
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Use Neon PostgreSQL in dev
 import dj_database_url

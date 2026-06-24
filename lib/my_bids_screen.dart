@@ -318,7 +318,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(18),
-                    child: Image.asset(bid.avatar, width: 36, height: 36, fit: BoxFit.cover),
+                    child: buildAvatarImage(bid.avatar, width: 36, height: 36, fit: BoxFit.cover),
                   ),
                   const SizedBox(width: 10),
                   Column(

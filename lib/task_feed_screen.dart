@@ -243,7 +243,7 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(15),
-                      child: Image.asset(task.clientAvatar, width: 30, height: 30, fit: BoxFit.cover),
+                      child: buildAvatarImage(task.clientAvatar, width: 30, height: 30, fit: BoxFit.cover),
                     ),
                     const SizedBox(width: 8),
                     Column(

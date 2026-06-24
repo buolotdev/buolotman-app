@@ -249,7 +249,7 @@ class BrowseTasksScreen extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(30),
-                child: Image.asset(task.clientAvatar, width: 52, height: 52, fit: BoxFit.cover),
+                child: buildAvatarImage(task.clientAvatar, width: 52, height: 52, fit: BoxFit.cover),
               ),
               const SizedBox(width: 12),
               Expanded(

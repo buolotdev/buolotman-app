@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:convert';
 import 'app_models.dart';
+export 'app_models.dart';
 import 'api_service.dart';
 
 class AppState extends GetxController {
@@ -17,7 +18,9 @@ class AppState extends GetxController {
   }
 
   late AppUser _currentUser;
-  List<TaskItem> _tasks = [];
+  List<TaskItem> _myTasks = [];
+  List<TaskItem> _marketplaceTasks = [];
+  Map<String, dynamic>? _companyProfile;
   List<BidItem> _bids = [];
   List<ChatThread> _threads = [];
   List<WalletTransaction> _walletTransactions = [];
@@ -38,7 +41,7 @@ class AppState extends GetxController {
 
   AppUser get currentUser => _currentUser;
   String get currentRole => _currentUser.role;
-  List<TaskItem> get tasks => List.unmodifiable(_tasks);
+  List<TaskItem> get tasks => List.unmodifiable(_myTasks);
   List<BidItem> get bids => List.unmodifiable(_bids);
   List<ChatThread> get threads => List.unmodifiable(_threads);
   List<WalletTransaction> get walletTransactions => List.unmodifiable(_walletTransactions);
@@ -52,11 +55,11 @@ class AppState extends GetxController {
   String? get companyRegistrationSummary => _companyRegistrationSummary;
   String? get verificationStatus => _verificationStatus;
   String? get verificationSummary => _verificationSummary;
+  Map<String, dynamic>? get companyProfile => _companyProfile;
 
-  List<TaskItem> get openMarketplaceTasks =>
-      _tasks.where((task) => task.status != 'Completed' && task.status != 'Cancelled').toList();
+  List<TaskItem> get openMarketplaceTasks => List.unmodifiable(_marketplaceTasks);
 
-  List<TaskItem> get clientTasks => _tasks;
+  List<TaskItem> get clientTasks => List.unmodifiable(_myTasks);
 
   double get walletBalance => _walletBalance;
   double get pendingBalance => _pendingBalance;
@@ -138,56 +141,7 @@ class AppState extends GetxController {
     await loginUser(email, password);
   }
 
-  void loginAs(String role) {
-    // Maintain mock login as a fallback dev tool
-    final dummyName = role == 'Technician' ? 'Kofi Mensah' : (role == 'Company' ? 'BuildRight Construction' : 'Amina Bello');
-    final dummyAvatar = role == 'Technician'
-        ? 'assets/images/onboard1.jpg'
-        : (role == 'Company' ? 'assets/images/work2.png' : 'assets/images/onboard3.jpg');
 
-    _currentUser = AppUser(
-      name: dummyName,
-      role: role,
-      tagline: '$role Account',
-      avatar: dummyAvatar,
-      location: 'Lagos, Nigeria',
-    );
-    _walletBalance = role == 'Client' ? 2450.0 : 1250.0;
-    _pendingBalance = role == 'Client' ? 0.0 : 420.0;
-    
-    // Seed some local services for UI listings
-    _services = [
-      ServiceItem(
-        id: 'service_1',
-        title: 'Professional Home Electrical Wiring',
-        category: 'Electrical',
-        description: 'Residential and commercial wiring with compliance checks.',
-        priceLabel: 'From \$55/hr',
-        providerName: 'BuildRight Electric',
-        providerAvatar: 'assets/images/onboard1.jpg',
-        providerRole: 'Technician',
-        serviceType: 'On-site',
-        coverageArea: 'Brooklyn, Queens, Manhattan',
-        availability: 'Weekdays 9 AM - 6 PM',
-        pricingModel: 'Hourly Rate',
-      ),
-      ServiceItem(
-        id: 'service_2',
-        title: 'Emergency Pipe Repair',
-        category: 'Plumbing',
-        description: 'Leak repair, replacements, and urgent plumbing fixes.',
-        priceLabel: 'From \$40/hr',
-        providerName: 'BuildRight Plumbing',
-        providerAvatar: 'assets/images/work2.png',
-        providerRole: 'Company',
-        serviceType: 'On-site',
-        coverageArea: 'Lagos Mainland',
-        availability: '24/7 Emergency',
-        pricingModel: 'Hourly Rate',
-      ),
-    ];
-    update();
-  }
 
   void logout() {
     ApiService.instance.clearTokens();
@@ -197,7 +151,8 @@ class AppState extends GetxController {
       tagline: 'Please log in to continue',
       avatar: 'assets/images/onboard3.jpg',
     );
-    _tasks.clear();
+    _myTasks.clear();
+    _marketplaceTasks.clear();
     _bids.clear();
     _threads.clear();
     _walletTransactions.clear();
@@ -215,6 +170,34 @@ class AppState extends GetxController {
     await syncConversations();
     await syncPublicData();
     await syncMyServices();
+  }
+
+  TaskItem _mapTaskItem(dynamic t) {
+    final double budgetMin = double.tryParse(t['budget_min']?.toString() ?? '0') ?? 0.0;
+    final double budgetMax = double.tryParse(t['budget_max']?.toString() ?? '0') ?? 0.0;
+    
+    return TaskItem(
+      id: t['id']?.toString() ?? '',
+      title: t['title'] ?? '',
+      description: t['description'] ?? '',
+      category: t['category_name'] ?? 'General',
+      location: t['location'] ?? 'Lagos, Nigeria',
+      clientName: t['client_name'] ?? 'Client',
+      clientAvatar: 'assets/images/onboard3.jpg',
+      clientRating: 4.9,
+      budget: budgetMax > 0 ? budgetMax : budgetMin,
+      status: _mapStatus(t['status'] ?? 'open'),
+      createdLabel: t['created_at']?.toString().substring(0, 10) ?? 'Just now',
+      schedule: t['schedule'] ?? 'Immediate',
+      urgency: t['urgency']?.toString().toUpperCase() == 'URGENT' ? 'Urgent' : 'Flexible',
+      paymentMethod: 'Escrow / Wallet',
+      tags: [
+        t['service_type'] ?? 'On-site',
+        t['urgency'] ?? 'Flexible',
+      ],
+      bidsCount: t['bids_count'] ?? 0,
+      acceptedBidId: t['assigned_to']?.toString(),
+    );
   }
 
   Future<void> syncProfile() async {
@@ -239,6 +222,18 @@ class AppState extends GetxController {
       } else {
         _verificationStatus = null;
       }
+
+      if (_currentUser.role == 'Company') {
+        try {
+          _companyProfile = await ApiService.instance.fetchCompanyProfile();
+          _companyRegistrationStatus = _companyProfile!['is_verified'] == true ? 'Verified' : 'Pending Review';
+          _companyRegistrationSummary = _companyProfile!['registration_number']?.toString().isNotEmpty == true
+              ? 'Registration: ${_companyProfile!['registration_number']}'
+              : 'Registration pending review.';
+        } catch (e) {
+          debugPrint('Sync Company Profile Error: $e');
+        }
+      }
       update();
     } catch (e) {
       debugPrint('Sync Profile Error: $e');
@@ -247,40 +242,12 @@ class AppState extends GetxController {
 
   Future<void> syncTasks() async {
     try {
-      List<dynamic> backendTasks = [];
-      if (currentRole == 'Client') {
-        backendTasks = await ApiService.instance.fetchMyTasks();
-      } else {
-        backendTasks = await ApiService.instance.fetchTasks();
-      }
+      final myRaw = await ApiService.instance.fetchMyTasks();
+      _myTasks = myRaw.map((t) => _mapTaskItem(t)).toList();
 
-      _tasks = backendTasks.map((t) {
-        final double budgetMin = double.tryParse(t['budget_min']?.toString() ?? '0') ?? 0.0;
-        final double budgetMax = double.tryParse(t['budget_max']?.toString() ?? '0') ?? 0.0;
-        
-        return TaskItem(
-          id: t['id']?.toString() ?? '',
-          title: t['title'] ?? '',
-          description: t['description'] ?? '',
-          category: t['category_name'] ?? 'General',
-          location: t['location'] ?? 'Lagos, Nigeria',
-          clientName: t['client_name'] ?? 'Client',
-          clientAvatar: 'assets/images/onboard3.jpg',
-          clientRating: 4.9,
-          budget: budgetMax > 0 ? budgetMax : budgetMin,
-          status: _mapStatus(t['status'] ?? 'open'),
-          createdLabel: t['created_at']?.toString().substring(0, 10) ?? 'Just now',
-          schedule: t['schedule'] ?? 'Immediate',
-          urgency: t['urgency']?.toString().toUpperCase() == 'URGENT' ? 'Urgent' : 'Flexible',
-          paymentMethod: 'Escrow / Wallet',
-          tags: [
-            t['service_type'] ?? 'On-site',
-            t['urgency'] ?? 'Flexible',
-          ],
-          bidsCount: t['bids_count'] ?? 0,
-          acceptedBidId: t['assigned_to']?.toString(),
-        );
-      }).toList();
+      final marketRaw = await ApiService.instance.fetchTasks();
+      _marketplaceTasks = marketRaw.map((t) => _mapTaskItem(t)).toList();
+
       update();
     } catch (e) {
       debugPrint('Sync Tasks Error: $e');
@@ -325,7 +292,6 @@ class AppState extends GetxController {
         final List<dynamic> rawMsgs = conv['last_messages'] ?? [];
         final List<ChatMessage> messages = rawMsgs.map((m) {
           final int senderId = m['sender'] ?? 0;
-          final int myId = otherUser['my_id'] ?? 0; // standard backend can return a key matching current user ID
           return ChatMessage(
             text: m['text'] ?? '',
             time: m['created_at']?.toString().substring(11, 16) ?? '12:00',
@@ -408,7 +374,6 @@ class AppState extends GetxController {
       if (backendServices.isNotEmpty) {
         final mapped = backendServices.map((item) {
           final double priceMin = double.tryParse(item['pricing_min']?.toString() ?? '') ?? 0.0;
-          final double priceMax = double.tryParse(item['pricing_max']?.toString() ?? '') ?? 0.0;
           final priceLabel = priceMin > 0 ? '\$${priceMin.toStringAsFixed(0)}/hr' : (item['pricing_model'] ?? 'hourly');
           return ServiceItem(
             id: item['id']?.toString() ?? '',
@@ -456,7 +421,12 @@ class AppState extends GetxController {
   // ─── USER & TASK OPERATION METHODS ─────────────────────────────────────────
 
   TaskItem? findTask(String taskId) {
-    for (final task in _tasks) {
+    for (final task in _myTasks) {
+      if (task.id == taskId) {
+        return task;
+      }
+    }
+    for (final task in _marketplaceTasks) {
       if (task.id == taskId) {
         return task;
       }
@@ -768,6 +738,46 @@ class AppState extends GetxController {
       description: description,
       againstId: againstId,
     );
+  }
+
+  Future<Map<String, dynamic>> requestLoginOTP(String phone) async {
+    return await ApiService.instance.requestPhoneOTP(phone, purpose: 'login');
+  }
+
+  Future<void> verifyOTPAndLogin(int challengeId, String code) async {
+    final res = await ApiService.instance.verifyPhoneOTP(challengeId, code);
+    if (res['access'] != null) {
+      ApiService.instance.setTokens(res['access'], res['refresh']);
+      await syncAll();
+    } else {
+      throw Exception('Login credentials were not returned.');
+    }
+  }
+
+  List<dynamic> _adminUsersList = [];
+  List<dynamic> _adminTasksList = [];
+
+  List<dynamic> get adminUsersList => _adminUsersList;
+  List<dynamic> get adminTasksList => _adminTasksList;
+
+  Future<void> syncAdminData() async {
+    try {
+      _adminUsersList = await ApiService.instance.fetchAdminUsers();
+      _adminTasksList = await ApiService.instance.fetchAdminTasks();
+      update();
+    } catch (e) {
+      debugPrint('Sync Admin Data Error: $e');
+    }
+  }
+
+  Future<void> verifyUser(int userId) async {
+    await ApiService.instance.adminVerifyUser(userId);
+    await syncAdminData();
+  }
+
+  Future<void> suspendUser(int userId) async {
+    await ApiService.instance.adminSuspendUser(userId);
+    await syncAdminData();
   }
 }
 

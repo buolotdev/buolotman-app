@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class AppUser {
   const AppUser({
     required this.name,
@@ -321,4 +323,30 @@ class ServiceItem {
   final String coverageArea;
   final String availability;
   final String pricingModel;
+}
+
+ImageProvider getAvatarImageProvider(String avatarUrl) {
+  if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+    return NetworkImage(avatarUrl);
+  }
+  return AssetImage(avatarUrl);
+}
+
+Widget buildAvatarImage(String avatarUrl, {double? width, double? height, BoxFit fit = BoxFit.cover, Widget? fallback}) {
+  if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+    return Image.network(
+      avatarUrl,
+      width: width,
+      height: height,
+      fit: fit,
+      errorBuilder: (context, error, stackTrace) => fallback ?? Image.asset('assets/images/onboard1.jpg', width: width, height: height, fit: fit),
+    );
+  }
+  return Image.asset(
+    avatarUrl,
+    width: width,
+    height: height,
+    fit: fit,
+    errorBuilder: (context, error, stackTrace) => fallback ?? Image.asset('assets/images/onboard1.jpg', width: width, height: height, fit: fit),
+  );
 }

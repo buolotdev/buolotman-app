@@ -44,7 +44,7 @@ class MessagesScreen extends StatelessWidget {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(28),
-                            child: Image.asset(thread.image, width: 56, height: 56, fit: BoxFit.cover),
+                            child: buildAvatarImage(thread.image, width: 56, height: 56, fit: BoxFit.cover),
                           ),
                           if (thread.online)
                             Positioned(

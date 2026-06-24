@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'app_state.dart';
-import 'app_models.dart';
 import 'category_browsing_screen.dart';
 import 'listing_screen.dart';
 
@@ -400,7 +399,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(99),
-                        child: Image.asset(pro['avatar'] as String, width: 64, height: 64, fit: BoxFit.cover),
+                        child: buildAvatarImage(pro['avatar'] as String, width: 64, height: 64, fit: BoxFit.cover),
                       ),
                       const SizedBox(height: 8),
                       Text(pro['name'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF001F3F)), overflow: TextOverflow.ellipsis),

@@ -14,7 +14,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _identifierController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  String _selectedRole = 'Client';
   bool _obscurePassword = true;
 
   @override
@@ -141,27 +140,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 1.5,
                         ),
                       ),
-                      const SizedBox(height: 48),
-
-                      const Text(
-                        "Demo Login",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF001F3F),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          _buildRoleChip("Client"),
-                          const SizedBox(width: 10),
-                          _buildRoleChip("Technician"),
-                          const SizedBox(width: 10),
-                          _buildRoleChip("Company"),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
 
                       // Form Fields
                       const Text(
@@ -303,14 +281,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 }
                               }
                             } else {
-                              AppStateScope.of(context).loginAs(_selectedRole);
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => OTPScreen(
-                                    phoneNumber: "+1 (555) 000-0000",
-                                    role: _selectedRole,
-                                  ),
-                                ),
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Please fill in email and password to log in.')),
                               );
                             }
                           },
@@ -338,17 +310,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         height: 56,
                         child: OutlinedButton(
                           onPressed: () {
-                            AppStateScope.of(context).loginAs(_selectedRole);
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => OTPScreen(
-                                  phoneNumber: _identifierController.text.trim().isEmpty
-                                      ? "+234 801 234 5678"
-                                      : _identifierController.text.trim(),
-                                  role: _selectedRole,
-                                ),
-                              ),
-                            );
+                            final phone = _identifierController.text.trim();
+                            if (phone.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Please enter your phone number first.')),
+                              );
+                              return;
+                            }
+                            _requestOTP(phone);
                           },
                           style: OutlinedButton.styleFrom(
                             backgroundColor: Colors.white,
@@ -437,29 +406,39 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildRoleChip(String role) {
-    final bool isSelected = _selectedRole == role;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _selectedRole = role),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF001F3F) : const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: isSelected ? const Color(0xFF001F3F) : const Color(0xFFE2E8F0)),
-          ),
-          child: Text(
-            role,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: isSelected ? Colors.white : const Color(0xFF001F3F),
-            ),
-          ),
+  Future<void> _requestOTP(String phone) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF4500)),
         ),
       ),
     );
+    try {
+      final res = await AppStateScope.of(context).requestLoginOTP(phone);
+      final int challengeId = res['challenge_id'] ?? 0;
+      if (mounted) {
+        Navigator.of(context).pop(); // Dismiss loading
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => OTPScreen(
+              phoneNumber: phone,
+              role: 'Client',
+              challengeId: challengeId,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop(); // Dismiss loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
+      }
+    }
   }
 }
+

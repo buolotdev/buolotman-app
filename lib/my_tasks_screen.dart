@@ -29,7 +29,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
     return GetBuilder<AppState>(
       builder: (appState) {
         final isClient = appState.currentRole == 'Client';
-        final tasks = isClient ? appState.clientTasks : appState.openMarketplaceTasks;
+        final tasks = appState.tasks;
         final savedServices = appState.savedServices;
 
         return Scaffold(

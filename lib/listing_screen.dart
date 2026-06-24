@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'app_state.dart';
-import 'app_models.dart';
 import 'browse_tasks_screen.dart';
 import 'company_profile_screen.dart';
 import 'profile_screen.dart';
@@ -132,10 +131,6 @@ class _ListingScreenState extends State<ListingScreen> {
         );
       },
     );
-  }
-
-  bool _matchesQuery(String text, String query) {
-    return query.isEmpty || text.toLowerCase().contains(query);
   }
 
   bool _matchesServiceFilter(dynamic service) {

@@ -104,7 +104,6 @@ def category_detail(request, category_id):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-@cached("skills", ttl=600)
 def skill_list(request):
     category_slug = request.query_params.get('category')
     skills = Skill.objects.all()
@@ -378,12 +377,20 @@ def task_questions(request, task_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def my_tasks(request):
-    tasks = (
-        Task.objects
-        .filter(client=request.user)
-        .select_related('category', 'assigned_to')
-        .annotate(accepted_bids_count=Count('bids', filter=Q(bids__status='accepted')))
-    )
+    if request.user.role in ['TECHNICIAN', 'COMPANY']:
+        tasks = (
+            Task.objects
+            .filter(assigned_to=request.user)
+            .select_related('category', 'client')
+            .annotate(accepted_bids_count=Count('bids', filter=Q(bids__status='accepted')))
+        )
+    else:
+        tasks = (
+            Task.objects
+            .filter(client=request.user)
+            .select_related('category', 'assigned_to')
+            .annotate(accepted_bids_count=Count('bids', filter=Q(bids__status='accepted')))
+        )
     status_filter = request.query_params.get('status')
     if status_filter:
         tasks = tasks.filter(status=status_filter)

@@ -5,7 +5,8 @@ import 'main_navigation_screen.dart';
 class OTPScreen extends StatefulWidget {
   final String phoneNumber;
   final String role;
-  const OTPScreen({super.key, required this.phoneNumber, this.role = 'Client'});
+  final int challengeId;
+  const OTPScreen({super.key, required this.phoneNumber, this.role = 'Client', required this.challengeId});
 
   @override
   State<OTPScreen> createState() => _OTPScreenState();
@@ -56,11 +57,44 @@ class _OTPScreenState extends State<OTPScreen> {
               width: double.infinity,
               height: 56,
                 child: ElevatedButton(
-                  onPressed: () {
-                    AppStateScope.of(context).loginAs(widget.role);
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => MainNavigationScreen(role: widget.role)),
+                  onPressed: () async {
+                    final code = _controllers.map((c) => c.text.trim()).join();
+                    if (code.length < 4) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please enter a 4-digit code.')),
+                      );
+                      return;
+                    }
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF4500)),
+                        ),
+                      ),
                     );
+                    try {
+                      await AppStateScope.of(context).verifyOTPAndLogin(widget.challengeId, code);
+                      if (context.mounted) {
+                        Navigator.of(context).pop(); // Dismiss loading
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                            builder: (context) => MainNavigationScreen(
+                              role: AppStateScope.of(context).currentRole,
+                            ),
+                          ),
+                          (route) => false,
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        Navigator.of(context).pop(); // Dismiss loading
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+                        );
+                      }
+                    }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFF4500),

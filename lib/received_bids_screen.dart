@@ -114,14 +114,18 @@ class ReceivedBidsScreen extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(24),
-                child: Image.asset(bid.avatar, width: 48, height: 48, fit: BoxFit.cover, errorBuilder: (c, e, s) {
-                  return Container(
+                child: buildAvatarImage(
+                  bid.avatar,
+                  width: 48,
+                  height: 48,
+                  fit: BoxFit.cover,
+                  fallback: Container(
                     width: 48,
                     height: 48,
                     color: const Color(0xFF001F3F),
                     child: const Icon(Icons.person, color: Colors.white),
-                  );
-                }),
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(

@@ -59,7 +59,7 @@ class CompanyProfileScreen extends StatelessWidget {
                         _buildSectionTitle('Our Team'),
                         _buildTeamScroll(appState),
                         _buildSectionTitle('Portfolio'),
-                        _buildPortfolioGrid(),
+                        _buildPortfolioGrid(appState),
                         const SizedBox(height: 28),
                         _buildPrimaryActions(context, appState),
                         const SizedBox(height: 12),
@@ -172,14 +172,18 @@ class CompanyProfileScreen extends StatelessWidget {
   }
 
   Widget _buildStats(AppState appState) {
+    final rating = appState.companyProfile?['average_rating']?.toString() ?? '4.9';
+    final completed = appState.companyProfile?['completed_tasks']?.toString() ?? '0';
+    final teamSize = appState.companyProfile?['team_size']?.toString() ?? '1';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildStatItem('4.9', 'Rating', Icons.star),
-          _buildStatItem(appState.openMarketplaceTasks.length.toString(), 'Projects', Icons.done_all),
-          _buildStatItem('${appState.services.length + 24}', 'Experts', Icons.people_outline),
+          _buildStatItem(rating, 'Rating', Icons.star),
+          _buildStatItem(completed, 'Completed', Icons.done_all),
+          _buildStatItem(teamSize, 'Team Size', Icons.people_outline),
         ],
       ),
     );
@@ -226,12 +230,14 @@ class CompanyProfileScreen extends StatelessWidget {
   }
 
   Widget _buildOverview(AppState appState) {
+    final about = appState.companyProfile?['about']?.toString();
+    final description = about != null && about.isNotEmpty
+        ? about
+        : 'Registered contractor profile with services, project tracking, and compliance flows.';
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Text(
-        appState.currentUser.role == 'Company'
-            ? 'BuildRight Construction handles residential and commercial work with role-based service publishing, messaging, and project management.'
-            : 'Company profiles show verification, services, teams, and project tooling for the selected role.',
+        description,
         style: const TextStyle(color: Color(0xFF64748B), height: 1.5, fontSize: 15),
       ),
     );
@@ -257,12 +263,17 @@ class CompanyProfileScreen extends StatelessWidget {
   }
 
   Widget _buildTeamScroll(AppState appState) {
-    final team = [
-      {'name': appState.currentUser.name, 'role': appState.currentUser.tagline, 'image': appState.currentUser.avatar},
-      {'name': 'M. Diallo', 'role': 'Site Supervisor', 'image': 'assets/images/onboard1.jpg'},
-      {'name': 'A. Mensah', 'role': 'Project Lead', 'image': 'assets/images/onboard2.jpg'},
-      {'name': 'J. Kim', 'role': 'Estimator', 'image': 'assets/images/onboard3.jpg'},
+    final int teamSize = int.tryParse(appState.companyProfile?['team_size']?.toString() ?? '1') ?? 1;
+    final List<Map<String, String>> team = [
+      {'name': appState.currentUser.name, 'role': 'Managing Director', 'image': appState.currentUser.avatar},
     ];
+    for (int i = 1; i < teamSize; i++) {
+      team.add({
+        'name': 'Staff Member $i',
+        'role': 'Technical Support',
+        'image': 'assets/images/onboard1.jpg',
+      });
+    }
 
     return SizedBox(
       height: 104,
@@ -272,6 +283,7 @@ class CompanyProfileScreen extends StatelessWidget {
         itemCount: team.length,
         itemBuilder: (context, index) {
           final member = team[index];
+          final img = member['image']!;
           return Container(
             width: 124,
             margin: const EdgeInsets.only(right: 12),
@@ -283,16 +295,19 @@ class CompanyProfileScreen extends StatelessWidget {
             ),
             child: Column(
               children: [
-                CircleAvatar(radius: 20, backgroundImage: AssetImage(member['image'] as String)),
+                CircleAvatar(
+                  radius: 20,
+                  backgroundImage: img.startsWith('http') ? NetworkImage(img) : AssetImage(img) as ImageProvider,
+                ),
                 const SizedBox(height: 8),
                 Text(
-                  member['name'] as String,
+                  member['name']!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF001F3F)),
                 ),
                 Text(
-                  member['role'] as String,
+                  member['role']!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
@@ -305,13 +320,17 @@ class CompanyProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPortfolioGrid() {
-    final portfolio = [
-      {'title': 'Office Wiring', 'subtitle': 'Brooklyn project', 'image': 'assets/images/work1.png'},
-      {'title': 'Emergency Repair', 'subtitle': '24h response', 'image': 'assets/images/work2.png'},
-      {'title': 'Commercial Setup', 'subtitle': 'Team delivery', 'image': 'assets/images/work1.png'},
-      {'title': 'Inspection Ready', 'subtitle': 'Compliance pass', 'image': 'assets/images/work2.png'},
-    ];
+  Widget _buildPortfolioGrid(AppState appState) {
+    final List<dynamic> projects = appState.companyProfile?['projects'] ?? [];
+    if (projects.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Text(
+          "No registered projects in portfolio yet.",
+          style: TextStyle(color: Color(0xFF64748B), fontStyle: FontStyle.italic),
+        ),
+      );
+    }
 
     return GridView.builder(
       shrinkWrap: true,
@@ -323,9 +342,12 @@ class CompanyProfileScreen extends StatelessWidget {
         mainAxisSpacing: 12,
         childAspectRatio: 0.9,
       ),
-      itemCount: portfolio.length,
+      itemCount: projects.length,
       itemBuilder: (context, index) {
-        final item = portfolio[index];
+        final proj = projects[index];
+        final String title = proj['title'] ?? 'Company Project';
+        final String location = proj['location']?.toString().isNotEmpty == true ? proj['location'] : 'Lagos, Nigeria';
+        final String progress = 'Progress: ${proj['progress'] ?? 0}%';
         return Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
@@ -336,15 +358,22 @@ class CompanyProfileScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(child: Image.asset(item['image'] as String, fit: BoxFit.cover)),
+              Expanded(
+                child: Container(
+                  color: const Color(0xFF001F3F),
+                  child: const Icon(Icons.business, size: 40, color: Colors.white70),
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(item['title'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
+                    Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
                     const SizedBox(height: 2),
-                    Text(item['subtitle'] as String, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                    Text(location, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                    const SizedBox(height: 2),
+                    Text(progress, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFFF4500))),
                   ],
                 ),
               ),

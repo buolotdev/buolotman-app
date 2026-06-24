@@ -21,8 +21,12 @@ def company_profile(request):
         return Response({"error": "Company profile not found"}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        serializer = CompanyProfileSerializer(profile)
-        return Response(serializer.data)
+        data = CompanyProfileSerializer(profile).data
+        data['projects'] = CompanyProjectSerializer(profile.projects.all()[:5], many=True).data
+        data['services'] = CompanyServiceSerializer(profile.services.all(), many=True).data
+        data['certifications'] = CompanyCertificationSerializer(profile.certifications.all(), many=True).data
+        data['reviews'] = CompanyReviewSerializer(profile.reviews.all()[:10], many=True).data
+        return Response(data)
     elif request.method == 'PATCH':
         serializer = CompanyProfileSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
@@ -49,16 +53,21 @@ def company_public_profile(request, company_id):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-@cached("list_companies", ttl=120)
 def list_companies(request):
     limit = int(request.query_params.get('limit', '12'))
-    qs = CompanyProfile.objects.select_related('user').order_by('-created_at')[:max(1, min(limit, 50))]
+    from django.db.models import Count
+    qs = CompanyProfile.objects.select_related('user').annotate(
+        projects_count_ann=Count('projects', distinct=True),
+        services_count_ann=Count('services', distinct=True),
+        reviews_count_ann=Count('reviews', distinct=True)
+    ).order_by('-created_at')[:max(1, min(limit, 50))]
+    
     data = []
     for profile in qs:
         item = CompanyProfileSerializer(profile).data
-        item['projects_count'] = profile.projects.count()
-        item['services_count'] = profile.services.count()
-        item['reviews_count'] = profile.reviews.count()
+        item['projects_count'] = profile.projects_count_ann
+        item['services_count'] = profile.services_count_ann
+        item['reviews_count'] = profile.reviews_count_ann
         data.append(item)
     return Response(data)
 

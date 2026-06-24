@@ -10,6 +10,7 @@ import 'post_task_screen.dart';
 import 'wallet_screen.dart';
 import 'company_profile_screen.dart';
 import 'post_service_screen.dart';
+import 'admin_panel_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   final int initialIndex;
@@ -59,6 +60,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         {'index': 1, 'icon': Icons.assignment_turned_in_outlined, 'label': 'Projects'},
         {'index': 2, 'icon': Icons.chat_bubble_outline, 'label': 'Inbox'},
         {'index': 3, 'icon': Icons.storefront, 'label': 'Profile'},
+      ];
+    } else if (role == 'Admin') {
+      _screens = [
+        const AdminPanelScreen(),
+        const MessagesScreen(),
+        const WalletScreen(),
+        const ProfileScreen(isTechnician: false),
+      ];
+      _tabs = [
+        {'index': 0, 'icon': Icons.admin_panel_settings_outlined, 'label': 'Admin'},
+        {'index': 1, 'icon': Icons.chat_bubble_outline, 'label': 'Inbox'},
+        {'index': 2, 'icon': Icons.account_balance_wallet_outlined, 'label': 'Escrow'},
+        {'index': 3, 'icon': Icons.person_outline, 'label': 'Profile'},
       ];
     } else {
       // Default: Client

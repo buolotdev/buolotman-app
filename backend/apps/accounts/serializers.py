@@ -37,7 +37,8 @@ class UserPublicSerializer(serializers.ModelSerializer):
         services = getattr(obj, "technician_services", None)
         if services is None:
             return []
-        return TechnicianServicePublicSerializer(services.filter(is_active=True), many=True).data
+        active_services = [s for s in services.all() if s.is_active]
+        return TechnicianServicePublicSerializer(active_services, many=True).data
 
 
 class ClientRegistrationSerializer(serializers.ModelSerializer):

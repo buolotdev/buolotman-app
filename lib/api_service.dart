@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -6,8 +7,16 @@ class ApiService {
 
   static final ApiService instance = ApiService._privateConstructor();
 
-  // Change this URL if the backend is running on a physical device (e.g. http://192.168.x.x:8000/api)
-  String baseUrl = 'http://192.168.0.101:8000/api';
+  String get baseUrl {
+    if (kIsWeb) {
+      final host = Uri.base.host;
+      if (host.isNotEmpty) {
+        return 'http://$host:8000/api';
+      }
+    }
+    // Fallback for non-web environments (e.g. localhost or 10.0.2.2 for Android emulator)
+    return 'http://127.0.0.1:8000/api';
+  }
 
   String? _accessToken;
   String? _refreshToken;
@@ -528,6 +537,74 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Search request failed.');
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchCompanyProfile() async {
+    final response = await get('/company/profile/');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load company profile.');
+    }
+  }
+
+  Future<Map<String, dynamic>> requestPhoneOTP(String phone, {String? email, String purpose = 'verification'}) async {
+    final response = await post('/auth/otp/request/', {
+      'phone': phone,
+      if (email != null) 'email': email,
+      'purpose': purpose,
+    }, requireAuth: false);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to request OTP. Please enter a valid number.');
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyPhoneOTP(int challengeId, String code) async {
+    final response = await post('/auth/otp/verify/', {
+      'challenge_id': challengeId,
+      'code': code,
+    }, requireAuth: false);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Invalid verification code.');
+    }
+  }
+
+  Future<List<dynamic>> fetchAdminUsers() async {
+    final response = await get('/auth/admin/users/');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load user directories for admin.');
+    }
+  }
+
+  Future<void> adminVerifyUser(int userId) async {
+    final response = await post('/auth/admin/users/$userId/verify/', {});
+    if (response.statusCode != 200) {
+      throw Exception('Failed to verify user.');
+    }
+  }
+
+  Future<void> adminSuspendUser(int userId) async {
+    final response = await post('/auth/admin/users/$userId/suspend/', {});
+    if (response.statusCode != 200) {
+      throw Exception('Failed to suspend/unsuspend user.');
+    }
+  }
+
+  Future<List<dynamic>> fetchAdminTasks() async {
+    final response = await get('/auth/admin/tasks/');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load tasks for admin review.');
     }
   }
 

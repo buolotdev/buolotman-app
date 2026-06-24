@@ -3,7 +3,6 @@ import 'package:intl_phone_field/intl_phone_field.dart';
 
 import 'app_state.dart';
 import 'login_screen.dart';
-import 'otp_screen.dart';
 import 'main_navigation_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -463,16 +462,10 @@ class _SignupScreenState extends State<SignupScreen> {
                       const SizedBox(height: 24),
 
                       // Social Buttons
-                      OutlinedButton(
+                       OutlinedButton(
                         onPressed: () {
-                          AppStateScope.of(context).loginAs(_selectedRole);
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => OTPScreen(
-                                phoneNumber: _phoneNumber.isEmpty ? '+234 801 234 5678' : _phoneNumber,
-                                role: _selectedRole,
-                              ),
-                            ),
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Social signup is temporarily unavailable. Please register via the form.")),
                           );
                         },
                         style: OutlinedButton.styleFrom(

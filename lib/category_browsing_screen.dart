@@ -373,7 +373,7 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(99),
-                          child: Image.asset(pro['avatar']!, width: 64, height: 64, fit: BoxFit.cover),
+                          child: buildAvatarImage(pro['avatar']!, width: 64, height: 64, fit: BoxFit.cover),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -447,7 +447,7 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
                         children: [
                           ClipRRect(
                             borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                            child: Image.asset(service['image'], height: 160, width: double.infinity, fit: BoxFit.cover),
+                            child: buildAvatarImage(service['image'], height: 160, width: double.infinity, fit: BoxFit.cover),
                           ),
                           if (service['badge'] != null)
                             Positioned(
@@ -513,7 +513,7 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(16),
-                                  child: Image.asset(service['providerImg'], width: 32, height: 32, fit: BoxFit.cover),
+                                  child: buildAvatarImage(service['providerImg'], width: 32, height: 32, fit: BoxFit.cover),
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
