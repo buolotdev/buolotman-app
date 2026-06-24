@@ -105,43 +105,37 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFEFEFF),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header Nav
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF1F5F9),
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.arrow_back,
-                        size: 20,
-                        color: Color(0xFF001F3F),
-                      ),
-                    ),
-                  ),
-                ],
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFFEFEFF),
+        elevation: 0,
+        leading: Center(
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF1F5F9),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: const Icon(
+                Icons.arrow_back,
+                size: 20,
+                color: Color(0xFF001F3F),
               ),
             ),
-            
-            // Expanded scrollable form
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
+          ),
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
                       // Header Text
                       const Text(
                         "Create Account",
@@ -538,9 +532,6 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }

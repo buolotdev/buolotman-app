@@ -7,7 +7,7 @@ class ApiService {
   static final ApiService instance = ApiService._privateConstructor();
 
   // Change this URL if the backend is running on a physical device (e.g. http://192.168.x.x:8000/api)
-  String baseUrl = 'http://127.0.0.1:8000/api';
+  String baseUrl = 'http://192.168.0.101:8000/api';
 
   String? _accessToken;
   String? _refreshToken;

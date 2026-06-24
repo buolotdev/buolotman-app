@@ -38,10 +38,11 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
 
         return Scaffold(
           backgroundColor: const Color(0xFFF4F6F8),
-          body: Column(
-            children: [
-              _buildHeader(context),
-              _buildSearchAndFilters(),
+          body: SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(context),
+                _buildSearchAndFilters(),
               Expanded(
                 child: ListView.builder(
                   physics: const BouncingScrollPhysics(),
@@ -52,6 +53,7 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
               ),
             ],
           ),
+         ),
         );
       },
     );
@@ -60,7 +62,7 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
   Widget _buildHeader(BuildContext context) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 26, 16, 14),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
       child: Row(
         children: [
           Container(
