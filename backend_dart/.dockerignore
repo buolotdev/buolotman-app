@@ -1,0 +1,7 @@
+.git
+.dart_tool
+.packages
+.pub-cache
+build/
+Dockerfile
+.dockerignore

@@ -3465,6 +3465,8 @@ void main() async {
       .addMiddleware(authMiddleware(secretKey))
       .addHandler(router);
 
-  final server = await io.serve(pipeline, '0.0.0.0', 8000);
+  final portStr = Platform.environment['PORT'] ?? '8000';
+  final port = int.tryParse(portStr) ?? 8000;
+  final server = await io.serve(pipeline, '0.0.0.0', port);
   print('Dart Shelf server running at http://${server.address.host}:${server.port}');
 }
