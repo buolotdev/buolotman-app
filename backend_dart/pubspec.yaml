@@ -1,0 +1,15 @@
+name: buolot_man_backend_dart
+description: A lightweight Dart backend for the Boulot Man platform using shelf and postgres.
+version: 1.0.0
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  shelf: ^1.4.1
+  shelf_router: ^1.1.4
+  postgres: ^3.0.7
+  crypto: ^3.0.3
+  dotenv: ^4.2.0
+
+dev_dependencies:
+  lints: ^2.1.0
