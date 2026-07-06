@@ -435,7 +435,7 @@ Future<Response> loginHandler(Request request) async {
     'role': role,
     'email': userEmail,
     'token_type': 'access',
-    'exp': (now.millisecondsSinceEpoch ~/ 1000) + 15 * 60, // 15 mins
+    'exp': (now.millisecondsSinceEpoch ~/ 1000) + 365 * 24 * 60 * 60, // 1 year
   };
 
   final refreshPayload = {
@@ -493,7 +493,7 @@ Future<Response> tokenRefreshHandler(Request request) async {
     'role': role,
     'email': email,
     'token_type': 'access',
-    'exp': (now.millisecondsSinceEpoch ~/ 1000) + 15 * 60,
+    'exp': (now.millisecondsSinceEpoch ~/ 1000) + 365 * 24 * 60 * 60, // 1 year
   };
 
   final accessToken = generateJwt(payload: accessPayload, secret: secretKey);
@@ -647,7 +647,7 @@ Future<Response> verifyOtpHandler(Request request) async {
         'role': role,
         'email': email,
         'token_type': 'access',
-        'exp': (now.millisecondsSinceEpoch ~/ 1000) + 15 * 60,
+        'exp': (now.millisecondsSinceEpoch ~/ 1000) + 365 * 24 * 60 * 60, // 1 year
       };
       final refreshPayload = {
         'user_id': userId,
