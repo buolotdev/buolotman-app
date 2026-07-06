@@ -538,19 +538,30 @@ class AppState extends GetxController {
         final taskIdStr = b['task_id']?.toString() ?? '';
         final double amount = double.tryParse(b['amount']?.toString() ?? '0.0') ?? 0.0;
         final isAccepted = b['status']?.toString().toLowerCase() == 'accepted';
+        final tech = b['technician'] as Map<String, dynamic>? ?? {};
+        final String firstName = tech['first_name'] ?? '';
+        final String lastName = tech['last_name'] ?? '';
+        final String bidderName = (firstName.isEmpty && lastName.isEmpty)
+            ? (b['technician'] != null ? '${b['technician']['first_name'] ?? ''} ${b['technician']['last_name'] ?? ''}'.trim() : _currentUser.name)
+            : '$firstName $lastName'.trim();
+        final String avatar = (tech['avatar_url']?.toString().isNotEmpty == true)
+            ? tech['avatar_url']
+            : ((b['technician'] != null && b['technician']['avatar_url'] != null && b['technician']['avatar_url'].toString().isNotEmpty) ? b['technician']['avatar_url'] : 'assets/images/onboard1.jpg');
+
         return BidItem(
           id: b['id']?.toString() ?? '',
           taskId: taskIdStr,
-          bidderName: b['technician'] != null ? '${b['technician']['first_name'] ?? ''} ${b['technician']['last_name'] ?? ''}'.trim() : _currentUser.name,
+          bidderName: bidderName.isEmpty ? _currentUser.name : bidderName,
           skill: 'Professional Provider',
           rating: 4.8,
           reviews: 50,
           price: amount,
           timeline: b['duration'] ?? '3 days',
           message: b['message'] ?? '',
-          avatar: (b['technician'] != null && b['technician']['avatar_url'] != null && b['technician']['avatar_url'].toString().isNotEmpty) ? b['technician']['avatar_url'] : 'assets/images/onboard1.jpg',
+          avatar: avatar,
           role: 'Technician',
           isAccepted: isAccepted,
+          technicianId: tech['id']?.toString() ?? _currentUser.id.toString(),
         );
       }).toList();
       update();
@@ -596,19 +607,40 @@ class AppState extends GetxController {
       final int id = int.tryParse(taskId) ?? 0;
       final backendBids = await ApiService.instance.fetchTaskBids(id);
       return backendBids.map((b) {
+        final tech = b['technician'] as Map<String, dynamic>? ?? {};
+        final String firstName = tech['first_name'] ?? '';
+        final String lastName = tech['last_name'] ?? '';
+        final String bidderName = (firstName.isEmpty && lastName.isEmpty)
+            ? (tech['email']?.toString().split('@').first ?? 'Technician')
+            : '$firstName $lastName'.trim();
+        final String avatar = (tech['avatar_url']?.toString().isNotEmpty == true)
+            ? tech['avatar_url']
+            : 'assets/images/onboard1.jpg';
+
+        final matchedPro = _publicPros.firstWhere(
+          (u) => u['id']?.toString() == tech['id']?.toString(),
+          orElse: () => <String, dynamic>{},
+        );
+
+        final List<dynamic> matchedSkills = matchedPro['skills'] is List ? matchedPro['skills'] : [];
+        final String skill = matchedSkills.isNotEmpty ? matchedSkills.first.toString() : 'Professional Provider';
+        final double rating = double.tryParse(matchedPro['rating']?.toString() ?? '') ?? 4.8;
+        final int reviews = int.tryParse(matchedPro['reviews']?.toString() ?? '') ?? 50;
+
         return BidItem(
           id: b['id']?.toString() ?? '',
           taskId: taskId,
-          bidderName: b['technician_name'] ?? 'Technician',
-          skill: 'Professional Provider',
-          rating: double.tryParse(b['technician_rating']?.toString() ?? '4.8') ?? 4.8,
-          reviews: 50,
+          bidderName: bidderName,
+          skill: skill,
+          rating: rating,
+          reviews: reviews,
           price: double.tryParse(b['amount']?.toString() ?? '0') ?? 0.0,
           timeline: b['duration'] ?? '3 days',
           message: b['message'] ?? '',
-          avatar: 'assets/images/onboard1.jpg',
-          role: 'Technician',
+          avatar: avatar,
+          role: tech['role'] ?? 'Technician',
           isAccepted: b['status']?.toString().toLowerCase() == 'accepted',
+          technicianId: tech['id']?.toString(),
         );
       }).toList();
     } catch (e) {

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'app_state.dart';
-import 'company_profile_screen.dart';
 import 'technician_public_profile_screen.dart';
 
 class ReceivedBidsScreen extends StatelessWidget {
@@ -156,12 +155,7 @@ class ReceivedBidsScreen extends StatelessWidget {
                 child: OutlinedButton(
                   onPressed: () {
                     final matchedPro = appState.publicPros.firstWhere(
-                      (u) {
-                        final String name = '${u['first_name'] ?? ''} ${u['last_name'] ?? ''}'.trim().isNotEmpty
-                            ? '${u['first_name']} ${u['last_name']}'.trim()
-                            : (u['username'] ?? '');
-                        return name.toLowerCase() == bid.bidderName.toLowerCase();
-                      },
+                      (u) => u['id']?.toString() == bid.technicianId?.toString(),
                       orElse: () => <String, dynamic>{},
                     );
 
@@ -174,7 +168,7 @@ class ReceivedBidsScreen extends StatelessWidget {
                           price: '\$${bid.price.toStringAsFixed(0)}/hr',
                           rating: '${bid.rating} (${bid.reviews})',
                           rawData: matchedPro.isNotEmpty ? matchedPro : {
-                            'id': bid.id,
+                            'id': bid.technicianId ?? bid.id,
                             'first_name': bid.bidderName,
                             'avatar_url': bid.avatar,
                             'bio': 'Registered professional technician.',

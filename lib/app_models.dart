@@ -248,6 +248,7 @@ class BidItem {
     required this.role,
     this.isBestValue = false,
     this.isAccepted = false,
+    this.technicianId,
   });
 
   final String id;
@@ -263,6 +264,7 @@ class BidItem {
   final String role;
   final bool isBestValue;
   final bool isAccepted;
+  final String? technicianId;
 
   BidItem copyWith({
     String? id,
@@ -278,6 +280,7 @@ class BidItem {
     String? role,
     bool? isBestValue,
     bool? isAccepted,
+    String? technicianId,
   }) {
     return BidItem(
       id: id ?? this.id,
@@ -293,6 +296,7 @@ class BidItem {
       role: role ?? this.role,
       isBestValue: isBestValue ?? this.isBestValue,
       isAccepted: isAccepted ?? this.isAccepted,
+      technicianId: technicianId ?? this.technicianId,
     );
   }
 }
