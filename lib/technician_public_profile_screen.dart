@@ -164,10 +164,19 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
                       const SizedBox(height: 28),
                       _buildSectionHeader("About Professional"),
                       const SizedBox(height: 10),
-                      Text(
-                        bio,
-                        style: const TextStyle(fontSize: 14, color: Color(0xFF64748B), height: 1.6),
-                      ),
+                      _isLoading
+                          ? const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8.0),
+                              child: SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))),
+                              ),
+                            )
+                          : Text(
+                              bio,
+                              style: const TextStyle(fontSize: 14, color: Color(0xFF64748B), height: 1.6),
+                            ),
                       const SizedBox(height: 28),
                       _buildSectionHeader("Personal Details"),
                       const SizedBox(height: 12),
@@ -177,26 +186,61 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
                       const SizedBox(height: 28),
                       _buildSectionHeader("Specialties"),
                       const SizedBox(height: 12),
-                      _buildSpecialtyTags(specialties),
+                      _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))),
+                            )
+                          : _buildSpecialtyTags(specialties),
                       const SizedBox(height: 28),
                       _buildSectionHeader("Experience"),
                       const SizedBox(height: 10),
-                      Text(
-                        experience.isNotEmpty ? experience : "No experience history uploaded.",
-                        style: const TextStyle(fontSize: 14, color: Color(0xFF64748B), height: 1.6),
-                      ),
+                      _isLoading
+                          ? const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8.0),
+                              child: SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))),
+                              ),
+                            )
+                          : Text(
+                              experience.isNotEmpty ? experience : "No experience history uploaded.",
+                              style: const TextStyle(fontSize: 14, color: Color(0xFF64748B), height: 1.6),
+                            ),
                       const SizedBox(height: 28),
                       _buildSectionHeader("Certifications"),
                       const SizedBox(height: 12),
-                      _buildCertificationsSection(certifications),
+                      _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))),
+                            )
+                          : _buildCertificationsSection(certifications),
                       const SizedBox(height: 28),
                       _buildSectionHeader("Portfolio"),
                       const SizedBox(height: 12),
-                      _buildPortfolioSection(dbPortfolio),
+                      _isLoading
+                          ? const SizedBox(
+                              height: 100,
+                              child: Center(
+                                child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))),
+                              ),
+                            )
+                          : _buildPortfolioSection(dbPortfolio),
                       const SizedBox(height: 28),
                       _buildSectionHeader("Client Reviews"),
                       const SizedBox(height: 12),
-                      _buildReviewsSection(dbReviews),
+                      _isLoading
+                          ? const SizedBox(
+                              height: 60,
+                              child: Center(
+                                child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))),
+                              ),
+                            )
+                          : _buildReviewsSection(dbReviews),
                     ],
                   ),
                 ),
