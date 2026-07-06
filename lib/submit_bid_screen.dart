@@ -20,6 +20,33 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
   );
 
   @override
+  void initState() {
+    super.initState();
+    final appState = Get.find<AppState>();
+    final existingBid = appState.bids.firstWhere(
+      (b) => b.taskId == widget.taskId,
+      orElse: () => const BidItem(
+        id: '',
+        taskId: '',
+        bidderName: '',
+        skill: '',
+        rating: 0,
+        reviews: 0,
+        price: 0,
+        timeline: '1 day',
+        message: 'I can complete this safely with a clear checklist, material coordination, and daily progress updates.',
+        avatar: '',
+        role: '',
+      ),
+    );
+    if (existingBid.id.isNotEmpty) {
+      _amountController.text = existingBid.price.toStringAsFixed(0);
+      _completionTime = existingBid.timeline;
+      _messageController.text = existingBid.message;
+    }
+  }
+
+  @override
   void dispose() {
     _amountController.dispose();
     _messageController.dispose();
@@ -31,11 +58,12 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
     return GetBuilder<AppState>(
       builder: (appState) {
         final task = appState.findTask(widget.taskId)!;
+        final hasBid = appState.bids.any((b) => b.taskId == widget.taskId);
         return Scaffold(
           backgroundColor: const Color(0xFFF1F5F9),
           appBar: AppBar(
             backgroundColor: Colors.white,
-            title: const Text('Submit a Bid', style: TextStyle(color: Color(0xFF001F3F), fontWeight: FontWeight.bold)),
+            title: Text(hasBid ? 'Update Bid' : 'Submit a Bid', style: const TextStyle(color: Color(0xFF001F3F), fontWeight: FontWeight.bold)),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Color(0xFF001F3F)),
               onPressed: () => Navigator.pop(context),
@@ -74,7 +102,7 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text('Send Bid'),
+                    child: Text(hasBid ? 'Update Bid' : 'Send Bid'),
                   ),
                 ),
               ],
