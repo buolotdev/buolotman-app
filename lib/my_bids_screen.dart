@@ -17,6 +17,23 @@ class MyBidsScreen extends StatefulWidget {
 class _MyBidsScreenState extends State<MyBidsScreen> {
   String _activeTab = 'Active';
   final TextEditingController _searchController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      setState(() => _isLoading = true);
+      try {
+        await AppStateScope.of(context).syncBids();
+        await AppStateScope.of(context).syncTasks();
+      } catch (e) {
+        debugPrint('Sync bids error: $e');
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -28,6 +45,15 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
   Widget build(BuildContext context) {
     return GetBuilder<AppState>(
       builder: (appState) {
+        if (_isLoading) {
+          return const Scaffold(
+            backgroundColor: Color(0xFFF4F6F8),
+            body: Center(
+              child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))),
+            ),
+          );
+        }
+
         final roleBids = appState.bids.where((bid) {
           return bid.role == appState.currentRole || bid.bidderName == appState.currentUser.name;
         }).toList();
@@ -75,6 +101,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
   }
 
   Widget _buildHeader() {
+    final canPop = Navigator.canPop(context);
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.all(16),
@@ -83,22 +110,43 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
         children: [
           Row(
             children: [
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: const Icon(Icons.arrow_back, color: Color(0xFF001F3F)),
-              ),
-              const SizedBox(width: 16),
+              if (canPop) ...[
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(Icons.arrow_back, color: Color(0xFF001F3F)),
+                ),
+                const SizedBox(width: 16),
+              ],
               const Text(
                 'My Bids',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF001F3F)),
               ),
             ],
           ),
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(20)),
-            child: const Icon(Icons.notifications_none, color: Color(0xFF001F3F), size: 20),
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.refresh, color: Color(0xFF001F3F)),
+                onPressed: () async {
+                  setState(() => _isLoading = true);
+                  try {
+                    await AppStateScope.of(context).syncBids();
+                    await AppStateScope.of(context).syncTasks();
+                  } catch (e) {
+                    debugPrint('Refresh bids error: $e');
+                  } finally {
+                    if (mounted) setState(() => _isLoading = false);
+                  }
+                },
+              ),
+              const SizedBox(width: 4),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(20)),
+                child: const Icon(Icons.notifications_none, color: Color(0xFF001F3F), size: 20),
+              ),
+            ],
           ),
         ],
       ),

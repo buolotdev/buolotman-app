@@ -19,12 +19,20 @@ class MyTasksScreen extends StatefulWidget {
 
 class _MyTasksScreenState extends State<MyTasksScreen> {
   String _activeTab = 'Active';
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      AppStateScope.of(context).syncTasks();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      setState(() => _isLoading = true);
+      try {
+        await AppStateScope.of(context).syncTasks();
+      } catch (e) {
+        debugPrint('Sync tasks error: $e');
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
     });
   }
 
@@ -32,6 +40,15 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
   Widget build(BuildContext context) {
     return GetBuilder<AppState>(
       builder: (appState) {
+        if (_isLoading) {
+          return const Scaffold(
+            backgroundColor: Color(0xFFF4F6F8),
+            body: Center(
+              child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))),
+            ),
+          );
+        }
+
         final isClient = appState.currentRole == 'Client';
         final tasks = appState.tasks;
         final savedServices = appState.savedServices;
@@ -46,6 +63,21 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
               style: const TextStyle(color: Color(0xFF001F3F), fontWeight: FontWeight.bold),
             ),
             centerTitle: true,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh, color: Color(0xFF001F3F)),
+                onPressed: () async {
+                  setState(() => _isLoading = true);
+                  try {
+                    await AppStateScope.of(context).syncTasks();
+                  } catch (e) {
+                    debugPrint('Refresh tasks error: $e');
+                  } finally {
+                    if (mounted) setState(() => _isLoading = false);
+                  }
+                },
+              ),
+            ],
           ),
           body: Column(
             children: [

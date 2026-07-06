@@ -19,11 +19,20 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
   String _budgetFilter = 'Any';
   final TextEditingController _searchController = TextEditingController();
 
+  bool _isLoading = false;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      AppStateScope.of(context).syncTasks();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      setState(() => _isLoading = true);
+      try {
+        await AppStateScope.of(context).syncTasks();
+      } catch (e) {
+        debugPrint('Sync tasks error: $e');
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
     });
   }
 
@@ -109,6 +118,15 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
   Widget build(BuildContext context) {
     return GetBuilder<AppState>(
       builder: (appState) {
+        if (_isLoading) {
+          return const Scaffold(
+            backgroundColor: Color(0xFFF4F6F8),
+            body: Center(
+              child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))),
+            ),
+          );
+        }
+
         final bottomPadding = MediaQuery.of(context).padding.bottom + 120;
         final tasks = appState.openMarketplaceTasks.where((task) {
           // Category filter
@@ -195,6 +213,19 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
                 Text('Browse live work near you', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
               ],
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Color(0xFF001F3F)),
+            onPressed: () async {
+              setState(() => _isLoading = true);
+              try {
+                await AppStateScope.of(context).syncTasks();
+              } catch (e) {
+                debugPrint('Refresh tasks error: $e');
+              } finally {
+                if (mounted) setState(() => _isLoading = false);
+              }
+            },
           ),
           IconButton(
             icon: const Icon(Icons.chat_bubble_outline, color: Color(0xFF001F3F)),
