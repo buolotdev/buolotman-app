@@ -86,11 +86,15 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
 
     final double ratingVal = double.tryParse(dataMap['average_rating']?.toString() ?? '') ?? 0.0;
     final int reviewsVal = int.tryParse(dataMap['completed_jobs']?.toString() ?? '') ?? 0;
-    final String ratingStr = ratingVal.toStringAsFixed(1);
-    final String ratingText = (ratingVal > 0) ? '$ratingStr ($reviewsVal)' : widget.rating;
+    final String ratingStr = ratingVal > 0 ? ratingVal.toStringAsFixed(1) : '0.0';
+    final String ratingText = '$ratingStr ($reviewsVal)';
 
     final double hourlyRateVal = double.tryParse(dataMap['hourly_rate']?.toString() ?? '') ?? 0.0;
     final String priceText = hourlyRateVal > 0 ? '\$${hourlyRateVal.toStringAsFixed(0)}/hr' : widget.price;
+
+    final String avatarUrl = (dataMap['avatar_url']?.toString().isNotEmpty == true)
+        ? dataMap['avatar_url']
+        : widget.avatar;
 
     final String availability = (dataMap['availability_status']?.toString() ?? 'available').toLowerCase();
     Color availColor = const Color(0xFF16A34A); // Green
@@ -147,7 +151,7 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeroHeader(ratingText, priceText, availColor, availText),
+                _buildHeroHeader(avatarUrl, ratingText, priceText, availColor, availText),
                 const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
                 Padding(
                   padding: const EdgeInsets.all(20.0),
@@ -202,7 +206,7 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
     );
   }
 
-  Widget _buildHeroHeader(String rating, String price, Color availColor, String availText) {
+  Widget _buildHeroHeader(String avatarUrl, String rating, String price, Color availColor, String availText) {
     return Container(
       width: double.infinity,
       color: const Color(0xFF001F3F),
@@ -212,10 +216,10 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
           CircleAvatar(
             radius: 44,
             backgroundColor: const Color(0xFFF1F5F9),
-            backgroundImage: (widget.avatar.isNotEmpty && !widget.avatar.contains('onboard'))
-                ? (widget.avatar.startsWith('http') || widget.avatar.startsWith('data:image') ? MemoryImage(base64Decode(widget.avatar.split(',').last)) : AssetImage(widget.avatar) as ImageProvider)
+            backgroundImage: (avatarUrl.isNotEmpty && !avatarUrl.contains('onboard'))
+                ? getAvatarImageProvider(avatarUrl)
                 : null,
-            child: (widget.avatar.isEmpty || widget.avatar.contains('onboard'))
+            child: (avatarUrl.isEmpty || avatarUrl.contains('onboard'))
                 ? const Icon(Icons.person, size: 48, color: Color(0xFF94A3B8))
                 : null,
           ),

@@ -624,8 +624,8 @@ class AppState extends GetxController {
 
         final List<dynamic> matchedSkills = matchedPro['skills'] is List ? matchedPro['skills'] : [];
         final String skill = matchedSkills.isNotEmpty ? matchedSkills.first.toString() : 'Professional Provider';
-        final double rating = double.tryParse(matchedPro['rating']?.toString() ?? '') ?? 4.8;
-        final int reviews = int.tryParse(matchedPro['reviews']?.toString() ?? '') ?? 50;
+        final double rating = double.tryParse((matchedPro['rating'] ?? matchedPro['average_rating'])?.toString() ?? '') ?? 0.0;
+        final int reviews = int.tryParse((matchedPro['reviews'] ?? matchedPro['completed_jobs'])?.toString() ?? '') ?? 0;
 
         return BidItem(
           id: b['id']?.toString() ?? '',
