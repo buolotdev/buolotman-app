@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'app_state.dart';
-import 'category_browsing_screen.dart';
+
 import 'company_profile_screen.dart';
+import 'my_bids_screen.dart';
 import 'listing_screen.dart';
+import 'login_screen.dart';
 import 'search_screen.dart';
 import 'post_task_screen.dart';
+import 'post_task_form_screen.dart';
 import 'post_service_screen.dart';
 import 'browse_tasks_screen.dart';
 import 'my_tasks_screen.dart';
+import 'received_bids_screen.dart';
 import 'task_feed_screen.dart';
 import 'messages_screen.dart';
 import 'notifications_screen.dart';
+import 'browse_professionals_screen.dart';
+
+import 'wallet_screen.dart';
+import 'technician_public_profile_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String role;
@@ -22,8 +30,34 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  String _selectedCategory = 'Plumbing';
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _isRefreshing = false;
+
+  Future<void> _handleRefresh(AppState appState) async {
+    if (_isRefreshing) return;
+    setState(() {
+      _isRefreshing = true;
+    });
+    try {
+      await appState.syncProfile();
+      await appState.syncTasks();
+      await appState.syncPublicData();
+      await appState.syncWallet();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Dashboard refreshed successfully!'), duration: Duration(seconds: 1)),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Refresh failed: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isRefreshing = false;
+        });
+      }
+    }
+  }
 
   final List<Map<String, dynamic>> _categories = [
     {'label': 'Plumbing', 'icon': Icons.opacity},
@@ -56,7 +90,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           body: SafeArea(
             child: Column(
               children: [
-                _buildHeader(greetingName, location),
+                _buildHeader(greetingName, location, appState),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -84,33 +118,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           }),
                           _buildPopularServices(appState),
                         ] else ...[
-                          _buildSearchBar(),
-                          const SizedBox(height: 16),
-                          _buildCategories(),
+                          _buildWalletCard(appState),
                           const SizedBox(height: 24),
                           _buildQuickActionBanner(appState),
                           const SizedBox(height: 28),
-                          _buildSectionHeader("Popular Services", "See all", onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ListingScreen()));
+                          _buildSectionHeader("Your Active Tasks", "Manage", onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MyTasksScreen()));
                           }),
-                          _buildPopularServices(appState),
+                          _buildClientActiveTasks(appState),
                           const SizedBox(height: 28),
-                          _buildSectionHeader("Tasks Near You", "Browse", onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const TaskFeedScreen()));
+                          _buildSectionHeader("Saved Professionals", "Browse All", onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BrowseProfessionalsScreen()));
                           }),
-                          _buildRecentTasks(appState),
-                          const SizedBox(height: 28),
-                          _buildSectionHeader("Featured Companies", "See all", onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const CategoryBrowsingScreen()));
-                          }),
-                          _buildFeaturedCompanies(appState),
-                          const SizedBox(height: 16),
-                          _buildTrustBanner(),
+                          _buildSavedProfessionals(appState),
                           const SizedBox(height: 28),
                           _buildSectionHeader("Top Rated Professionals", "See all", onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ListingScreen()));
+                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BrowseProfessionalsScreen()));
                           }),
                           _buildTopProfessionals(appState),
+                          const SizedBox(height: 16),
+                          _buildTrustBanner(),
                         ],
                         const SizedBox(height: 32),
                       ],
@@ -125,7 +152,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildHeader(String greetingName, String location) {
+  Widget _buildHeader(String greetingName, String location, AppState appState) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 24, 20, 12),
       child: Row(
@@ -142,7 +169,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                   Text(
-                    "Good Morning, $greetingName",
+                    "Welcome back, $greetingName",
                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
                   ),
                   const SizedBox(height: 2),
@@ -154,7 +181,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         location,
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF001F3F)),
                       ),
-                      const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF001F3F)),
                     ],
                   ),
                 ],
@@ -163,6 +189,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           Row(
             children: [
+              GestureDetector(
+                onTap: () => _handleRefresh(appState),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: _isRefreshing
+                      ? const Padding(
+                          padding: EdgeInsets.all(10),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF001F3F)),
+                          ),
+                        )
+                      : const Icon(Icons.refresh, color: Color(0xFF001F3F), size: 20),
+                ),
+              ),
+              const SizedBox(width: 12),
               GestureDetector(
                 onTap: () {
                   Navigator.of(context).push(
@@ -269,61 +317,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildCategories() {
-    return SizedBox(
-      height: 96,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: _categories.length,
-        itemBuilder: (context, index) {
-          final category = _categories[index];
-          final bool isActive = _selectedCategory == category['label'];
-          return Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: GestureDetector(
-              onTap: () => setState(() => _selectedCategory = category['label']),
-              child: Column(
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: isActive ? const Color(0xFF001F3F) : const Color(0xFFF1F5F9),
-                      shape: BoxShape.circle,
-                      boxShadow: isActive ? [
-                        BoxShadow(
-                          color: const Color(0xFF001F3F).withOpacity(0.2),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        )
-                      ] : null,
-                    ),
-                    child: Icon(
-                      category['icon'],
-                      color: isActive ? Colors.white : const Color(0xFF001F3F),
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    category['label'],
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF001F3F),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   Widget _buildQuickActionBanner(AppState appState) {
     String title = "Need something done?";
@@ -342,7 +335,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       buttonText = "Projects";
       onTap = () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MyTasksScreen())); 
     } else {
-      onTap = () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PostTaskScreen()));
+      onTap = () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PostTaskFormScreen()));
     }
 
     return Padding(
@@ -776,21 +769,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
             : (user['username'] ?? 'Technician');
         final String avatar = user['avatar_url']?.toString().isNotEmpty == true ? user['avatar_url'] : 'assets/images/onboard1.jpg';
         final skills = user['skills'] is List ? (user['skills'] as List).join(', ') : 'Technician';
-        final double rating = double.tryParse(user['average_rating']?.toString() ?? '4.8') ?? 4.8;
-        final int completedJobs = int.tryParse(user['completed_jobs']?.toString() ?? '10') ?? 10;
-        final double rate = double.tryParse(user['hourly_rate']?.toString() ?? '45') ?? 45.0;
+        final double rating = double.tryParse(user['average_rating']?.toString() ?? '') ?? 0.0;
+        final int completedJobs = int.tryParse(user['completed_jobs']?.toString() ?? '0') ?? 0;
+        final double rate = double.tryParse(user['hourly_rate']?.toString() ?? '0') ?? 0.0;
         return {
           'name': name,
           'skill': skills.isNotEmpty ? skills : 'Professional Specialist',
-          'rating': '$rating ($completedJobs)',
-          'success': '98%',
-          'price': '\$${rate.toStringAsFixed(0)}/hr',
+          'rating': rating > 0 ? '$rating ($completedJobs)' : '—',
+          'price': rate > 0 ? '\$${rate.toStringAsFixed(0)}/hr' : 'Rate not set',
           'avatar': avatar,
+          'rawData': user,
         };
       }).toList();
 
     return SizedBox(
-      height: 160,
+      height: 185,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -798,7 +791,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         itemCount: professionals.length,
         itemBuilder: (context, index) {
           final pro = professionals[index];
-          final String avatar = pro['avatar']!;
+          final String avatar = pro['avatar'] as String;
           return Container(
             width: 280,
             margin: const EdgeInsets.only(right: 16),
@@ -823,16 +816,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(pro['name']!, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
-                          Text(pro['skill']!, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.w500)),
+                          Text(pro['name'] as String, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
+                          Text(pro['skill'] as String, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.w500)),
                           const SizedBox(height: 4),
                           Row(
                             children: [
                               const Icon(Icons.star, color: Color(0xFFFFB020), size: 14),
                               const SizedBox(width: 4),
-                              Text(pro['rating']!, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
-                              const SizedBox(width: 12),
-                              Text("${pro['success']} Success", style: const TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.w500)),
+                              Text(pro['rating'] as String, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
                             ],
                           ),
                         ],
@@ -846,14 +837,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(pro['price']!, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFFFF4500)),
-                        borderRadius: BorderRadius.circular(4),
+                    Text(pro['price'] as String, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => TechnicianPublicProfileScreen(
+                              name: pro['name'] as String,
+                              skill: pro['skill'] as String,
+                              avatar: pro['avatar'] as String,
+                              price: pro['price'] as String,
+                              rating: pro['rating'] as String,
+                              rawData: pro['rawData'] as Map<String, dynamic>,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: const Color(0xFFFF4500)),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text("View Profile", style: TextStyle(color: Color(0xFFFF4500), fontSize: 14, fontWeight: FontWeight.w600)),
                       ),
-                      child: const Text("View Profile", style: TextStyle(color: Color(0xFFFF4500), fontSize: 14, fontWeight: FontWeight.w600)),
                     ),
                   ],
                 ),
@@ -913,8 +920,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           final String image = co['image']!;
           return GestureDetector(
             onTap: () {
+              // Pass the actual company data so the screen shows the RIGHT company
+              final rawCompany = appState.publicCompanies[index];
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const CompanyProfileScreen()),
+                MaterialPageRoute(builder: (context) => CompanyProfileScreen(companyData: rawCompany)),
               );
             },
             child: Container(
@@ -1093,37 +1102,608 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildCategoryDrawer() {
-    return Drawer(
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
-            width: double.infinity,
-            color: const Color(0xFF001F3F),
-            child: Row(
+    return GetBuilder<AppState>(
+      builder: (appState) {
+        final role = appState.currentRole;
+        final name = appState.currentUser.name;
+        final tagline = appState.currentUser.tagline;
+        final avatar = appState.currentUser.avatar;
+
+        return Drawer(
+          backgroundColor: const Color(0xFFFEFEFF),
+          child: Column(
+            children: [
+              // Header — SafeArea handles punch holes & Dynamic Island
+              SafeArea(
+                bottom: false,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                  color: const Color(0xFF001F3F),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 28,
+                            backgroundColor: const Color(0xFFF1F5F9),
+                            backgroundImage: (avatar.isNotEmpty && !avatar.contains('onboard'))
+                                ? (avatar.startsWith('http') ? NetworkImage(avatar) : AssetImage(avatar) as ImageProvider)
+                                : null,
+                            child: (avatar.isEmpty || avatar.contains('onboard'))
+                                ? const Icon(Icons.person, size: 28, color: Color(0xFF94A3B8))
+                                : null,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  tagline,
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.65),
+                                    fontSize: 12,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF4500).withOpacity(0.18),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFFF4500).withOpacity(0.4)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.circle, color: Color(0xFFFF4500), size: 8),
+                            const SizedBox(width: 6),
+                            Text(
+                              role,
+                              style: const TextStyle(
+                                color: Color(0xFFFF4500),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Navigation Items
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  children: [
+                    _buildDrawerSection('Main'),
+                    _buildDrawerItem(
+                      context: context,
+                      icon: Icons.home_outlined,
+                      label: 'Home',
+                      onTap: () => Navigator.pop(context),
+                    ),
+                    if (role == 'Client') ...[
+                      _buildDrawerItem(
+                        context: context,
+                        icon: Icons.add_task_outlined,
+                        label: 'Post a Task',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PostTaskFormScreen()));
+                        },
+                      ),
+                      _buildDrawerItem(
+                        context: context,
+                        icon: Icons.assignment_outlined,
+                        label: 'My Tasks',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MyTasksScreen()));
+                        },
+                      ),
+                    ],
+                    if (role == 'Technician') ...[
+                      _buildDrawerItem(
+                        context: context,
+                        icon: Icons.grid_view_rounded,
+                        label: 'Browse Tasks',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TaskFeedScreen()));
+                        },
+                      ),
+                      _buildDrawerItem(
+                        context: context,
+                        icon: Icons.handshake_outlined,
+                        label: 'My Bids',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MyBidsScreen()));
+                        },
+                      ),
+                    ],
+                    if (role == 'Company') ...[
+                      _buildDrawerItem(
+                        context: context,
+                        icon: Icons.business_outlined,
+                        label: 'Company Profile',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CompanyProfileScreen()));
+                        },
+                      ),
+                      _buildDrawerItem(
+                        context: context,
+                        icon: Icons.add_business_outlined,
+                        label: 'Post a Service',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.of(context).push(MaterialPageRoute(builder: (_) => PostServiceScreen()));
+                        },
+                      ),
+                    ],
+                    _buildDrawerItem(
+                      context: context,
+                      icon: Icons.chat_bubble_outline,
+                      label: 'Messages',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => MessagesScreen()));
+                      },
+                    ),
+                    if (role != 'Client') ...[
+                      const Divider(height: 24, thickness: 1, indent: 20, endIndent: 20),
+                      _buildDrawerSection('Categories'),
+                      ..._categories.map((cat) => _buildDrawerItem(
+                        context: context,
+                        icon: cat['icon'],
+                        label: cat['label'],
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TaskFeedScreen()));
+                        },
+                      )),
+                    ],
+                    const Divider(height: 24, thickness: 1, indent: 20, endIndent: 20),
+                    _buildDrawerSection('Account'),
+                    _buildDrawerItem(
+                      context: context,
+                      icon: Icons.notifications_outlined,
+                      label: 'Notifications',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+                      },
+                    ),
+                    _buildDrawerItem(
+                      context: context,
+                      icon: Icons.help_outline,
+                      label: 'Help Center',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SearchScreen()));
+                      },
+                    ),
+                    _buildDrawerItem(
+                      context: context,
+                      icon: Icons.logout,
+                      label: 'Log Out',
+                      color: const Color(0xFFB91C1C),
+                      onTap: () {
+                        Navigator.pop(context);
+                        AppStateScope.of(context).logout();
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                          (route) => false,
+                        );
+                      },
+                    ),
+                    // SafeArea bottom padding so last item isn't behind home bar
+                    SafeArea(top: false, child: const SizedBox(height: 8)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDrawerSection(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+      child: Text(
+        title.toUpperCase(),
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF94A3B8),
+          letterSpacing: 1.2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    final itemColor = color ?? const Color(0xFF001F3F);
+    return ListTile(
+      leading: Icon(icon, color: itemColor, size: 22),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+          color: itemColor,
+        ),
+      ),
+      trailing: color == null
+          ? const Icon(Icons.chevron_right, size: 18, color: Color(0xFFCBD5E1))
+          : null,
+      onTap: onTap,
+      dense: true,
+      horizontalTitleGap: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+    );
+  }
+
+  Widget _buildWalletCard(AppState appState) {
+    final balance = appState.walletBalance;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
               children: [
-                const Icon(Icons.category_outlined, color: Colors.white, size: 28),
-                const SizedBox(width: 16),
-                const Text("Categories", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF001F3F).withOpacity(0.06),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.account_balance_wallet, color: Color(0xFF001F3F), size: 22),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Wallet Balance",
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "\$${balance.toStringAsFixed(2)}",
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF001F3F)),
+                    ),
+                  ],
+                ),
               ],
             ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: _categories.length,
-              itemBuilder: (context, index) {
-                final cat = _categories[index];
-                return ListTile(
-                  leading: Icon(cat['icon'], color: const Color(0xFF001F3F)),
-                  title: Text(cat['label'], style: const TextStyle(fontWeight: FontWeight.w600)),
-                  onTap: () => Navigator.pop(context),
-                  trailing: const Icon(Icons.chevron_right, size: 18, color: Color(0xFFCBD5E1)),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const WalletScreen()),
                 );
               },
+              icon: const Icon(Icons.add, size: 16, color: Colors.white),
+              label: const Text("Fund Wallet", style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF4500),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClientActiveTasks(AppState appState) {
+    final myTasks = appState.clientTasks;
+    final activeTasks = myTasks.where((t) => t.status != 'Completed' && t.status != 'Cancelled' && t.status != 'draft').toList();
+
+    if (activeTasks.isEmpty) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.assignment_outlined, size: 40, color: Colors.grey[400]),
+            const SizedBox(height: 10),
+            const Text(
+              "No active tasks at the moment",
+              style: TextStyle(color: Color(0xFF64748B), fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const PostTaskFormScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF001F3F),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
+              child: const Text("Post a Task"),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: activeTasks.take(3).map((task) {
+          return GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => ReceivedBidsScreen(taskId: task.id)),
+              );
+            },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF4500).withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.handyman_outlined, color: Color(0xFFFF4500), size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          task.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF001F3F)),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E8E3E).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                task.status.toUpperCase(),
+                                style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF1E8E3E)),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              task.schedule,
+                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    "\$${task.budget.toStringAsFixed(0)}",
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF001F3F)),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildSavedProfessionals(AppState appState) {
+    final savedTechs = appState.publicPros.where((user) {
+      final idStr = user['id']?.toString() ?? '';
+      return appState.isTechSaved(idStr);
+    }).toList();
+
+    if (savedTechs.isEmpty) {
+      return Container(
+        height: 110,
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.bookmark_border, size: 28, color: Color(0xFF64748B)),
+              SizedBox(height: 6),
+              Text(
+                "No saved professionals yet",
+                style: TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+            ],
           ),
-        ],
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 150,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: savedTechs.length,
+        itemBuilder: (context, index) {
+          final user = savedTechs[index];
+          final String name = '${user['first_name'] ?? ''} ${user['last_name'] ?? ''}'.trim().isNotEmpty
+              ? '${user['first_name']} ${user['last_name']}'.trim()
+              : (user['username'] ?? 'Technician');
+          final String avatar = user['avatar_url']?.toString().isNotEmpty == true ? user['avatar_url'] : 'assets/images/onboard1.jpg';
+          final skills = user['skills'] is List ? (user['skills'] as List).join(', ') : 'Technician';
+          final double rating = double.tryParse(user['average_rating']?.toString() ?? '') ?? 0.0;
+          final int completedJobs = int.tryParse(user['completed_jobs']?.toString() ?? '0') ?? 0;
+          final double rate = double.tryParse(user['hourly_rate']?.toString() ?? '0') ?? 0.0;
+
+          final priceLabel = rate > 0 ? '\$${rate.toStringAsFixed(0)}/hr' : 'Rate not set';
+          final ratingLabel = rating > 0 ? '$rating ($completedJobs)' : '—';
+          final specialty = skills.isNotEmpty ? skills : 'Professional Specialist';
+          final bio = user['bio']?.toString() ?? 'Professional Specialist';
+
+          return Container(
+            width: 240,
+            margin: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: avatar.startsWith('http')
+                          ? Image.network(avatar, width: 44, height: 44, fit: BoxFit.cover, errorBuilder: (c, e, s) => Image.asset('assets/images/onboard1.jpg', width: 44, height: 44, fit: BoxFit.cover))
+                          : Image.asset(avatar, width: 44, height: 44, fit: BoxFit.cover),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF001F3F)),
+                          ),
+                          Text(
+                            specialty,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                Text(
+                  bio,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF001F3F)),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      priceLabel,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFFFF4500)),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => TechnicianPublicProfileScreen(
+                              name: name,
+                              skill: specialty,
+                              avatar: avatar,
+                              price: priceLabel,
+                              rating: ratingLabel,
+                              rawData: user,
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        "View Details",
+                        style: TextStyle(color: Color(0xFF001F3F), fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

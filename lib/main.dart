@@ -4,6 +4,10 @@ import 'package:get/get.dart';
 
 import 'app_state.dart';
 import 'onboarding_screen.dart';
+import 'api_service.dart';
+import 'main_navigation_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,17 +45,50 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     _navigationTimer = Timer(const Duration(seconds: 2), () {
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => const OnboardingScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-            transitionDuration: const Duration(milliseconds: 800),
-          ),
-        );
+        _checkAutoLogin();
       }
     });
+  }
+
+  Future<void> _checkAutoLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? token = prefs.getString('access_token');
+    final String? role = prefs.getString('user_role');
+
+    if (token != null && token.isNotEmpty && role != null && role.isNotEmpty) {
+      try {
+        // Hydrate API service with saved token
+        ApiService.instance.setTokens(token, prefs.getString('refresh_token'));
+        
+        // Sync profile state from server
+        final appState = Get.find<AppState>();
+        await appState.syncProfile();
+        
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => MainNavigationScreen(role: role, initialIndex: 0),
+            ),
+          );
+          return;
+        }
+      } catch (e) {
+        // Token might be invalid or expired. Clear session and fallback.
+        ApiService.instance.clearTokens();
+      }
+    }
+
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => const OnboardingScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 800),
+        ),
+      );
+    }
   }
 
   @override

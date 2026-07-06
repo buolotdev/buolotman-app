@@ -3,10 +3,10 @@ import 'app_state.dart';
 import 'main_navigation_screen.dart';
 
 class OTPScreen extends StatefulWidget {
-  final String phoneNumber;
+  final String email;
   final String role;
   final int challengeId;
-  const OTPScreen({super.key, required this.phoneNumber, this.role = 'Client', required this.challengeId});
+  const OTPScreen({super.key, required this.email, this.role = 'Client', required this.challengeId});
 
   @override
   State<OTPScreen> createState() => _OTPScreenState();
@@ -46,7 +46,7 @@ class _OTPScreenState extends State<OTPScreen> {
           children: [
             const Text("Verification Code", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
             const SizedBox(height: 12),
-            Text("Enter the 4-digit code sent to ${widget.phoneNumber}", style: const TextStyle(color: Color(0xFF64748B), height: 1.5)),
+            Text("Enter the 4-digit code sent to ${widget.email}", style: const TextStyle(color: Color(0xFF64748B), height: 1.5)),
             const SizedBox(height: 48),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -107,10 +107,32 @@ class _OTPScreenState extends State<OTPScreen> {
             const SizedBox(height: 24),
             Center(
               child: TextButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('A new verification code was sent.')),
+                onPressed: () async {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF4500)),
+                      ),
+                    ),
                   );
+                  try {
+                    await AppStateScope.of(context).requestOTP(widget.email, 'verification');
+                    if (context.mounted) {
+                      Navigator.of(context).pop(); // Dismiss loading
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('A new verification code was sent to your email.')),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      Navigator.of(context).pop(); // Dismiss loading
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to resend code: ${e.toString().replaceAll('Exception: ', '')}')),
+                      );
+                    }
+                  }
                 },
                 child: const Text("Resend Code", style: TextStyle(color: Color(0xFF001F3F), fontWeight: FontWeight.bold)),
               ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app_state.dart';
 import 'company_profile_screen.dart';
-import 'profile_screen.dart';
+import 'technician_public_profile_screen.dart';
 
 class ReceivedBidsScreen extends StatelessWidget {
   const ReceivedBidsScreen({super.key, required this.taskId});
@@ -80,6 +80,7 @@ class ReceivedBidsScreen extends StatelessWidget {
   }
 
   Widget _buildBidCard(BuildContext context, dynamic bid, String taskId) {
+    final appState = AppStateScope.of(context);
     final bool isBestValue = bid.isBestValue == true;
     final bool isAccepted = bid.isAccepted == true;
 
@@ -154,16 +155,32 @@ class ReceivedBidsScreen extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {
+                    final matchedPro = appState.publicPros.firstWhere(
+                      (u) {
+                        final String name = '${u['first_name'] ?? ''} ${u['last_name'] ?? ''}'.trim().isNotEmpty
+                            ? '${u['first_name']} ${u['last_name']}'.trim()
+                            : (u['username'] ?? '');
+                        return name.toLowerCase() == bid.bidderName.toLowerCase();
+                      },
+                      orElse: () => <String, dynamic>{},
+                    );
+
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => bid.role == 'Company'
-                            ? const CompanyProfileScreen()
-                            : ProfileScreen(
-                                name: bid.bidderName,
-                                tagline: bid.skill,
-                                avatar: bid.avatar,
-                                isTechnician: true,
-                              ),
+                        builder: (context) => TechnicianPublicProfileScreen(
+                          name: bid.bidderName,
+                          skill: bid.skill,
+                          avatar: bid.avatar,
+                          price: '\$${bid.price.toStringAsFixed(0)}/hr',
+                          rating: '${bid.rating} (${bid.reviews})',
+                          rawData: matchedPro.isNotEmpty ? matchedPro : {
+                            'id': bid.id,
+                            'first_name': bid.bidderName,
+                            'avatar_url': bid.avatar,
+                            'bio': 'Registered professional technician.',
+                            'skills': [bid.skill],
+                          },
+                        ),
                       ),
                     );
                   },

@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'app_state.dart';
 import 'company_profile_screen.dart';
 import 'listing_screen.dart';
-import 'post_task_screen.dart';
+import 'post_task_form_screen.dart';
 
 class CategoryBrowsingScreen extends StatefulWidget {
   const CategoryBrowsingScreen({super.key});
@@ -30,7 +30,6 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
             child: Column(
               children: [
                 _buildHeader(),
-                _buildSearchBox(),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -67,68 +66,42 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
   }
 
   List<Map<String, dynamic>> _featuredServices(AppState appState) {
-    final services = appState.services
-        .map(
-          (service) => {
-            'title': service.title,
-            'price': service.priceLabel,
-            'rating': '4.8',
-            'reviews': '80+',
-            'location': appState.currentUser.location,
-            'provider': service.category,
-            'providerImg': appState.currentUser.avatar,
-            'image': appState.currentUser.avatar,
-            'badge': 'Featured',
-            'badgeIcon': Icons.workspace_premium,
-          },
-        )
-        .toList();
-    if (services.isNotEmpty) {
-      return services;
-    }
-    return [
-      {
-        'title': 'Standard Home Cleaning',
-        'price': '\$80+',
-        'rating': '4.8',
-        'reviews': '124',
-        'location': 'Lagos, Nigeria',
-        'provider': 'Pristine Cleaners',
-        'providerImg': 'assets/images/onboard1.jpg',
-        'image': 'assets/images/work1.png',
-        'badge': 'Top Rated',
-        'badgeIcon': Icons.workspace_premium,
-      },
-    ];
+    if (appState.services.isEmpty) return [];
+    return appState.services.map((service) => {
+      'title': service.title,
+      'price': service.priceLabel,
+      'rating': '', // will be hidden when empty
+      'location': appState.currentUser.location,
+      'provider': service.category,
+      'providerImg': appState.currentUser.avatar,
+      'image': appState.currentUser.avatar,
+      'badge': 'Listed',
+      'badgeIcon': Icons.check_circle_outline,
+    }).toList();
   }
 
   List<Map<String, String>> _topProfessionals(AppState appState) {
-    final current = {
-      'name': appState.currentUser.name,
-      'role': appState.currentUser.tagline,
-      'rating': '4.9',
-      'reviews': '120',
-      'avatar': appState.currentUser.avatar,
-    };
-
-    final others = [
-      {
-        'name': 'Mike Ross',
-        'role': 'Master Electrician',
-        'rating': '4.9',
-        'reviews': '120',
-        'avatar': 'assets/images/onboard1.jpg',
-      },
-      {
-        'name': 'Sarah Lane',
-        'role': 'House Cleaner',
-        'rating': '4.8',
-        'reviews': '85',
-        'avatar': 'assets/images/onboard2.jpg',
-      },
-    ];
-
-    return [current, ...others];
+    if (appState.publicPros.isEmpty) return [];
+    return appState.publicPros.map((user) {
+      final String name = '${user['first_name'] ?? ''} ${user['last_name'] ?? ''}'.trim().isNotEmpty
+          ? '${user['first_name']} ${user['last_name']}'.trim()
+          : (user['username'] ?? 'Professional');
+      final String avatar = user['avatar_url']?.toString().isNotEmpty == true
+          ? user['avatar_url']
+          : 'assets/images/onboard1.jpg';
+      final skills = user['skills'] is List
+          ? (user['skills'] as List).join(', ')
+          : 'Specialist';
+      final double rating = double.tryParse(user['average_rating']?.toString() ?? '') ?? 0.0;
+      final int jobs = int.tryParse(user['completed_jobs']?.toString() ?? '0') ?? 0;
+      return {
+        'name': name,
+        'role': skills.isNotEmpty ? skills : 'Professional',
+        'rating': rating > 0 ? rating.toStringAsFixed(1) : '—',
+        'reviews': jobs.toString(),
+        'avatar': avatar,
+      };
+    }).toList();
   }
 
   Widget _buildHeader() {
@@ -153,7 +126,7 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
           GestureDetector(
             onTap: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const PostTaskScreen()),
+                MaterialPageRoute(builder: (context) => const PostTaskFormScreen()),
               );
             },
             child: Container(
@@ -347,7 +320,7 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
           ),
           const SizedBox(height: 16),
           SizedBox(
-            height: 160,
+            height: 195,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),

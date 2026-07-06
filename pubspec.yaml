@@ -39,6 +39,8 @@ dependencies:
   intl_phone_field: ^3.2.0
   pinput: ^6.0.2
   http: ^1.1.0
+  shared_preferences: ^2.5.5
+  file_picker: ^11.0.2
 
 dev_dependencies:
   flutter_test:

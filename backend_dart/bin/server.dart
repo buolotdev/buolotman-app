@@ -78,6 +78,21 @@ Map<String, dynamic> formatUserMe(Map<String, dynamic> u) {
 }
 
 Map<String, dynamic> formatUserPublic(Map<String, dynamic> u) {
+  final DateTime? updatedAt = u['updated_at'] as DateTime?;
+  final now = DateTime.now();
+  final difference = updatedAt != null ? now.difference(updatedAt) : const Duration(days: 1);
+  final bool isOnline = difference.inMinutes < 5;
+  String lastSeen = 'Offline';
+  if (isOnline) {
+    lastSeen = 'Online';
+  } else if (difference.inMinutes < 60) {
+    lastSeen = 'Last seen ${difference.inMinutes}m ago';
+  } else if (difference.inHours < 24) {
+    lastSeen = 'Last seen ${difference.inHours}h ago';
+  } else {
+    lastSeen = 'Last seen recently';
+  }
+
   return {
     'id': u['id'],
     'first_name': u['first_name'] ?? '',
@@ -88,6 +103,8 @@ Map<String, dynamic> formatUserPublic(Map<String, dynamic> u) {
     'is_verified': u['is_verified'] ?? false,
     'country': u['country'] ?? '',
     'services': [], // Filled externally
+    'is_online': isOnline,
+    'last_seen': lastSeen,
   };
 }
 
@@ -485,8 +502,8 @@ Future<Response> requestOtpHandler(Request request) async {
     if (res.isNotEmpty) userId = res[0][0] as int;
   }
 
-  // Mock OTP challenge: code 123456 (or randomized, let's randomize)
-  final code = (100000 + (DateTime.now().microsecondsSinceEpoch % 900000)).toString();
+  // Mock OTP challenge: code 1234 (or randomized, let's randomize to 4-digit format to match Flutter boxes)
+  final code = (1000 + (DateTime.now().microsecondsSinceEpoch % 9000)).toString();
   print('========================');
   print('OTP SEND REQUESTED FOR: $phone');
   print('CODE GENERATED: $code');
@@ -642,7 +659,7 @@ Future<Response> registerClientHandler(Request request) async {
     return errorResponse('Email and password are required', statusCode: 400);
   }
 
-  final exists = await dbPool.execute(Sql.named('SELECT id FROM accounts_user WHERE email = @email'), parameters: {'email': email});
+  final exists = await dbPool.execute(Sql.named('SELECT id FROM accounts_user WHERE email = @email OR username = @email'), parameters: {'email': email});
   if (exists.isNotEmpty) {
     return errorResponse('A user with this email already exists.', statusCode: 400);
   }
@@ -696,7 +713,7 @@ Future<Response> registerTechnicianHandler(Request request) async {
     return errorResponse('Email and password are required', statusCode: 400);
   }
 
-  final exists = await dbPool.execute(Sql.named('SELECT id FROM accounts_user WHERE email = @email'), parameters: {'email': email});
+  final exists = await dbPool.execute(Sql.named('SELECT id FROM accounts_user WHERE email = @email OR username = @email'), parameters: {'email': email});
   if (exists.isNotEmpty) {
     return errorResponse('A user with this email already exists.', statusCode: 400);
   }
@@ -810,7 +827,30 @@ Future<Response> getMeHandler(Request request) async {
   if (results.isEmpty) {
     return errorResponse('User not found', statusCode: 404);
   }
-  return jsonResponse(formatUserMe(results[0].toColumnMap()));
+  final u = results[0].toColumnMap();
+  final data = formatUserMe(u);
+
+  if (u['role'] == 'TECHNICIAN') {
+    final profileQuery = await dbPool.execute(
+      Sql.named('SELECT * FROM accounts_technician_profile WHERE user_id = @id'),
+      parameters: {'id': userId},
+    );
+    if (profileQuery.isNotEmpty) {
+      final prof = profileQuery[0].toColumnMap();
+      data['bio'] = prof['bio'] ?? '';
+      data['hourly_rate'] = prof['hourly_rate']?.toString();
+      data['availability_status'] = prof['availability_status'] ?? 'available';
+      data['certifications'] = parseJsonField(prof['certifications']) ?? [];
+      
+      final skillsQuery = await dbPool.execute(
+        Sql.named('SELECT s.name FROM tasks_skill s JOIN accounts_technician_profile_skills ps ON s.id = ps.skill_id WHERE ps.technicianprofile_id = @profId'),
+        parameters: {'profId': prof['id']},
+      );
+      data['skills'] = skillsQuery.map((r) => r[0]?.toString() ?? '').toList();
+    }
+  }
+
+  return jsonResponse(data);
 }
 
 Future<Response> updateMeHandler(Request request) async {
@@ -836,12 +876,14 @@ Future<Response> updateMeHandler(Request request) async {
   // Filter keys for technician profile
   final role = getUserRole(request);
   if (role == 'TECHNICIAN') {
-    final allowedProfileFields = ['bio', 'hourly_rate', 'availability_status'];
+    final allowedProfileFields = ['bio', 'hourly_rate', 'availability_status', 'certifications', 'experience'];
     final profileUpdates = <String, dynamic>{};
     for (final f in allowedProfileFields) {
       if (body.containsKey(f)) {
         if (f == 'hourly_rate') {
           profileUpdates[f] = double.tryParse(body[f].toString()) ?? 0.0;
+        } else if (f == 'certifications') {
+          profileUpdates[f] = jsonEncode(body[f]);
         } else {
           profileUpdates[f] = body[f];
         }
@@ -856,10 +898,150 @@ Future<Response> updateMeHandler(Request request) async {
         parameters: params,
       );
     }
+    
+    // Handle skills update if passed
+    if (body.containsKey('skills')) {
+      final skillsList = body['skills'] as List? ?? [];
+      
+      // Get the profile ID
+      final profRes = await dbPool.execute(
+        Sql.named('SELECT id FROM accounts_technician_profile WHERE user_id = @userId'),
+        parameters: {'userId': userId},
+      );
+      if (profRes.isNotEmpty) {
+        final profId = profRes[0][0] as int;
+        
+        // Delete existing skills
+        await dbPool.execute(
+          Sql.named('DELETE FROM accounts_technician_profile_skills WHERE technicianprofile_id = @profId'),
+          parameters: {'profId': profId},
+        );
+        
+        // Insert new skills
+        for (final skName in skillsList) {
+          final skStr = skName.toString().trim();
+          if (skStr.isEmpty) continue;
+          
+          // Find or create skill in tasks_skill table
+          var skRes = await dbPool.execute(
+            Sql.named('SELECT id FROM tasks_skill WHERE LOWER(name) = LOWER(@name)'),
+            parameters: {'name': skStr},
+          );
+          int skId;
+          if (skRes.isEmpty) {
+            final slug = skStr.toLowerCase().replaceAll(RegExp(r'\s+'), '-');
+            final insertRes = await dbPool.execute(
+              Sql.named('INSERT INTO tasks_skill (name, slug) VALUES (@name, @slug) RETURNING id'),
+              parameters: {'name': skStr, 'slug': slug},
+            );
+            skId = insertRes[0][0] as int;
+          } else {
+            skId = skRes[0][0] as int;
+          }
+          
+          // Insert join record
+          await dbPool.execute(
+            Sql.named('INSERT INTO accounts_technician_profile_skills (technicianprofile_id, skill_id) VALUES (@profId, @skId)'),
+            parameters: {'profId': profId, 'skId': skId},
+          );
+        }
+      }
+    }
   }
 
   final updatedUser = await dbPool.execute(Sql.named('SELECT * FROM accounts_user WHERE id = @id'), parameters: {'id': userId});
-  return jsonResponse(formatUserMe(updatedUser[0].toColumnMap()));
+  final u = updatedUser[0].toColumnMap();
+  final data = formatUserMe(u);
+
+  if (u['role'] == 'TECHNICIAN') {
+    final profileQuery = await dbPool.execute(
+      Sql.named('SELECT * FROM accounts_technician_profile WHERE user_id = @id'),
+      parameters: {'id': userId},
+    );
+    if (profileQuery.isNotEmpty) {
+      final prof = profileQuery[0].toColumnMap();
+      data['bio'] = prof['bio'] ?? '';
+      data['hourly_rate'] = prof['hourly_rate']?.toString();
+      data['availability_status'] = prof['availability_status'] ?? 'available';
+      data['certifications'] = parseJsonField(prof['certifications']) ?? [];
+      
+      final skillsQuery = await dbPool.execute(
+        Sql.named('SELECT s.name FROM tasks_skill s JOIN accounts_technician_profile_skills ps ON s.id = ps.skill_id WHERE ps.technicianprofile_id = @profId'),
+        parameters: {'profId': prof['id']},
+      );
+      data['skills'] = skillsQuery.map((r) => r[0]?.toString() ?? '').toList();
+    }
+  }
+
+  return jsonResponse(data);
+}
+
+Future<Response> deleteMeHandler(Request request) async {
+  final userId = getUserId(request);
+  try {
+    // 1. Remove OTP challenges
+    await dbPool.execute(Sql.named('DELETE FROM accounts_phone_otp_challenge WHERE user_id = @id'), parameters: {'id': userId});
+
+    // 2. Remove wallet transactions first, then wallet
+    await dbPool.execute(Sql.named('DELETE FROM wallet_transaction WHERE wallet_id IN (SELECT id FROM wallet_wallet WHERE user_id = @id)'), parameters: {'id': userId});
+    await dbPool.execute(Sql.named('DELETE FROM wallet_wallet WHERE user_id = @id'), parameters: {'id': userId});
+
+    // 3. Remove bids placed by this user (technician_id is the column)
+    await dbPool.execute(Sql.named('DELETE FROM tasks_bid WHERE technician_id = @id'), parameters: {'id': userId});
+
+    // 4. Remove tasks posted by this user (bids on those tasks first)
+    final taskRes = await dbPool.execute(Sql.named('SELECT id FROM tasks_task WHERE client_id = @id'), parameters: {'id': userId});
+    for (final row in taskRes) {
+      final taskId = row[0] as int;
+      await dbPool.execute(Sql.named('DELETE FROM tasks_bid WHERE task_id = @tid'), parameters: {'tid': taskId});
+    }
+    await dbPool.execute(Sql.named('DELETE FROM tasks_task WHERE client_id = @id'), parameters: {'id': userId});
+
+    // 5. Remove messages & conversations
+    await dbPool.execute(Sql.named('DELETE FROM messaging_message WHERE sender_id = @id'), parameters: {'id': userId});
+    await dbPool.execute(Sql.named('DELETE FROM messaging_conversation_participants WHERE user_id = @id'), parameters: {'id': userId});
+
+    // 6. Notifications
+    await dbPool.execute(Sql.named('DELETE FROM governance_notification WHERE user_id = @id'), parameters: {'id': userId});
+
+    // 7. Audit logs
+    await dbPool.execute(Sql.named('DELETE FROM governance_audit_log WHERE actor_id = @id'), parameters: {'id': userId});
+
+    // 8. Saved professionals
+    await dbPool.execute(Sql.named('DELETE FROM accounts_saved_professional WHERE client_id = @id OR professional_id = @id'), parameters: {'id': userId});
+
+    // 9. Portfolio
+    await dbPool.execute(Sql.named('DELETE FROM accounts_portfolio_item WHERE user_id = @id'), parameters: {'id': userId});
+
+    // 10. Technician profile skills + profile
+    await dbPool.execute(Sql.named('DELETE FROM accounts_technician_profile_skills WHERE technicianprofile_id IN (SELECT id FROM accounts_technician_profile WHERE user_id = @id)'), parameters: {'id': userId});
+    await dbPool.execute(Sql.named('DELETE FROM accounts_technician_profile WHERE user_id = @id'), parameters: {'id': userId});
+
+    // 11. Company profile
+    await dbPool.execute(Sql.named('DELETE FROM accounts_company_profile WHERE user_id = @id'), parameters: {'id': userId});
+
+    // 12. Finally delete the user
+    await dbPool.execute(Sql.named('DELETE FROM accounts_user WHERE id = @id'), parameters: {'id': userId});
+    return Response(204);
+  } catch (e) {
+    print('deleteMeHandler error: $e');
+    // Fallback: soft delete — anonymize email, username & phone so those fields can be re-used
+    try {
+      final shortId = userId.toString();
+      await dbPool.execute(
+        Sql.named("UPDATE accounts_user SET is_active = false, "
+            "email = 'del' || @uid || '@x.co', "
+            "username = 'del' || @uid || '@x.co', "
+            "phone = LEFT('del' || @uid, 15) "
+            "WHERE id = @id"),
+        parameters: {'uid': shortId, 'id': userId},
+      );
+      return Response(204);
+    } catch (e2) {
+      print('deleteMeHandler soft-delete fallback error: $e2');
+      return errorResponse('Failed to delete account. Please try again.', statusCode: 500);
+    }
+  }
 }
 
 Future<Response> listUsersHandler(Request request) async {
@@ -895,6 +1077,7 @@ Future<Response> listUsersHandler(Request request) async {
         item['completed_jobs'] = prof['completed_jobs'] ?? 0;
         item['average_rating'] = prof['average_rating']?.toString() ?? '0.00';
         item['availability_status'] = prof['availability_status'] ?? 'available';
+        item['certifications'] = parseJsonField(prof['certifications']) ?? [];
 
         // skills
         final skillsQuery = await dbPool.execute(
@@ -935,6 +1118,8 @@ Future<Response> userPublicProfileHandler(Request request, String userIdStr) asy
       data['average_rating'] = prof['average_rating']?.toString() ?? '0.00';
       data['availability_status'] = prof['availability_status'] ?? 'available';
       data['portfolio'] = parseJsonField(prof['portfolio']) ?? [];
+      data['certifications'] = parseJsonField(prof['certifications']) ?? [];
+      data['experience'] = prof['experience'] ?? '';
       data['response_time'] = prof['response_time'] ?? '';
 
       final skillsQuery = await dbPool.execute(
@@ -1577,77 +1762,145 @@ Future<Response> listTasksHandler(Request request) async {
 }
 
 Future<Response> createTaskHandler(Request request) async {
-  final userId = getUserId(request);
-  final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
+  try {
+    final userId = getUserId(request);
+    final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
 
-  final title = body['title']?.toString() ?? '';
-  final description = body['description']?.toString() ?? '';
-  final categoryId = int.tryParse(body['category_id']?.toString() ?? '') ?? int.tryParse(body['category']?.toString() ?? '') ?? 0;
-  final budgetMin = double.tryParse(body['budget_min']?.toString() ?? '');
-  final budgetMax = double.tryParse(body['budget_max']?.toString() ?? '');
-  final budgetMode = body['budget_mode']?.toString() ?? 'fixed';
-  final urgency = body['urgency']?.toString() ?? 'standard';
-  final serviceType = body['service_type']?.toString() ?? 'onsite';
-  final location = body['location']?.toString() ?? '';
-  final city = body['city']?.toString() ?? '';
-  final schedule = body['schedule']?.toString() ?? '';
-  final deadlineStr = body['deadline']?.toString();
-  final materialsProvided = body['materials_provided'] as bool? ?? false;
-  final contactMethods = body['contact_methods'] ?? [];
+    final title = body['title']?.toString() ?? '';
+    final description = body['description']?.toString() ?? '';
+    final categoryId = int.tryParse(body['category_id']?.toString() ?? '') ?? int.tryParse(body['category']?.toString() ?? '') ?? 0;
+    final budgetMin = double.tryParse(body['budget_min']?.toString() ?? '');
+    final budgetMax = double.tryParse(body['budget_max']?.toString() ?? '');
+    final budgetMode = body['budget_mode']?.toString() ?? 'fixed';
+    final urgency = body['urgency']?.toString() ?? 'standard';
+    final serviceType = body['service_type']?.toString() ?? 'onsite';
+    final location = body['location']?.toString() ?? '';
+    final city = body['city']?.toString() ?? '';
+    final schedule = body['schedule']?.toString() ?? '';
+    final deadlineStr = body['deadline']?.toString();
+    final materialsProvided = body['materials_provided'] as bool? ?? false;
+    final contactMethods = body['contact_methods'] ?? [];
 
-  DateTime? deadline;
-  if (deadlineStr != null && deadlineStr.isNotEmpty) {
-    deadline = DateTime.tryParse(deadlineStr);
-  }
+    DateTime? deadline;
+    if (deadlineStr != null && deadlineStr.isNotEmpty) {
+      deadline = DateTime.tryParse(deadlineStr);
+    }
 
-  final res = await dbPool.execute(
-    Sql.named('INSERT INTO tasks_task (title, description, status, budget_min, budget_max, budget_mode, urgency, service_type, location, city, latitude, longitude, schedule, deadline, materials_provided, contact_methods, views_count, bids_count, created_at, updated_at, category_id, client_id) '
-              'VALUES (@title, @desc, \'draft\', @bMin, @bMax, @bMode, @urgency, @type, @loc, @city, null, null, @sched, @deadline, @materials, @contact, 0, 0, @now, @now, @catId, @clientId) RETURNING id'),
-    parameters: {
-      'title': title,
-      'desc': description,
-      'bMin': budgetMin,
-      'bMax': budgetMax,
-      'bMode': budgetMode,
-      'urgency': urgency,
-      'type': serviceType,
-      'loc': location,
-      'city': city,
-      'sched': schedule,
-      'deadline': deadline,
-      'materials': materialsProvided,
-      'contact': jsonEncode(contactMethods),
-      'now': DateTime.now(),
-      'catId': categoryId > 0 ? categoryId : null,
-      'clientId': userId,
-    },
-  );
-  final newTaskId = res[0][0] as int;
+    final res = await dbPool.execute(
+      Sql.named('INSERT INTO tasks_task (title, description, status, budget_min, budget_max, budget_mode, urgency, service_type, location, city, latitude, longitude, schedule, deadline, materials_provided, contact_methods, views_count, bids_count, created_at, updated_at, category_id, client_id) '
+                'VALUES (@title, @desc, \'draft\', @bMin, @bMax, @bMode, @urgency, @type, @loc, @city, null, null, @sched, @deadline, @materials, @contact, 0, 0, @now, @now, @catId, @clientId) RETURNING id'),
+      parameters: {
+        'title': title,
+        'desc': description,
+        'bMin': budgetMin,
+        'bMax': budgetMax,
+        'bMode': budgetMode,
+        'urgency': urgency,
+        'type': serviceType,
+        'loc': location,
+        'city': city,
+        'sched': schedule,
+        'deadline': deadline,
+        'materials': materialsProvided,
+        'contact': jsonEncode(contactMethods),
+        'now': DateTime.now(),
+        'catId': categoryId > 0 ? categoryId : null,
+        'clientId': userId,
+      },
+    );
+    final newTaskId = res[0][0] as int;
 
-  // Insert skills if provided
-  final skillsList = body['skills'] as List? ?? [];
-  for (final sk in skillsList) {
-    int? skId = int.tryParse(sk.toString());
-    if (skId == null) {
-      final skSearch = await dbPool.execute(Sql.named('SELECT id FROM tasks_skill WHERE name ILIKE @name'), parameters: {'name': sk.toString()});
-      if (skSearch.isNotEmpty) {
-        skId = skSearch[0][0] as int;
+    // Insert skills if provided
+    final skillsList = body['skills'] as List? ?? [];
+    for (final sk in skillsList) {
+      int? skId = int.tryParse(sk.toString());
+      if (skId == null) {
+        final skSearch = await dbPool.execute(Sql.named('SELECT id FROM tasks_skill WHERE name ILIKE @name'), parameters: {'name': sk.toString()});
+        if (skSearch.isNotEmpty) {
+          skId = skSearch[0][0] as int;
+        }
+      }
+      if (skId != null) {
+        await dbPool.execute(
+          Sql.named('INSERT INTO tasks_task_skills (task_id, skill_id) VALUES (@taskId, @skId)'),
+          parameters: {'taskId': newTaskId, 'skId': skId},
+        );
       }
     }
-    if (skId != null) {
-      await dbPool.execute(
-        Sql.named('INSERT INTO tasks_task_skills (task_id, skill_id) VALUES (@taskId, @skId)'),
-        parameters: {'taskId': newTaskId, 'skId': skId},
-      );
-    }
+
+    final taskQuery = await dbPool.execute(
+      Sql.named('SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id WHERE t.id = @id'),
+      parameters: {'id': newTaskId},
+    );
+
+    return Response(201, body: jsonEncode(formatJoinedTask(taskQuery[0].toColumnMap())), headers: {'content-type': 'application/json'});
+  } catch (e, stack) {
+    print('SERVER ERROR in createTaskHandler: $e\n$stack');
+    return errorResponse('Internal server error: $e', statusCode: 500);
   }
+}
 
-  final taskQuery = await dbPool.execute(
-    Sql.named('SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id WHERE t.id = @id'),
-    parameters: {'id': newTaskId},
-  );
+Future<Response> updateTaskHandler(Request request, String idStr) async {
+  try {
+    final userId = getUserId(request);
+    final taskId = int.tryParse(idStr) ?? 0;
+    
+    // Check if task exists and belongs to client
+    final check = await dbPool.execute(
+      Sql.named('SELECT client_id FROM tasks_task WHERE id = @id'),
+      parameters: {'id': taskId},
+    );
+    if (check.isEmpty) {
+      return errorResponse('Task not found', statusCode: 404);
+    }
+    if (check[0][0] as int != userId) {
+      return errorResponse('Permission denied', statusCode: 403);
+    }
 
-  return Response(201, body: jsonEncode(formatJoinedTask(taskQuery[0].toColumnMap())), headers: {'content-type': 'application/json'});
+    final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
+
+    final title = body['title']?.toString() ?? '';
+    final description = body['description']?.toString() ?? '';
+    final categoryId = int.tryParse(body['category_id']?.toString() ?? '') ?? int.tryParse(body['category']?.toString() ?? '') ?? 0;
+    final budgetMin = double.tryParse(body['budget_min']?.toString() ?? '');
+    final budgetMax = double.tryParse(body['budget_max']?.toString() ?? '');
+    final budgetMode = body['budget_mode']?.toString() ?? 'fixed';
+    final urgency = body['urgency']?.toString() ?? 'standard';
+    final serviceType = body['service_type']?.toString() ?? 'onsite';
+    final location = body['location']?.toString() ?? '';
+    final city = body['city']?.toString() ?? '';
+    final schedule = body['schedule']?.toString() ?? '';
+
+    await dbPool.execute(
+      Sql.named('UPDATE tasks_task SET title = @title, description = @desc, budget_min = @bMin, budget_max = @bMax, budget_mode = @bMode, '
+                'urgency = @urgency, service_type = @type, location = @loc, city = @city, schedule = @sched, category_id = @catId, updated_at = @now WHERE id = @id'),
+      parameters: {
+        'id': taskId,
+        'title': title,
+        'desc': description,
+        'bMin': budgetMin,
+        'bMax': budgetMax,
+        'bMode': budgetMode,
+        'urgency': urgency,
+        'type': serviceType,
+        'loc': location,
+        'city': city,
+        'sched': schedule,
+        'catId': categoryId > 0 ? categoryId : null,
+        'now': DateTime.now(),
+      },
+    );
+
+    final taskQuery = await dbPool.execute(
+      Sql.named('SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id WHERE t.id = @id'),
+      parameters: {'id': taskId},
+    );
+
+    return jsonResponse(formatJoinedTask(taskQuery[0].toColumnMap()));
+  } catch (e, stack) {
+    print('SERVER ERROR in updateTaskHandler: $e\n$stack');
+    return errorResponse('Internal server error: $e', statusCode: 500);
+  }
 }
 
 Future<Response> myTasksHandler(Request request) async {
@@ -2447,6 +2700,33 @@ Future<Response> sendMessageHandler(Request request, String convIdStr) async {
     'sender': userId,
     'created_at': DateTime.now().toIso8601String(),
   }), headers: {'content-type': 'application/json'});
+}
+
+Future<Response> deleteConversationHandler(Request request, String convIdStr) async {
+  final userId = getUserId(request);
+  final convId = int.tryParse(convIdStr) ?? 0;
+
+  final check = await dbPool.execute(
+    Sql.named('SELECT id FROM messaging_conversation_participants WHERE conversation_id = @cId AND user_id = @uId'),
+    parameters: {'cId': convId, 'uId': userId},
+  );
+  if (check.isEmpty) return errorResponse('Not authorized', statusCode: 403);
+
+  await dbPool.execute(Sql.named('DELETE FROM messaging_message WHERE conversation_id = @cId'), parameters: {'cId': convId});
+  await dbPool.execute(Sql.named('DELETE FROM messaging_conversation_participants WHERE conversation_id = @cId'), parameters: {'cId': convId});
+  await dbPool.execute(Sql.named('DELETE FROM messaging_conversation WHERE id = @cId'), parameters: {'cId': convId});
+
+  await createAuditLog(
+    actorId: userId,
+    action: 'conversation_deleted',
+    entityType: 'conversation',
+    entityId: convIdStr,
+    summary: 'Conversation deleted by participant',
+    metadata: {},
+    ipAddress: null,
+  );
+
+  return Response(200, body: jsonEncode({'success': true, 'message': 'Conversation deleted successfully.'}), headers: {'content-type': 'application/json'});
 }
 
 // ─── COMPANY CONTROLLERS ───────────────────────────────────────────────────
@@ -3357,6 +3637,14 @@ void main() async {
   print('Connecting to Neon PostgreSQL Database...');
   dbPool = Pool.withUrl(dbUrl);
 
+  // Ensure certifications field exists
+  try {
+    await dbPool.execute('ALTER TABLE accounts_technician_profile ADD COLUMN IF NOT EXISTS certifications jsonb DEFAULT \'[]\'::jsonb;');
+    await dbPool.execute('ALTER TABLE accounts_technician_profile ADD COLUMN IF NOT EXISTS experience text DEFAULT \'\';');
+  } catch (e) {
+    print('Failed to alter accounts_technician_profile table: $e');
+  }
+
   final router = Router();
 
   // Authentication
@@ -3365,12 +3653,11 @@ void main() async {
   router.post('/api/auth/otp/request/', requestOtpHandler);
   router.post('/api/auth/otp/verify/', verifyOtpHandler);
   router.post('/api/auth/register/client/', registerClientHandler);
-  router.post('/api/auth/register/technician/', registerClientHandler); // map both client and tech if requested
-  // Re-map correct handlers for specificity
   router.post('/api/auth/register/technician/', registerTechnicianHandler);
   router.post('/api/auth/register/company/', registerCompanyHandler);
   router.get('/api/auth/me/', getMeHandler);
   router.patch('/api/auth/me/', updateMeHandler);
+  router.delete('/api/auth/user/delete/', deleteMeHandler);
   router.get('/api/auth/users/', listUsersHandler);
   router.get('/api/auth/users/<userId>/', userPublicProfileHandler);
 
@@ -3404,6 +3691,7 @@ void main() async {
   router.get('/api/tasks/categories/', categoryListHandler);
   router.get('/api/tasks/skills/', skillListHandler);
   router.get('/api/tasks/<id>/', taskDetailHandler);
+  router.patch('/api/tasks/<id>/', updateTaskHandler);
   router.post('/api/tasks/<id>/publish/', taskPublishHandler);
   router.post('/api/tasks/<id>/complete/', taskCompleteHandler);
   router.post('/api/tasks/<id>/cancel/', taskCancelHandler);
@@ -3428,6 +3716,7 @@ void main() async {
   router.post('/api/conversations/create/', createConversationHandler);
   router.get('/api/conversations/<convId>/', conversationDetailHandler);
   router.post('/api/conversations/<convId>/messages/', sendMessageHandler);
+  router.delete('/api/conversations/<convId>/', deleteConversationHandler);
 
   // Companies
   router.get('/api/company/', listCompaniesHandler);

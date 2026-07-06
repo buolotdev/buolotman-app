@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'app_state.dart';
 import 'browse_tasks_screen.dart';
 import 'notifications_screen.dart';
-import 'search_screen.dart';
+import 'messages_screen.dart';
 
 class TaskFeedScreen extends StatefulWidget {
   const TaskFeedScreen({super.key});
@@ -15,6 +15,9 @@ class TaskFeedScreen extends StatefulWidget {
 
 class _TaskFeedScreenState extends State<TaskFeedScreen> {
   String _activeCategory = 'All Tasks';
+  String _searchQuery = '';
+  String _budgetFilter = 'Any';
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -25,15 +28,112 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _openFilterSheet() {
+    String tempBudget = _budgetFilter;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModal) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Filters', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Budget Range', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    children: ['Any', 'Under \$50', '\$50–\$200', '\$200–\$500', '\$500+'].map((opt) {
+                      final selected = tempBudget == opt;
+                      return GestureDetector(
+                        onTap: () => setModal(() => tempBudget = opt),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: selected ? const Color(0xFFFF4500) : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(opt, style: TextStyle(color: selected ? Colors.white : const Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 13)),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() => _budgetFilter = tempBudget);
+                        Navigator.pop(ctx);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF4500),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Apply Filters', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GetBuilder<AppState>(
       builder: (appState) {
         final bottomPadding = MediaQuery.of(context).padding.bottom + 120;
         final tasks = appState.openMarketplaceTasks.where((task) {
-          if (_activeCategory == 'All Tasks') {
-            return true;
+          // Category filter
+          if (_activeCategory != 'All Tasks' && task.category != _activeCategory) return false;
+
+          // Search filter
+          if (_searchQuery.isNotEmpty) {
+            final q = _searchQuery.toLowerCase();
+            if (!task.title.toLowerCase().contains(q) &&
+                !task.category.toLowerCase().contains(q) &&
+                !task.location.toLowerCase().contains(q)) {
+              return false;
+            }
           }
-          return task.category == _activeCategory;
+
+          // Budget filter
+          if (_budgetFilter != 'Any') {
+            final b = task.budget;
+            if (_budgetFilter == 'Under \$50' && b >= 50) return false;
+            if (_budgetFilter == '\$50–\$200' && (b < 50 || b > 200)) return false;
+            if (_budgetFilter == '\$200–\$500' && (b < 200 || b > 500)) return false;
+            if (_budgetFilter == '\$500+' && b < 500) return false;
+          }
+
+          return true;
         }).toList();
 
         return Scaffold(
@@ -43,17 +143,28 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
               children: [
                 _buildHeader(context),
                 _buildSearchAndFilters(),
-              Expanded(
-                child: ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
-                  itemCount: tasks.length,
-                  itemBuilder: (context, index) => _buildTaskCard(tasks[index].id),
+                Expanded(
+                  child: tasks.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.search_off, size: 64, color: Colors.grey[300]),
+                              const SizedBox(height: 12),
+                              const Text('No tasks match your filters', style: TextStyle(fontSize: 16, color: Color(0xFF64748B))),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          physics: const BouncingScrollPhysics(),
+                          padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
+                          itemCount: tasks.length,
+                          itemBuilder: (context, index) => _buildTaskCard(tasks[index].id),
+                        ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-         ),
         );
       },
     );
@@ -79,33 +190,37 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Technician Feed',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF001F3F)),
-                ),
+                Text('Technician Feed', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
                 SizedBox(height: 2),
-                Text(
-                  'Browse live work near you',
-                  style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-                ),
+                Text('Browse live work near you', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
               ],
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.notifications_none, color: Color(0xFF001F3F)),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-              );
-            },
+            icon: const Icon(Icons.chat_bubble_outline, color: Color(0xFF001F3F)),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MessagesScreen())),
           ),
           IconButton(
-            icon: const Icon(Icons.filter_list, color: Color(0xFF001F3F)),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const SearchScreen()),
-              );
-            },
+            icon: const Icon(Icons.notifications_none, color: Color(0xFF001F3F)),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NotificationsScreen())),
+          ),
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.filter_list, color: Color(0xFF001F3F)),
+                onPressed: _openFilterSheet,
+              ),
+              if (_budgetFilter != 'Any')
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(color: Color(0xFFFF4500), shape: BoxShape.circle),
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -118,26 +233,38 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       child: Column(
         children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const SearchScreen()),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const TextField(
-                readOnly: true,
-                decoration: InputDecoration(
-                  hintText: 'Search tasks...',
-                  border: InputBorder.none,
-                  icon: Icon(Icons.search, color: Color(0xFF64748B)),
+          Container(
+            height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.search, color: Color(0xFF64748B), size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (v) => setState(() => _searchQuery = v.trim()),
+                    decoration: const InputDecoration(
+                      hintText: 'Search tasks...',
+                      hintStyle: TextStyle(color: Color(0xFF64748B), fontSize: 14),
+                      border: InputBorder.none,
+                      isDense: true,
+                    ),
+                  ),
                 ),
-              ),
+                if (_searchQuery.isNotEmpty)
+                  GestureDetector(
+                    onTap: () {
+                      _searchController.clear();
+                      setState(() => _searchQuery = '');
+                    },
+                    child: const Icon(Icons.close, color: Color(0xFF64748B), size: 16),
+                  ),
+              ],
             ),
           ),
           const SizedBox(height: 12),
@@ -150,6 +277,8 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
                 _buildFilterChip('Plumbing'),
                 _buildFilterChip('Handyman'),
                 _buildFilterChip('Tech'),
+                _buildFilterChip('Cleaning'),
+                _buildFilterChip('Moving'),
               ],
             ),
           ),
@@ -159,7 +288,8 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
   }
 
   Widget _buildTaskCard(String taskId) {
-    final task = AppStateScope.of(context).findTask(taskId)!;
+    final task = AppStateScope.of(context).findTask(taskId);
+    if (task == null) return const SizedBox.shrink();
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
@@ -200,27 +330,15 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: task.urgency == 'Urgent'
-                          ? const Color(0xFFB91C1C)
-                          : const Color(0xFF64748B),
+                      color: task.urgency == 'Urgent' ? const Color(0xFFB91C1C) : const Color(0xFF64748B),
                     ),
                   ),
                 ),
-                Text(
-                  task.createdLabel,
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                ),
+                Text(task.createdLabel, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
               ],
             ),
             const SizedBox(height: 12),
-            Text(
-              task.title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF001F3F),
-              ),
-            ),
+            Text(task.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -263,11 +381,7 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
                 ),
                 Text(
                   '\$${task.budget.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFFF4500),
-                  ),
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFFF4500)),
                 ),
               ],
             ),

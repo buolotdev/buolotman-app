@@ -82,11 +82,15 @@ class _ListingScreenState extends State<ListingScreen> {
             id: t['id']?.toString() ?? '',
             title: t['name'] ?? '',
             description: t['description'] ?? '',
-            category: t['category'] ?? 'General',
+            category: (t['category'] is Map)
+                ? (t['category']['name'] ?? 'General')
+                : (t['category']?.toString() ?? 'General'),
             location: t['location'] ?? 'Lagos, Nigeria',
-            clientName: t['client_name'] ?? 'Client',
-            clientAvatar: 'assets/images/onboard3.jpg',
-            clientRating: 4.9,
+            clientName: (t['client'] is Map) ? ('${t['client']['first_name'] ?? ''} ${t['client']['last_name'] ?? ''}'.trim().isNotEmpty ? '${t['client']['first_name']} ${t['client']['last_name']}' : (t['client']['username'] ?? 'Client')) : 'Client',
+            clientAvatar: (t['client'] is Map && t['client']['avatar_url']?.toString().isNotEmpty == true)
+                ? t['client']['avatar_url']
+                : 'assets/images/onboard3.jpg',
+            clientRating: (t['client'] is Map) ? (double.tryParse(t['client']['rating']?.toString() ?? '') ?? 4.9) : 4.9,
             budget: priceVal,
             status: 'Open',
             createdLabel: 'Just now',
@@ -97,7 +101,8 @@ class _ListingScreenState extends State<ListingScreen> {
           );
         }).where((task) => _matchesTaskFilter(task, appState)).toList();
 
-        final totalCount = services.length + tasks.length;
+        final isClient = appState.currentRole == 'Client';
+        final totalCount = isClient ? services.length : tasks.length;
 
         return Scaffold(
           backgroundColor: const Color(0xFFFEFEFF),
@@ -117,8 +122,10 @@ class _ListingScreenState extends State<ListingScreen> {
                                 physics: const BouncingScrollPhysics(),
                                 padding: const EdgeInsets.all(16),
                                 children: [
-                                  for (final service in services) _buildServiceCard(service),
-                                  for (final task in tasks) _buildTaskCard(task),
+                                  if (isClient)
+                                    for (final service in services) _buildServiceCard(service),
+                                  if (!isClient)
+                                    for (final task in tasks) _buildTaskCard(task),
                                 ],
                               ),
                       ),

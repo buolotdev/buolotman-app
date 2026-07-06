@@ -6,7 +6,7 @@ import 'my_bids_screen.dart';
 import 'task_feed_screen.dart';
 import 'messages_screen.dart';
 import 'my_tasks_screen.dart';
-import 'post_task_screen.dart';
+import 'post_task_form_screen.dart';
 import 'wallet_screen.dart';
 import 'company_profile_screen.dart';
 import 'post_service_screen.dart';
@@ -110,7 +110,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           if (activeRole == 'Client') {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => PostTaskScreen()));
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PostTaskFormScreen()));
           } else {
             Navigator.of(context).push(MaterialPageRoute(builder: (context) => PostServiceScreen()));
           }

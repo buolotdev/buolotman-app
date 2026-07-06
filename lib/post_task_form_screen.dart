@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'app_models.dart';
-import 'post_task_step2_screen.dart';
+import 'post_task_step3_screen.dart';
+import 'package:get/get.dart';
+import 'app_state.dart';
 
 class PostTaskFormScreen extends StatefulWidget {
   const PostTaskFormScreen({super.key});
@@ -15,19 +17,159 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
     text: "The pipe under the kitchen sink is leaking heavily and causing water damage to the cabinet. I need someone to come fix or replace it as soon as possible. I can provide pictures if needed.",
   );
   final _budgetController = TextEditingController(text: "150.00");
-  final _locationController = TextEditingController(text: "123 Main St, New York, NY");
+  final _minBudgetController = TextEditingController(text: "100.00");
+  final _maxBudgetController = TextEditingController(text: "250.00");
+  final _locationController = TextEditingController(text: "");
   
   String _selectedCategory = "Plumbing & Repair";
   String _locationType = "On-site";
   String _timeline = "By Friday, Oct 25";
   String _urgency = "Flexible"; // Added urgency §5.2.2
   String _selectedPaymentMethod = "Escrow / Wallet";
+  String _budgetMode = "fixed"; // fixed or range
+  String _selectedSubcategory = "";
+
+  static const Map<String, List<String>> _subcategoryMap = {
+    "Plumbing & Repair": ["Pipe Leakage", "Drain Cleaning", "Water Heater", "Toilet Repair", "Faucet Installation", "Sewage Issues"],
+    "Electrical": ["Wiring & Rewiring", "Switchboard Repair", "Fan / AC Installation", "Generator Setup", "Light Fixtures", "Electrical Inspection"],
+    "Cleaning": ["Home Deep Clean", "Office Cleaning", "Carpet & Upholstery", "Post-Construction Clean", "Window Cleaning", "Disinfection"],
+    "Carpentry": ["Furniture Assembly", "Door & Window Frames", "Custom Shelving", "Cabinet Making", "Wood Repair", "Flooring"],
+    "Painting": ["Interior Painting", "Exterior Painting", "Wallpaper", "Surface Prep & Sanding", "Texture Coating", "Graffiti Removal"],
+    "Repair": ["Appliance Repair", "Roof Repair", "Wall Crack Repair", "Tile & Grout", "Window Repair", "Gate & Fence Repair"],
+  };
+
+  void _showCategoryPicker() {
+    final categories = [
+      "Plumbing & Repair",
+      "Electrical",
+      "Cleaning",
+      "Carpentry",
+      "Painting",
+      "Repair",
+    ];
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 16),
+              const Text(
+                "Select Category",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF001F3F)),
+              ),
+              const SizedBox(height: 8),
+              const Divider(),
+              Expanded(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: categories.length,
+                  itemBuilder: (context, index) {
+                    final cat = categories[index];
+                    return ListTile(
+                      title: Text(cat, style: const TextStyle(fontWeight: FontWeight.w500)),
+                      trailing: _selectedCategory == cat ? const Icon(Icons.check, color: Color(0xFFFF4500)) : null,
+                      onTap: () {
+                        setState(() {
+                          _selectedCategory = cat;
+                          _selectedSubcategory = ""; // reset subcategory when category changes
+                        });
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showTimelinePicker() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFFFF4500),
+              onPrimary: Colors.white,
+              onSurface: Color(0xFF001F3F),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      final months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      final weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      final formatted = "By ${weekdays[picked.weekday % 7]}, ${months[picked.month - 1]} ${picked.day}";
+      setState(() {
+        _timeline = formatted;
+      });
+    }
+  }
+
+  void _showPaymentMethodPicker() {
+    final methods = ["Escrow / Wallet", "Card Payment", "Bank Transfer", "Cash on Delivery"];
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 16),
+              const Text(
+                "Select Payment Method",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF001F3F)),
+              ),
+              const SizedBox(height: 8),
+              const Divider(),
+              Column(
+                children: methods.map((method) {
+                  return ListTile(
+                    title: Text(method, style: const TextStyle(fontWeight: FontWeight.w500)),
+                    trailing: _selectedPaymentMethod == method ? const Icon(Icons.check, color: Color(0xFFFF4500)) : null,
+                    onTap: () {
+                      setState(() {
+                        _selectedPaymentMethod = method;
+                      });
+                      Navigator.pop(context);
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
     _budgetController.dispose();
+    _minBudgetController.dispose();
+    _maxBudgetController.dispose();
     _locationController.dispose();
     super.dispose();
   }
@@ -53,8 +195,54 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                       _buildTextField(_titleController, "Enter task title"),
                       const SizedBox(height: 28),
                       
-                      _buildLabel("Category"),
-                      _buildDropdownField(_selectedCategory, Icons.chevron_right),
+                      _buildLabel("Category & Subcategory"),
+                      _buildDropdownField(_selectedCategory, Icons.chevron_right, onTap: _showCategoryPicker),
+                      const SizedBox(height: 10),
+                      _buildDropdownField(
+                        _selectedSubcategory.isEmpty ? "Select subcategory" : _selectedSubcategory,
+                        Icons.chevron_right,
+                        onTap: () {
+                          final subs = _subcategoryMap[_selectedCategory] ?? [];
+                          if (subs.isEmpty) return;
+                          showModalBottomSheet(
+                            context: context,
+                            backgroundColor: Colors.white,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                            ),
+                            builder: (ctx) => SafeArea(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const SizedBox(height: 16),
+                                  const Text("Select Subcategory", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+                                  const SizedBox(height: 8),
+                                  const Divider(),
+                                  Flexible(
+                                    child: ListView.builder(
+                                      shrinkWrap: true,
+                                      itemCount: subs.length,
+                                      itemBuilder: (context, i) {
+                                        final sub = subs[i];
+                                        return ListTile(
+                                          title: Text(sub, style: const TextStyle(fontWeight: FontWeight.w500)),
+                                          trailing: _selectedSubcategory == sub ? const Icon(Icons.check, color: Color(0xFFFF4500)) : null,
+                                          onTap: () {
+                                            setState(() => _selectedSubcategory = sub);
+                                            Navigator.pop(ctx);
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        muted: _selectedSubcategory.isEmpty,
+                      ),
                       const SizedBox(height: 28),
                       
                       _buildLabel("Description"),
@@ -77,24 +265,39 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                       const SizedBox(height: 8),
                       GestureDetector(
                         onTap: () {
-                          setState(() => _locationController.text = "Lagos, Nigeria");
+                          final appState = Get.find<AppState>();
+                          final detectedCountry = appState.currentUser.country.isNotEmpty ? appState.currentUser.country : "Nigeria";
+                          final detectedCity = detectedCountry == "Pakistan" ? "Lahore"
+                              : detectedCountry == "United States" ? "New York"
+                              : detectedCountry == "Kenya" ? "Nairobi"
+                              : detectedCountry == "South Africa" ? "Cape Town"
+                              : detectedCountry == "Ghana" ? "Accra"
+                              : "Lagos";
+                          setState(() {
+                            _locationController.text = detectedCountry == "Pakistan"
+                                ? "Suite 205, Johar Town"
+                                : "Suite 104, Lagos Wharf";
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Location detected: $detectedCity, $detectedCountry")),
+                          );
                         },
                         child: Row(
                           children: const [
                             Icon(Icons.my_location, size: 14, color: Color(0xFFFF4500)),
                             SizedBox(width: 4),
-                            Text("Detect My Location", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFFF4500))),
+                            Text("Detect My Location (IP-based)", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFFF4500))),
                           ],
                         ),
                       ),
                       const SizedBox(height: 28),
                       
                       _buildLabel("Estimated Budget"),
-                      _buildBudgetField(),
+                      _buildBudgetSection(),
                       const SizedBox(height: 28),
                       
                       _buildLabel("When do you need this done?"),
-                      _buildDropdownField(_timeline, Icons.calendar_today_outlined),
+                      _buildDropdownField(_timeline, Icons.calendar_today_outlined, onTap: _showTimelinePicker),
                       const SizedBox(height: 28),
 
                       _buildLabel("Urgency"),
@@ -102,7 +305,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                       const SizedBox(height: 28),
                       
                       _buildLabel("Preferred Payment Method"),
-                      _buildDropdownField(_selectedPaymentMethod, Icons.payment_outlined),
+                      _buildDropdownField(_selectedPaymentMethod, Icons.payment_outlined, onTap: _showPaymentMethodPicker),
                       const SizedBox(height: 32),
                     ],
                   ),
@@ -155,7 +358,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
               Text(
-                "Step 1 of 3",
+                "Step 1 of 2",
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -163,7 +366,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                 ),
               ),
               Text(
-                "Task Details",
+                "Task Details (Draft)",
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -182,7 +385,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
             ),
             child: FractionallySizedBox(
               alignment: Alignment.centerLeft,
-              widthFactor: 0.33,
+              widthFactor: 0.5,
               child: Container(
                 decoration: BoxDecoration(
                   color: const Color(0xFFFF4500),
@@ -263,25 +466,32 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
     );
   }
 
-  Widget _buildDropdownField(String value, IconData icon) {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 15, color: Color(0xFF001F3F), fontWeight: FontWeight.w500),
+  Widget _buildDropdownField(String value, IconData icon, {VoidCallback? onTap, bool muted = false}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 56,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                value,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: muted ? const Color(0xFFADB5BD) : const Color(0xFF001F3F),
+                  fontWeight: muted ? FontWeight.w400 : FontWeight.w500,
+                ),
+              ),
             ),
-          ),
-          Icon(icon, color: const Color(0xFF64748B), size: 20),
-        ],
+            Icon(icon, color: const Color(0xFF64748B), size: 20),
+          ],
+        ),
       ),
     );
   }
@@ -316,9 +526,11 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
   Widget _buildLocationTabs() {
     return Row(
       children: [
-        Expanded(child: _buildLocationTab("On-site", Icons.map_outlined)),
-        const SizedBox(width: 12),
+        Expanded(child: _buildLocationTab("On-site", Icons.location_on_outlined)),
+        const SizedBox(width: 8),
         Expanded(child: _buildLocationTab("Remote", Icons.monitor)),
+        const SizedBox(width: 8),
+        Expanded(child: _buildLocationTab("Hybrid", Icons.business_outlined)),
       ],
     );
   }
@@ -353,25 +565,137 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
     );
   }
 
-  Widget _buildBudgetField() {
-    return Row(
+  Widget _buildBudgetSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          alignment: Alignment.center,
-          child: const Text(
-            "\$",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF001F3F)),
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _budgetMode = "fixed"),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: _budgetMode == "fixed" ? const Color(0xFF001F3F) : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    "Fixed Budget",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: _budgetMode == "fixed" ? Colors.white : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _budgetMode = "range"),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: _budgetMode == "range" ? const Color(0xFF001F3F) : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    "Budget Range",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: _budgetMode == "range" ? Colors.white : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(child: _buildTextField(_budgetController, "0.00")),
+        const SizedBox(height: 16),
+        if (_budgetMode == "fixed")
+          Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
+                child: const Text(
+                  "\$",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF001F3F)),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: _buildTextField(_budgetController, "0.00")),
+            ],
+          )
+        else
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Min Budget", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text("\$", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(child: _buildTextField(_minBudgetController, "Min")),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Max Budget", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text("\$", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(child: _buildTextField(_maxBudgetController, "Max")),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
       ],
     );
   }
@@ -385,10 +709,24 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
       ),
       child: ElevatedButton(
         onPressed: () {
-          final budget = double.tryParse(_budgetController.text.trim()) ?? 0;
+          // Read country from profile at submit time (profile is guaranteed loaded by now)
+          final appState = Get.find<AppState>();
+          final String userCountry = appState.currentUser.country.isNotEmpty ? appState.currentUser.country : 'Nigeria';
+          final String userCity = userCountry == 'Pakistan' ? 'Lahore'
+              : userCountry == 'United States' ? 'New York'
+              : userCountry == 'Kenya' ? 'Nairobi'
+              : userCountry == 'South Africa' ? 'Cape Town'
+              : userCountry == 'Ghana' ? 'Accra'
+              : 'Lagos';
+
+          final isFixed = _budgetMode == "fixed";
+          final double budgetVal = double.tryParse(isFixed ? _budgetController.text.trim() : _maxBudgetController.text.trim()) ?? 0.0;
+          final double budgetMinVal = double.tryParse(isFixed ? _budgetController.text.trim() : _minBudgetController.text.trim()) ?? 0.0;
+          final double budgetMaxVal = double.tryParse(isFixed ? _budgetController.text.trim() : _maxBudgetController.text.trim()) ?? 0.0;
+
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => PostTaskStep2Screen(
+              builder: (context) => PostTaskStep3Screen(
                 draft: TaskDraft(
                   title: _titleController.text.trim(),
                   description: _descriptionController.text.trim(),
@@ -398,7 +736,12 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                   timeline: _timeline,
                   urgency: _urgency,
                   paymentMethod: _selectedPaymentMethod,
-                  budget: budget,
+                  budget: budgetVal,
+                  budgetMin: budgetMinVal,
+                  budgetMax: budgetMaxVal,
+                  budgetMode: _budgetMode,
+                  city: userCity,
+                  country: userCountry,
                   duration: '1 - 3 hrs',
                   isRecurring: false,
                 ),
@@ -416,7 +759,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
-            Text("Next", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text("Next (Preview)", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             SizedBox(width: 12),
             Icon(Icons.arrow_forward, size: 20),
           ],

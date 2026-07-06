@@ -30,10 +30,6 @@ class PostTaskStep3Screen extends StatelessWidget {
                       const SizedBox(height: 20),
                       _buildTaskOverviewCard(),
                       const SizedBox(height: 20),
-                      _buildPhotosCard(),
-                      const SizedBox(height: 20),
-                      _buildRequirementsCard(),
-                      const SizedBox(height: 20),
                       _buildChecklistCard(),
                       const SizedBox(height: 20),
                       _buildSafetyNote(),
@@ -85,7 +81,7 @@ class PostTaskStep3Screen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
               Text(
-                "Step 3 of 3",
+                "Step 2 of 2",
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFFFF4500)),
               ),
               Text(
@@ -214,10 +210,15 @@ class PostTaskStep3Screen extends StatelessWidget {
             crossAxisSpacing: 12,
             childAspectRatio: 2.2,
             children: [
-              _buildInfoCard("Budget", '\$${draft.budget.toStringAsFixed(0)}'),
+              _buildInfoCard(
+                "Budget",
+                draft.budgetMode == "fixed"
+                    ? '\$${draft.budgetMin.toStringAsFixed(0)}'
+                    : '\$${draft.budgetMin.toStringAsFixed(0)} - \$${draft.budgetMax.toStringAsFixed(0)}',
+              ),
               _buildInfoCard("Schedule", draft.timeline),
-              _buildInfoCard("Location", draft.location),
-              _buildInfoCard("Urgency", draft.urgency),
+              _buildInfoCard("Location", '${draft.location}\n(${draft.city}, ${draft.country})'),
+              _buildInfoCard("Type & Urgency", '${draft.locationType} (${draft.urgency})'),
             ],
           ),
         ],

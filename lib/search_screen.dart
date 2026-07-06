@@ -13,17 +13,14 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final TextEditingController _searchController = TextEditingController(text: 'Plumbing services');
-  final List<String> _recentSearches = [
-    'Emergency plumber Brooklyn',
-    'AC repair and installation',
-  ];
+  final TextEditingController _searchController = TextEditingController(text: '');
+  final List<String> _recentSearches = [];
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      AppStateScope.of(context).performSearch(_searchController.text.trim());
+      AppStateScope.of(context).performSearch('');
     });
   }
 
@@ -45,7 +42,7 @@ class _SearchScreenState extends State<SearchScreen> {
             id: t['id']?.toString() ?? '',
             title: t['name'] ?? '',
             description: t['description'] ?? '',
-            category: t['category'] ?? 'General',
+            category: t['category'] is Map ? (t['category']['name'] ?? 'General') : (t['category']?.toString() ?? 'General'),
             location: t['location'] ?? 'Lagos, Nigeria',
             clientName: t['client_name'] ?? 'Client',
             clientAvatar: 'assets/images/onboard3.jpg',
@@ -67,7 +64,7 @@ class _SearchScreenState extends State<SearchScreen> {
           return ServiceItem(
             id: s['id']?.toString() ?? '',
             title: s['name'] ?? '',
-            category: s['category'] ?? 'General',
+            category: s['category'] is Map ? (s['category']['name'] ?? 'General') : (s['category']?.toString() ?? 'General'),
             description: s['description'] ?? '',
             priceLabel: '\$${priceVal.toStringAsFixed(0)}/hr',
             providerName: s['role'] ?? 'Provider',
@@ -93,9 +90,12 @@ class _SearchScreenState extends State<SearchScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _buildRecentSearches(),
-                        _buildSuggestedCategories(),
-                        _buildPopularNow(taskMatches, serviceMatches),
-                        _buildTopPros(appState),
+                        if (appState.currentRole == 'Client') _buildSuggestedCategories(),
+                        _buildPopularNow(
+                          appState.currentRole == 'Client' ? [] : taskMatches,
+                          appState.currentRole == 'Client' ? serviceMatches : [],
+                        ),
+                        if (appState.currentRole == 'Client') _buildTopPros(appState),
                         const SizedBox(height: 32),
                       ],
                     ),
@@ -142,6 +142,16 @@ class _SearchScreenState extends State<SearchScreen> {
                         appState.performSearch(val.trim());
                         setState(() {});
                       },
+                      onSubmitted: (val) {
+                        final q = val.trim();
+                        if (q.isNotEmpty) {
+                          if (!_recentSearches.contains(q)) {
+                            _recentSearches.insert(0, q);
+                          }
+                          appState.performSearch(q);
+                          setState(() {});
+                        }
+                      },
                       style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Color(0xFF001F3F)),
                       decoration: const InputDecoration(
                         hintText: 'Search for tasks or pros...',
@@ -168,16 +178,159 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(8),
+          GestureDetector(
+            onTap: () => _showFilterSheet(appState),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.tune, color: Color(0xFF001F3F), size: 20),
             ),
-            child: const Icon(Icons.tune, color: Color(0xFF001F3F), size: 20),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showFilterSheet(AppState appState) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        String selectedType = 'all';
+        double minBudget = 0;
+        double maxBudget = 1000;
+        
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Filter Results",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF001F3F)),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Result Type",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF001F3F)),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        _buildFilterOption(
+                          label: "All",
+                          active: selectedType == 'all',
+                          onTap: () => setSheetState(() => selectedType = 'all'),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterOption(
+                          label: "Tasks",
+                          active: selectedType == 'tasks',
+                          onTap: () => setSheetState(() => selectedType = 'tasks'),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFilterOption(
+                          label: "Services",
+                          active: selectedType == 'services',
+                          onTap: () => setSheetState(() => selectedType = 'services'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      "Budget Range",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF001F3F)),
+                    ),
+                    RangeSlider(
+                      values: RangeValues(minBudget, maxBudget),
+                      min: 0,
+                      max: 2000,
+                      divisions: 40,
+                      activeColor: const Color(0xFFFF4500),
+                      inactiveColor: const Color(0xFFE2E8F0),
+                      labels: RangeLabels("\$${minBudget.round()}", "\$${maxBudget.round()}"),
+                      onChanged: (values) {
+                        setSheetState(() {
+                          minBudget = values.start;
+                          maxBudget = values.end;
+                        });
+                      },
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("\$${minBudget.round()}", style: const TextStyle(fontWeight: FontWeight.w600)),
+                        Text("\$${maxBudget.round()}", style: const TextStyle(fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          appState.performSearch(
+                            _searchController.text.trim(),
+                            tab: selectedType,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFF4500),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        child: const Text("Apply Filters", style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildFilterOption({required String label, required bool active, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: active ? const Color(0xFF001F3F) : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: active ? Colors.white : const Color(0xFF001F3F),
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
       ),
     );
   }
@@ -360,11 +513,34 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildTopPros(AppState appState) {
-    final pros = [
-      {'name': appState.currentRole == 'Technician' ? appState.currentUser.name : 'Michael T.', 'rating': '4.9 (120)', 'trade': 'Electrician', 'avatar': 'assets/images/onboard1.jpg'},
-      {'name': 'Sarah L.', 'rating': '5.0 (85)', 'trade': 'House Cleaner', 'avatar': 'assets/images/onboard2.jpg'},
-      {'name': 'David R.', 'rating': '4.8 (210)', 'trade': 'Plumber', 'avatar': 'assets/images/onboard3.jpg'},
-    ];
+    final rawPros = appState.publicPros;
+    if (rawPros.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.fromLTRB(20, 24, 20, 0),
+        child: Text('No professionals found yet.',
+            style: TextStyle(color: Color(0xFF64748B))),
+      );
+    }
+
+    final pros = rawPros.map((user) {
+      final String name = '${user['first_name'] ?? ''} ${user['last_name'] ?? ''}'.trim().isNotEmpty
+          ? '${user['first_name']} ${user['last_name']}'.trim()
+          : (user['username'] ?? 'Professional');
+      final String avatar = user['avatar_url']?.toString().isNotEmpty == true
+          ? user['avatar_url']
+          : 'assets/images/onboard1.jpg';
+      final skills = user['skills'] is List
+          ? (user['skills'] as List).join(', ')
+          : 'Specialist';
+      final double rating = double.tryParse(user['average_rating']?.toString() ?? '') ?? 0.0;
+      final int jobs = int.tryParse(user['completed_jobs']?.toString() ?? '0') ?? 0;
+      return {
+        'name': name,
+        'rating': rating > 0 ? '${rating.toStringAsFixed(1)} ($jobs)' : '—',
+        'trade': skills.isNotEmpty ? skills : 'Professional',
+        'avatar': avatar,
+      };
+    }).toList();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),

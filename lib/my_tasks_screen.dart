@@ -5,6 +5,9 @@ import 'app_state.dart';
 import 'browse_tasks_screen.dart';
 import 'received_bids_screen.dart';
 import 'task_feed_screen.dart';
+import 'post_task_form_screen.dart';
+import 'listing_screen.dart';
+import 'edit_task_screen.dart';
 
 class MyTasksScreen extends StatefulWidget {
   const MyTasksScreen({super.key});
@@ -49,7 +52,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
               Expanded(
                 child: _activeTab == 'Saved' && isClient
                     ? (savedServices.isEmpty ? _buildSavedEmptyState() : _buildSavedServicesList(savedServices))
-                    : (tasks.isEmpty ? _buildEmptyState() : _buildTasksList(tasks, isClient)),
+                    : (tasks.isEmpty ? _buildEmptyState(isClient) : _buildTasksList(tasks, isClient)),
               ),
             ],
           ),
@@ -91,26 +94,26 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isClient) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.assignment_outlined, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
-          const Text('No active tasks yet', style: TextStyle(color: Colors.grey, fontSize: 16)),
+          Text(isClient ? 'You haven\'t posted any tasks yet' : 'No active projects assigned yet', style: const TextStyle(color: Colors.grey, fontSize: 16)),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const TaskFeedScreen()),
+                MaterialPageRoute(builder: (context) => isClient ? const PostTaskFormScreen() : const TaskFeedScreen()),
               );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF001F3F),
               foregroundColor: Colors.white,
             ),
-            child: const Text('Browse Open Tasks'),
+            child: Text(isClient ? 'Post a New Task' : 'Browse Open Tasks'),
           ),
         ],
       ),
@@ -165,11 +168,11 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const TaskFeedScreen()),
+                  MaterialPageRoute(builder: (context) => const PostTaskFormScreen()),
                 );
               },
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF001F3F), foregroundColor: Colors.white),
-              child: const Text('Browse Open Tasks'),
+              child: const Text('Post a New Task'),
             ),
         ],
       ),
@@ -193,7 +196,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const TaskFeedScreen()),
+                MaterialPageRoute(builder: (context) => const ListingScreen()),
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF001F3F), foregroundColor: Colors.white),
@@ -306,10 +309,10 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                   child: OutlinedButton(
                     onPressed: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => ReceivedBidsScreen(taskId: task.id)),
+                        MaterialPageRoute(builder: (context) => EditTaskScreen(task: task)),
                       );
                     },
-                    child: const Text('Manage Task'),
+                    child: const Text('Edit Details'),
                   ),
                 )
               else

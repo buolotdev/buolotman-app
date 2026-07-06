@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_state.dart';
 import 'signup_screen.dart';
-import 'otp_screen.dart';
 import 'main_navigation_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -140,6 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 1.5,
                         ),
                       ),
+                      const SizedBox(height: 32),
 
                       // Form Fields
                       const Text(
@@ -155,10 +155,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _identifierController,
                         decoration: InputDecoration(
                           hintText: "Enter your email or phone",
-                          hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 15),
-                          prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF64748B)),
+                          hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15),
+                          prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF94A3B8)),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: const Color(0xFFF8FAFC),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -169,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFF001F3F)),
+                            borderSide: const BorderSide(color: Color(0xFFFF5500), width: 1.5),
                           ),
                         ),
                       ),
@@ -189,12 +190,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         obscureText: _obscurePassword,
                         decoration: InputDecoration(
                           hintText: "••••••••",
-                          hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 15),
-                          prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF64748B)),
+                          hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 15),
+                          prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF94A3B8)),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                              color: const Color(0xFF64748B),
+                              color: const Color(0xFF94A3B8),
                             ),
                             onPressed: () {
                               setState(() {
@@ -203,7 +204,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: const Color(0xFFF8FAFC),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -214,7 +216,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFF001F3F)),
+                            borderSide: const BorderSide(color: Color(0xFFFF5500), width: 1.5),
                           ),
                         ),
                       ),
@@ -304,50 +306,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
-
-                      SizedBox(
-                        height: 56,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            final phone = _identifierController.text.trim();
-                            if (phone.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Please enter your phone number first.')),
-                              );
-                              return;
-                            }
-                            _requestOTP(phone);
-                          },
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            side: const BorderSide(color: Color(0xFFE2E8F0)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                'assets/images/google_logo.png',
-                                width: 24,
-                                height: 24,
-                              ),
-                              const SizedBox(width: 12),
-                              const Text(
-                                "Continue with Google",
-                                style: TextStyle(
-                                  color: Color(0xFF001F3F),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
                       const SizedBox(height: 32),
                       Padding(
                         padding: const EdgeInsets.only(top: 32.0),
@@ -406,39 +364,5 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Future<void> _requestOTP(String phone) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF4500)),
-        ),
-      ),
-    );
-    try {
-      final res = await AppStateScope.of(context).requestLoginOTP(phone);
-      final int challengeId = res['challenge_id'] ?? 0;
-      if (mounted) {
-        Navigator.of(context).pop(); // Dismiss loading
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => OTPScreen(
-              phoneNumber: phone,
-              role: 'Client',
-              challengeId: challengeId,
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.of(context).pop(); // Dismiss loading
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
-        );
-      }
-    }
-  }
 }
 

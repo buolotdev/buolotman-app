@@ -131,21 +131,55 @@ class NotificationsScreen extends StatelessWidget {
       ];
     }
 
-    return [
-      {
-        'icon': Icons.receipt_long_outlined,
-        'color': const Color(0xFFFF4500),
-        'title': 'Payment released',
-        'subtitle': 'Your completed task payment has been released from escrow.',
+    final List<Map<String, Object>> list = [];
+    
+    if (unreadMessage != null) {
+      list.add({
+        'icon': Icons.chat_bubble_outline,
+        'color': const Color(0xFF001F3F),
+        'title': 'New message',
+        'subtitle': 'You have an active chat thread with ${unreadMessage.name}.',
+        'time': 'Just now',
+      });
+    }
+
+    for (final task in appState.tasks) {
+      if (task.status == 'completed') {
+        list.add({
+          'icon': Icons.check_circle_outline,
+          'color': const Color(0xFF1E8E3E),
+          'title': 'Task completed',
+          'subtitle': 'Your task "${task.title}" is complete and payment is released.',
+          'time': 'Today',
+        });
+      } else if (task.status == 'in_progress') {
+        list.add({
+          'icon': Icons.hourglass_top_outlined,
+          'color': const Color(0xFFFF5500),
+          'title': 'Task in progress',
+          'subtitle': 'Work is in progress on "${task.title}".',
+          'time': 'Today',
+        });
+      } else if (task.status == 'open' && task.bidsCount > 0) {
+        list.add({
+          'icon': Icons.receipt_long_outlined,
+          'color': const Color(0xFFFF5500),
+          'title': 'Bids received',
+          'subtitle': 'Your task "${task.title}" has received ${task.bidsCount} bids.',
+          'time': 'Today',
+        });
+      }
+    }
+
+    if (list.isEmpty) {
+      list.add({
+        'icon': Icons.notifications_none_outlined,
+        'color': const Color(0xFF94A3B8),
+        'title': 'Welcome to Boulot Man',
+        'subtitle': 'Post a task or browse professionals to get started!',
         'time': 'Today',
-      },
-      {
-        'icon': Icons.check_circle_outline,
-        'color': const Color(0xFF1E8E3E),
-        'title': 'Task completed',
-        'subtitle': 'A technician marked your task as complete.',
-        'time': 'Yesterday',
-      },
-    ];
+      });
+    }
+    return list;
   }
 }

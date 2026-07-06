@@ -71,9 +71,11 @@ class _WalletScreenState extends State<WalletScreen> {
   Widget _buildHeader(BuildContext context) {
     final role = AppStateScope.of(context).currentRole;
     return Container(
-      color: Colors.white,
       padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0)))),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+      ),
       child: Row(
         children: [
           GestureDetector(

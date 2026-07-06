@@ -107,8 +107,10 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
 
   Widget _buildTabBar() {
     return Container(
-      color: Colors.white,
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0)))),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+      ),
       child: Row(
         children: [
           _buildTabItem('Active'),

@@ -8,8 +8,17 @@ import 'main_navigation_screen.dart';
 import 'notifications_screen.dart';
 import 'post_service_screen.dart';
 
+/// A single screen that handles two modes:
+///   - Own profile (companyData == null): full editing, Logout, Post Service
+///   - Public profile (companyData != null): read-only view, Contact button, NO Logout
 class CompanyProfileScreen extends StatelessWidget {
-  const CompanyProfileScreen({super.key});
+  /// Pass this when viewing ANOTHER company's profile (e.g. from Featured Companies).
+  /// Leave null to show the logged-in user's own company profile.
+  final Map<String, dynamic>? companyData;
+
+  const CompanyProfileScreen({super.key, this.companyData});
+
+  bool get _isPublicView => companyData != null;
 
   @override
   Widget build(BuildContext context) {
@@ -17,10 +26,30 @@ class CompanyProfileScreen extends StatelessWidget {
       builder: (appState) {
         final bottomPadding = MediaQuery.of(context).padding.bottom + 140;
 
+        // Determine which data to display
+        final Map<String, dynamic> profile = _isPublicView
+            ? companyData!
+            : (appState.companyProfile ?? {});
+
+        final String displayName = _isPublicView
+            ? (companyData!['company_name'] ?? 'Company')
+            : appState.currentUser.name;
+
+        final String displayTagline = _isPublicView
+            ? (companyData!['services_offered'] is List &&
+                    (companyData!['services_offered'] as List).isNotEmpty
+                ? (companyData!['services_offered'] as List).first.toString()
+                : 'Service Company')
+            : appState.currentUser.tagline;
+
+        final bool isVerified = _isPublicView
+            ? (companyData!['is_verified'] == true)
+            : (appState.companyProfile?['is_verified'] == true);
+
         return PopScope(
-          canPop: false,
+          canPop: _isPublicView, // Public profile can just pop back
           onPopInvokedWithResult: (didPop, result) {
-            if (!didPop) {
+            if (!didPop && !_isPublicView) {
               _goHome(context, appState.currentRole);
             }
           },
@@ -29,41 +58,56 @@ class CompanyProfileScreen extends StatelessWidget {
             body: CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
-                _buildSliverAppBar(context, appState),
+                _buildSliverAppBar(context, appState, displayName),
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: EdgeInsets.only(bottom: bottomPadding),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildCompanyHeader(appState),
-                        _buildStats(appState),
-                        if (appState.companyRegistrationStatus != null) ...[
-                          _buildSectionTitle('Registration Status'),
-                          _buildStatusCard(
-                            title: appState.companyRegistrationStatus!,
-                            subtitle: appState.companyRegistrationSummary ?? 'Registration pending review.',
-                          ),
+                        _buildCompanyHeader(
+                          appState,
+                          displayName: displayName,
+                          displayTagline: displayTagline,
+                          isVerified: isVerified,
+                        ),
+                        _buildStats(appState, profile),
+
+                        // Registration / verification status only shown in own profile
+                        if (!_isPublicView) ...[
+                          if (appState.companyRegistrationStatus != null) ...[
+                            _buildSectionTitle('Registration Status'),
+                            _buildStatusCard(
+                              title: appState.companyRegistrationStatus!,
+                              subtitle: appState.companyRegistrationSummary ??
+                                  'Registration pending review.',
+                            ),
+                          ],
+                          if (appState.verificationStatus != null) ...[
+                            _buildSectionTitle('Verification Status'),
+                            _buildStatusCard(
+                              title: appState.verificationStatus!,
+                              subtitle: appState.verificationSummary ??
+                                  'Verification pending review.',
+                            ),
+                          ],
                         ],
-                        if (appState.verificationStatus != null) ...[
-                          _buildSectionTitle('Verification Status'),
-                          _buildStatusCard(
-                            title: appState.verificationStatus!,
-                            subtitle: appState.verificationSummary ?? 'Verification pending review.',
-                          ),
-                        ],
+
                         _buildSectionTitle('About Company'),
-                        _buildOverview(appState),
-                        _buildSectionTitle('Our Services'),
-                        _buildServiceCatalog(appState),
-                        _buildSectionTitle('Our Team'),
-                        _buildTeamScroll(appState),
+                        _buildOverview(appState, profile),
+                        _buildSectionTitle('Services'),
+                        _buildServiceCatalog(appState, profile),
+                        _buildSectionTitle('Team'),
+                        _buildTeamSection(appState, profile),
                         _buildSectionTitle('Portfolio'),
-                        _buildPortfolioGrid(appState),
+                        _buildPortfolioGrid(profile),
                         const SizedBox(height: 28),
-                        _buildPrimaryActions(context, appState),
+                        _buildPrimaryActions(context, appState, displayName),
                         const SizedBox(height: 12),
-                        _buildLogoutButton(context),
+
+                        // Logout ONLY in own profile view
+                        if (!_isPublicView) _buildLogoutButton(context),
+
                         const SizedBox(height: 24),
                       ],
                     ),
@@ -79,41 +123,78 @@ class CompanyProfileScreen extends StatelessWidget {
 
   void _goHome(BuildContext context, String role) {
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => MainNavigationScreen(role: role, initialIndex: 0)),
+      MaterialPageRoute(
+          builder: (context) =>
+              MainNavigationScreen(role: role, initialIndex: 0)),
       (route) => false,
     );
   }
 
-  Widget _buildSliverAppBar(BuildContext context, AppState appState) {
+  Widget _buildSliverAppBar(
+      BuildContext context, AppState appState, String displayName) {
+    final String heroAvatar = _isPublicView
+        ? (companyData!['logo_url']?.toString().isNotEmpty == true
+            ? companyData!['logo_url']
+            : '')
+        : appState.currentUser.avatar;
+
     return SliverAppBar(
       expandedHeight: 200,
       pinned: true,
       backgroundColor: const Color(0xFF001F3F),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: () => _goHome(context, appState.currentRole),
+        onPressed: () {
+          if (_isPublicView) {
+            Navigator.of(context).pop();
+          } else {
+            _goHome(context, appState.currentRole);
+          }
+        },
       ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.notifications_none, color: Colors.white),
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-            );
-          },
-        ),
+        if (!_isPublicView)
+          IconButton(
+            icon: const Icon(Icons.notifications_none, color: Colors.white),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                    builder: (context) => const NotificationsScreen()),
+              );
+            },
+          ),
       ],
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset(
-              appState.currentUser.avatar,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(color: const Color(0xFF001F3F));
-              },
-            ),
+            if (heroAvatar.startsWith('http'))
+              Image.network(
+                heroAvatar,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                    Container(color: const Color(0xFF001F3F)),
+              )
+            else if (heroAvatar.isNotEmpty)
+              Image.asset(
+                heroAvatar,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                    Container(color: const Color(0xFF001F3F)),
+              )
+            else
+              Container(
+                color: const Color(0xFF001F3F),
+                child: Center(
+                  child: Text(
+                    displayName.isNotEmpty ? displayName[0].toUpperCase() : 'C',
+                    style: const TextStyle(
+                        fontSize: 64,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white24),
+                  ),
+                ),
+              ),
             Container(color: Colors.black.withOpacity(0.30)),
           ],
         ),
@@ -121,7 +202,18 @@ class CompanyProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCompanyHeader(AppState appState) {
+  Widget _buildCompanyHeader(
+    AppState appState, {
+    required String displayName,
+    required String displayTagline,
+    required bool isVerified,
+  }) {
+    final String logoAvatar = _isPublicView
+        ? (companyData!['logo_url']?.toString().isNotEmpty == true
+            ? companyData!['logo_url']
+            : '')
+        : appState.currentUser.avatar;
+
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -131,12 +223,21 @@ class CompanyProfileScreen extends StatelessWidget {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             clipBehavior: Clip.antiAlias,
-            child: Image.asset(appState.currentUser.avatar, fit: BoxFit.cover),
+            child: logoAvatar.startsWith('http')
+                ? Image.network(logoAvatar,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => _logoFallback(displayName))
+                : logoAvatar.isNotEmpty
+                    ? Image.asset(logoAvatar,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            _logoFallback(displayName))
+                    : _logoFallback(displayName),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -144,23 +245,45 @@ class CompanyProfileScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  appState.currentUser.name,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF001F3F)),
+                  displayName,
+                  style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF001F3F)),
                 ),
                 const SizedBox(height: 4),
-                Row(
-                  children: const [
-                    Icon(Icons.verified, color: Color(0xFF1E8E3E), size: 16),
-                    SizedBox(width: 4),
-                    Text(
-                      'Verified Company',
-                      style: TextStyle(color: Color(0xFF1E8E3E), fontWeight: FontWeight.w600, fontSize: 13),
-                    ),
-                  ],
-                ),
+                if (isVerified)
+                  Row(
+                    children: const [
+                      Icon(Icons.verified, color: Color(0xFF1E8E3E), size: 16),
+                      SizedBox(width: 4),
+                      Text(
+                        'Verified Company',
+                        style: TextStyle(
+                            color: Color(0xFF1E8E3E),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13),
+                      ),
+                    ],
+                  )
+                else
+                  Row(
+                    children: const [
+                      Icon(Icons.pending_outlined,
+                          color: Color(0xFFF59E0B), size: 16),
+                      SizedBox(width: 4),
+                      Text(
+                        'Verification Pending',
+                        style: TextStyle(
+                            color: Color(0xFFF59E0B),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13),
+                      ),
+                    ],
+                  ),
                 const SizedBox(height: 8),
                 Text(
-                  appState.currentUser.tagline,
+                  displayTagline,
                   style: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
                 ),
               ],
@@ -171,10 +294,25 @@ class CompanyProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStats(AppState appState) {
-    final rating = appState.companyProfile?['average_rating']?.toString() ?? '4.9';
-    final completed = appState.companyProfile?['completed_tasks']?.toString() ?? '0';
-    final teamSize = appState.companyProfile?['team_size']?.toString() ?? '1';
+  Widget _logoFallback(String name) {
+    return Container(
+      color: const Color(0xFF001F3F),
+      child: Center(
+        child: Text(
+          name.isNotEmpty ? name[0].toUpperCase() : 'C',
+          style: const TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: Colors.white54),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStats(AppState appState, Map<String, dynamic> profile) {
+    final rating = profile['average_rating']?.toString() ?? '—';
+    final completed = profile['completed_tasks']?.toString() ?? '0';
+    final teamSize = profile['team_size']?.toString() ?? '—';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -194,8 +332,14 @@ class CompanyProfileScreen extends StatelessWidget {
       children: [
         Icon(icon, color: const Color(0xFFFF4500), size: 20),
         const SizedBox(height: 4),
-        Text(val, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
-        Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+        Text(val,
+            style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF001F3F))),
+        Text(label,
+            style:
+                const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
       ],
     );
   }
@@ -203,11 +347,16 @@ class CompanyProfileScreen extends StatelessWidget {
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 32, 20, 16),
-      child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+      child: Text(title,
+          style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF001F3F))),
     );
   }
 
-  Widget _buildStatusCard({required String title, required String subtitle}) {
+  Widget _buildStatusCard(
+      {required String title, required String subtitle}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
@@ -220,31 +369,60 @@ class CompanyProfileScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
+            Text(title,
+                style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF001F3F))),
             const SizedBox(height: 6),
-            Text(subtitle, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B), height: 1.5)),
+            Text(subtitle,
+                style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF64748B),
+                    height: 1.5)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildOverview(AppState appState) {
-    final about = appState.companyProfile?['about']?.toString();
+  Widget _buildOverview(AppState appState, Map<String, dynamic> profile) {
+    final about = profile['about']?.toString();
     final description = about != null && about.isNotEmpty
         ? about
-        : 'Registered contractor profile with services, project tracking, and compliance flows.';
+        : _isPublicView
+            ? 'No company description provided yet.'
+            : 'Registered contractor profile with services, project tracking, and compliance flows.';
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Text(
         description,
-        style: const TextStyle(color: Color(0xFF64748B), height: 1.5, fontSize: 15),
+        style: const TextStyle(
+            color: Color(0xFF64748B), height: 1.5, fontSize: 15),
       ),
     );
   }
 
-  Widget _buildServiceCatalog(AppState appState) {
-    final services = appState.services.map((service) => service.title).toList();
+  Widget _buildServiceCatalog(
+      AppState appState, Map<String, dynamic> profile) {
+    List<String> services;
+    if (_isPublicView) {
+      final offered = profile['services_offered'];
+      services = offered is List
+          ? offered.map((e) => e.toString()).toList()
+          : [];
+    } else {
+      services = appState.services.map((s) => s.title).toList();
+    }
+
+    if (services.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: Text('No services listed yet.',
+            style: TextStyle(color: Color(0xFF64748B))),
+      );
+    }
+
     return SizedBox(
       height: 52,
       child: ListView.builder(
@@ -255,79 +433,149 @@ class CompanyProfileScreen extends StatelessWidget {
           margin: const EdgeInsets.only(right: 12),
           padding: const EdgeInsets.symmetric(horizontal: 16),
           alignment: Alignment.center,
-          decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(99)),
-          child: Text(services[index], style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
+          decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(99)),
+          child: Text(services[index],
+              style: const TextStyle(
+                  fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
         ),
       ),
     );
   }
 
-  Widget _buildTeamScroll(AppState appState) {
-    final int teamSize = int.tryParse(appState.companyProfile?['team_size']?.toString() ?? '1') ?? 1;
-    final List<Map<String, String>> team = [
-      {'name': appState.currentUser.name, 'role': 'Managing Director', 'image': appState.currentUser.avatar},
-    ];
-    for (int i = 1; i < teamSize; i++) {
-      team.add({
-        'name': 'Staff Member $i',
-        'role': 'Technical Support',
-        'image': 'assets/images/onboard1.jpg',
-      });
+  Widget _buildTeamSection(
+      AppState appState, Map<String, dynamic> profile) {
+    final int teamSize =
+        int.tryParse(profile['team_size']?.toString() ?? '0') ?? 0;
+
+    if (_isPublicView) {
+      // In public view: just show the count, no fake names
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.group_outlined,
+                  color: Color(0xFF001F3F), size: 24),
+              const SizedBox(width: 12),
+              Text(
+                teamSize > 0
+                    ? '$teamSize team member${teamSize == 1 ? '' : 's'}'
+                    : 'Team size not specified',
+                style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF001F3F)),
+              ),
+            ],
+          ),
+        ),
+      );
     }
+
+    // Own profile: show current user as first member + count-based placeholders
+    final List<Map<String, String>> team = [
+      {
+        'name': appState.currentUser.name,
+        'role': 'Managing Director',
+        'image': appState.currentUser.avatar,
+      },
+    ];
+    // Additional members shown as count only (no fake names)
+    final extraCount = (teamSize - 1).clamp(0, 99);
 
     return SizedBox(
       height: 104,
-      child: ListView.builder(
+      child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: team.length,
-        itemBuilder: (context, index) {
-          final member = team[index];
-          final img = member['image']!;
-          return Container(
-            width: 124,
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+        children: [
+          ...team.map((member) {
+            final img = member['image']!;
+            return Container(
+              width: 124,
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundImage: img.startsWith('http')
+                        ? NetworkImage(img)
+                        : AssetImage(img) as ImageProvider,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    member['name']!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF001F3F)),
+                  ),
+                  Text(
+                    member['role']!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 10, color: Color(0xFF64748B)),
+                  ),
+                ],
+              ),
+            );
+          }),
+          if (extraCount > 0)
+            Container(
+              width: 124,
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.group, color: Color(0xFF64748B), size: 28),
+                  const SizedBox(height: 6),
+                  Text(
+                    '+$extraCount more',
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF64748B)),
+                  ),
+                ],
+              ),
             ),
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundImage: img.startsWith('http') ? NetworkImage(img) : AssetImage(img) as ImageProvider,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  member['name']!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF001F3F)),
-                ),
-                Text(
-                  member['role']!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
-                ),
-              ],
-            ),
-          );
-        },
+        ],
       ),
     );
   }
 
-  Widget _buildPortfolioGrid(AppState appState) {
-    final List<dynamic> projects = appState.companyProfile?['projects'] ?? [];
+  Widget _buildPortfolioGrid(Map<String, dynamic> profile) {
+    final List<dynamic> projects = profile['projects'] ?? [];
     if (projects.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Text(
-          "No registered projects in portfolio yet.",
-          style: TextStyle(color: Color(0xFF64748B), fontStyle: FontStyle.italic),
+          'No projects in portfolio yet.',
+          style: TextStyle(
+              color: Color(0xFF64748B), fontStyle: FontStyle.italic),
         ),
       );
     }
@@ -345,9 +593,11 @@ class CompanyProfileScreen extends StatelessWidget {
       itemCount: projects.length,
       itemBuilder: (context, index) {
         final proj = projects[index];
-        final String title = proj['title'] ?? 'Company Project';
-        final String location = proj['location']?.toString().isNotEmpty == true ? proj['location'] : 'Lagos, Nigeria';
-        final String progress = 'Progress: ${proj['progress'] ?? 0}%';
+        final String title = proj['title'] ?? 'Project';
+        final String location = proj['location']?.toString().isNotEmpty == true
+            ? proj['location']
+            : 'Location not specified';
+        final int progress = int.tryParse(proj['progress']?.toString() ?? '0') ?? 0;
         return Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
@@ -361,7 +611,7 @@ class CompanyProfileScreen extends StatelessWidget {
               Expanded(
                 child: Container(
                   color: const Color(0xFF001F3F),
-                  child: const Icon(Icons.business, size: 40, color: Colors.white70),
+                  child: const Icon(Icons.business, size: 40, color: Colors.white30),
                 ),
               ),
               Padding(
@@ -369,11 +619,23 @@ class CompanyProfileScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
+                    Text(title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF001F3F))),
                     const SizedBox(height: 2),
-                    Text(location, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                    Text(location,
+                        style: const TextStyle(
+                            fontSize: 12, color: Color(0xFF64748B))),
                     const SizedBox(height: 2),
-                    Text(progress, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFFF4500))),
+                    Text('Progress: $progress%',
+                        style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFFF4500))),
                   ],
                 ),
               ),
@@ -384,7 +646,53 @@ class CompanyProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPrimaryActions(BuildContext context, AppState appState) {
+  Widget _buildPrimaryActions(
+      BuildContext context, AppState appState, String displayName) {
+    if (_isPublicView) {
+      // Public view: show Contact button only
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  final String avatar =
+                      companyData!['logo_url']?.toString().isNotEmpty == true
+                          ? companyData!['logo_url']
+                          : 'assets/images/onboard1.jpg';
+                  AppStateScope.of(context).createOrOpenThread(
+                    otherPartyName: displayName,
+                    otherPartyImage: avatar,
+                    initialMessage:
+                        'Hi, I would like to ask about your company services.',
+                  );
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ChatScreen(name: displayName, image: avatar),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.chat_bubble_outline),
+                label: const Text('Contact Company',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF001F3F),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Own profile: show Post Service + Message (self-message opens inbox)
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
@@ -393,35 +701,37 @@ class CompanyProfileScreen extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const PostServiceScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const PostServiceScreen()),
                 );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF001F3F),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 elevation: 0,
               ),
-              child: const Text('Post Company Service', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text('Post Company Service',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
           const SizedBox(width: 12),
           Container(
             height: 56,
             width: 56,
-            decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(12)),
             child: IconButton(
               icon: const Icon(Icons.message_outlined, color: Color(0xFF001F3F)),
               onPressed: () {
-                AppStateScope.of(context).createOrOpenThread(
-                  otherPartyName: appState.currentUser.name,
-                  otherPartyImage: appState.currentUser.avatar,
-                  initialMessage: 'Hi, I would like to ask about your company services.',
-                );
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => ChatScreen(name: appState.currentUser.name, image: appState.currentUser.avatar),
+                    builder: (context) => ChatScreen(
+                        name: appState.currentUser.name,
+                        image: appState.currentUser.avatar),
                   ),
                 );
               },
@@ -448,12 +758,14 @@ class CompanyProfileScreen extends StatelessWidget {
           icon: const Icon(Icons.logout, color: Color(0xFFB91C1C)),
           label: const Text(
             'Log Out',
-            style: TextStyle(color: Color(0xFFB91C1C), fontWeight: FontWeight.w700),
+            style: TextStyle(
+                color: Color(0xFFB91C1C), fontWeight: FontWeight.w700),
           ),
           style: OutlinedButton.styleFrom(
             side: const BorderSide(color: Color(0xFFFCA5A5)),
             padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
           ),
         ),
       ),

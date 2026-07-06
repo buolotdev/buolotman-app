@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   ApiService._privateConstructor();
@@ -9,13 +10,16 @@ class ApiService {
 
   String get baseUrl {
     if (kIsWeb) {
-      final host = Uri.base.host;
+      var host = Uri.base.host;
+      if (host == 'localhost') {
+        host = '127.0.0.1';
+      }
       if (host.isNotEmpty) {
         return 'http://$host:8000/api';
       }
     }
-    // Fallback for non-web environments (use host local IP so physical devices and simulators can connect)
-    return 'http://192.168.0.101:8000/api';
+    // Fallback for non-web environments (use localhost for desktop / simulator testing)
+    return 'http://127.0.0.1:8000/api';
   }
 
   String? _accessToken;
@@ -26,11 +30,28 @@ class ApiService {
   void setTokens(String? access, String? refresh) {
     _accessToken = access;
     _refreshToken = refresh;
+    SharedPreferences.getInstance().then((prefs) {
+      if (access != null) {
+        prefs.setString('access_token', access);
+      } else {
+        prefs.remove('access_token');
+      }
+      if (refresh != null) {
+        prefs.setString('refresh_token', refresh);
+      } else {
+        prefs.remove('refresh_token');
+      }
+    });
   }
 
   void clearTokens() {
     _accessToken = null;
     _refreshToken = null;
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.remove('access_token');
+      prefs.remove('refresh_token');
+      prefs.remove('user_role');
+    });
   }
 
   Map<String, String> _getHeaders({bool requireAuth = true, bool isMultipart = false}) {
@@ -165,6 +186,16 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> body) async {
+    final response = await patch('/auth/me/', body);
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final err = jsonDecode(response.body);
+      throw Exception(err['detail'] ?? err['error'] ?? 'Failed to update profile.');
+    }
+  }
+
   // ─── TASK ENDPOINTS ────────────────────────────────────────────────────────
 
   Future<List<dynamic>> fetchTasks({String? category, String? query}) async {
@@ -214,6 +245,16 @@ class ApiService {
     } else {
       final err = jsonDecode(response.body);
       throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+    }
+  }
+
+  Future<Map<String, dynamic>> updateTask(int taskId, Map<String, dynamic> taskData) async {
+    final response = await patch('/tasks/$taskId/', taskData);
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final err = jsonDecode(response.body);
+      throw Exception(err['detail'] ?? err['error'] ?? 'Failed to update task.');
     }
   }
 
@@ -385,6 +426,14 @@ class ApiService {
     }
   }
 
+  Future<void> deleteConversation(int conversationId) async {
+    final response = await delete('/conversations/$conversationId/');
+    if (response.statusCode != 200) {
+      final err = jsonDecode(response.body);
+      throw Exception(err['detail'] ?? err['error'] ?? 'Failed to delete conversation.');
+    }
+  }
+
   Future<Map<String, dynamic>> createConversation(int otherUserId) async {
     final response = await post('/conversations/create/', {
       'other_user_id': otherUserId,
@@ -467,6 +516,32 @@ class ApiService {
     } else {
       final err = jsonDecode(response.body);
       throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+    }
+  }
+
+  Future<List<dynamic>> fetchPortfolioItems() async {
+    final response = await get('/auth/portfolio/');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch portfolio items.');
+    }
+  }
+
+  Future<Map<String, dynamic>> addPortfolioItem(Map<String, dynamic> itemData) async {
+    final response = await post('/auth/portfolio/', itemData);
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      final err = jsonDecode(response.body);
+      throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+    }
+  }
+
+  Future<void> deletePortfolioItem(int itemId) async {
+    final response = await delete('/auth/portfolio/$itemId/');
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to delete portfolio item.');
     }
   }
 

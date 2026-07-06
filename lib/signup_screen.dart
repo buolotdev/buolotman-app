@@ -3,7 +3,7 @@ import 'package:intl_phone_field/intl_phone_field.dart';
 
 import 'app_state.dart';
 import 'login_screen.dart';
-import 'main_navigation_screen.dart';
+import 'otp_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -392,7 +392,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             );
 
                             try {
-                              await AppStateScope.of(context).registerAndLogin(
+                              final otpRes = await AppStateScope.of(context).registerUser(
                                 firstName: firstName,
                                 lastName: lastName,
                                 email: email,
@@ -400,16 +400,18 @@ class _SignupScreenState extends State<SignupScreen> {
                                 phone: phone,
                                 role: _selectedRole,
                               );
+                              final challengeId = otpRes['challenge_id'] as int;
 
                               if (context.mounted) {
                                 Navigator.of(context).pop(); // Dismiss loading
-                                Navigator.of(context).pushAndRemoveUntil(
+                                Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (context) => MainNavigationScreen(
-                                      role: AppStateScope.of(context).currentRole,
+                                    builder: (context) => OTPScreen(
+                                      email: email,
+                                      role: _selectedRole,
+                                      challengeId: challengeId,
                                     ),
                                   ),
-                                  (route) => false,
                                 );
                               }
                             } catch (e) {
@@ -439,52 +441,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 32),
-
-                      // Divider
-                      Row(
-                        children: [
-                          const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Text(
-                              "Or sign up with",
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: const Color(0xFF64748B),
-                              ),
-                            ),
-                          ),
-                          const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
-                        ],
-                      ),
                       const SizedBox(height: 24),
-
-                      // Social Buttons
-                       OutlinedButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Social signup is temporarily unavailable. Please register via the form.")),
-                          );
-                        },
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size.fromHeight(52),
-                          backgroundColor: Colors.white,
-                          side: const BorderSide(color: Color(0xFFE2E8F0)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.asset('assets/images/google_logo.png', width: 18, height: 18),
-                            const SizedBox(width: 10),
-                            const Text("Continue with Google", style: TextStyle(color: Color(0xFF001F3F), fontSize: 14, fontWeight: FontWeight.w600)),
-                          ],
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 48),
 
                       // Login Prompt
                       Row(

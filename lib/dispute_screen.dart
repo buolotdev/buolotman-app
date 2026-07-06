@@ -164,7 +164,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
               // Also open support thread as a communication channel
               await appState.createOrOpenThread(
                 otherPartyName: 'Dispute Mediation',
-                otherPartyImage: 'assets/images/onboard1.jpg',
+                otherPartyImage: 'assets/images/boulotman-logo.png',
                 initialMessage:
                     'Dispute opened for "$selectedTaskTitle". Reason: $_selectedReason. Details: ${_explanationController.text.trim()}',
               );

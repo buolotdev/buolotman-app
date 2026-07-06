@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 
 class AppUser {
@@ -6,28 +7,72 @@ class AppUser {
     required this.role,
     required this.tagline,
     required this.avatar,
+    this.id = 0,
     this.location = 'Lagos, Nigeria',
+    this.firstName = '',
+    this.lastName = '',
+    this.phone = '',
+    this.country = '',
+    this.bio = '',
+    this.hourlyRate = 0.0,
+    this.skills = const [],
+    this.certifications = const [],
+    this.availabilityStatus = 'available',
+    this.experience = '',
   });
 
   final String name;
   final String role;
   final String tagline;
   final String avatar;
+  final int id;
   final String location;
+  final String firstName;
+  final String lastName;
+  final String phone;
+  final String country;
+  final String bio;
+  final double hourlyRate;
+  final List<String> skills;
+  final List<String> certifications;
+  final String availabilityStatus;
+  final String experience;
 
   AppUser copyWith({
     String? name,
     String? role,
     String? tagline,
     String? avatar,
+    int? id,
     String? location,
+    String? firstName,
+    String? lastName,
+    String? phone,
+    String? country,
+    String? bio,
+    double? hourlyRate,
+    List<String>? skills,
+    List<String>? certifications,
+    String? availabilityStatus,
+    String? experience,
   }) {
     return AppUser(
       name: name ?? this.name,
       role: role ?? this.role,
       tagline: tagline ?? this.tagline,
       avatar: avatar ?? this.avatar,
+      id: id ?? this.id,
       location: location ?? this.location,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      phone: phone ?? this.phone,
+      country: country ?? this.country,
+      bio: bio ?? this.bio,
+      hourlyRate: hourlyRate ?? this.hourlyRate,
+      skills: skills ?? this.skills,
+      certifications: certifications ?? this.certifications,
+      availabilityStatus: availabilityStatus ?? this.availabilityStatus,
+      experience: experience ?? this.experience,
     );
   }
 }
@@ -43,6 +88,11 @@ class TaskDraft {
     required this.urgency,
     required this.paymentMethod,
     required this.budget,
+    required this.budgetMin,
+    required this.budgetMax,
+    required this.budgetMode,
+    required this.city,
+    required this.country,
     required this.duration,
     required this.isRecurring,
   });
@@ -56,6 +106,11 @@ class TaskDraft {
   final String urgency;
   final String paymentMethod;
   final double budget;
+  final double budgetMin;
+  final double budgetMax;
+  final String budgetMode;
+  final String city;
+  final String country;
   final String duration;
   final bool isRecurring;
 
@@ -69,6 +124,11 @@ class TaskDraft {
     String? urgency,
     String? paymentMethod,
     double? budget,
+    double? budgetMin,
+    double? budgetMax,
+    String? budgetMode,
+    String? city,
+    String? country,
     String? duration,
     bool? isRecurring,
   }) {
@@ -82,6 +142,11 @@ class TaskDraft {
       urgency: urgency ?? this.urgency,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       budget: budget ?? this.budget,
+      budgetMin: budgetMin ?? this.budgetMin,
+      budgetMax: budgetMax ?? this.budgetMax,
+      budgetMode: budgetMode ?? this.budgetMode,
+      city: city ?? this.city,
+      country: country ?? this.country,
       duration: duration ?? this.duration,
       isRecurring: isRecurring ?? this.isRecurring,
     );
@@ -251,6 +316,7 @@ class ChatThread {
     required this.image,
     required this.online,
     required this.messages,
+    this.lastSeen = 'Offline',
   });
 
   final String id;
@@ -258,6 +324,7 @@ class ChatThread {
   final String image;
   final bool online;
   final List<ChatMessage> messages;
+  final String lastSeen;
 
   String get lastMessage => messages.isEmpty ? '' : messages.last.text;
   String get lastTime => messages.isEmpty ? '' : messages.last.time;
@@ -268,6 +335,7 @@ class ChatThread {
     String? image,
     bool? online,
     List<ChatMessage>? messages,
+    String? lastSeen,
   }) {
     return ChatThread(
       id: id ?? this.id,
@@ -275,6 +343,7 @@ class ChatThread {
       image: image ?? this.image,
       online: online ?? this.online,
       messages: messages ?? this.messages,
+      lastSeen: lastSeen ?? this.lastSeen,
     );
   }
 }
@@ -326,6 +395,10 @@ class ServiceItem {
 }
 
 ImageProvider getAvatarImageProvider(String avatarUrl) {
+  if (avatarUrl.startsWith('data:image/')) {
+    final base64Content = avatarUrl.split(',').last;
+    return MemoryImage(base64Decode(base64Content));
+  }
   if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
     return NetworkImage(avatarUrl);
   }
@@ -333,6 +406,16 @@ ImageProvider getAvatarImageProvider(String avatarUrl) {
 }
 
 Widget buildAvatarImage(String avatarUrl, {double? width, double? height, BoxFit fit = BoxFit.cover, Widget? fallback}) {
+  if (avatarUrl.startsWith('data:image/')) {
+    final base64Content = avatarUrl.split(',').last;
+    return Image.memory(
+      base64Decode(base64Content),
+      width: width,
+      height: height,
+      fit: fit,
+      errorBuilder: (context, error, stackTrace) => fallback ?? Image.asset('assets/images/onboard1.jpg', width: width, height: height, fit: fit),
+    );
+  }
   if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
     return Image.network(
       avatarUrl,

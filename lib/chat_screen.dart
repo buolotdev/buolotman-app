@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -15,9 +16,12 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
+  Timer? _timer;
+  bool _isLoading = true;
 
   @override
   void dispose() {
+    _timer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -26,15 +30,59 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      AppStateScope.of(context).syncConversations();
+      _fetchMessages();
+      _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+        _fetchMessages();
+      });
     });
+  }
+
+  Future<void> _fetchMessages() async {
+    if (!mounted) return;
+    final appState = AppStateScope.of(context);
+    String threadId = 'temp';
+    for (final item in appState.threads) {
+      if (item.name.toLowerCase() == widget.name.toLowerCase()) {
+        threadId = item.id;
+        break;
+      }
+    }
+    if (threadId != 'temp') {
+      await appState.syncThreadMessages(threadId);
+    } else {
+      await appState.syncConversations();
+    }
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return GetBuilder<AppState>(
       builder: (appState) {
-        final thread = appState.threads.firstWhere((item) => item.name == widget.name);
+        ChatThread? foundThread;
+        for (final item in appState.threads) {
+          if (item.name.toLowerCase() == widget.name.toLowerCase()) {
+            foundThread = item;
+            break;
+          }
+        }
+
+        final thread = foundThread ?? ChatThread(
+          id: 'temp',
+          name: widget.name,
+          image: widget.image,
+          online: true,
+          messages: const [],
+        );
+
+        final List<ChatMessage> messages = thread.id != 'temp'
+            ? appState.getMessagesForThread(thread.id)
+            : <ChatMessage>[];
+
         return Scaffold(
           backgroundColor: const Color(0xFFF8F9FA),
           appBar: AppBar(
@@ -56,7 +104,14 @@ class _ChatScreenState extends State<ChatScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(widget.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF001F3F)), overflow: TextOverflow.ellipsis),
-                      Text(thread.online ? 'Online' : 'Offline', style: TextStyle(fontSize: 11, color: thread.online ? const Color(0xFF16A34A) : const Color(0xFF64748B), fontWeight: FontWeight.w600)),
+                      Text(
+                        thread.online ? 'Online' : thread.lastSeen,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: thread.online ? const Color(0xFF16A34A) : const Color(0xFF64748B),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -66,11 +121,17 @@ class _ChatScreenState extends State<ChatScreen> {
           body: Column(
             children: [
               Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: thread.messages.length,
-                  itemBuilder: (context, index) => _buildMessageBubble(thread.messages[index]),
-                ),
+                child: _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF4500)),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) => _buildMessageBubble(messages[index]),
+                      ),
               ),
               _buildMessageInput(thread.id),
             ],
@@ -143,9 +204,19 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           const SizedBox(width: 12),
           GestureDetector(
-            onTap: () {
-              AppStateScope.of(context).sendMessage(threadId, _controller.text);
+            onTap: () async {
+              final text = _controller.text.trim();
+              if (text.isEmpty) return;
               _controller.clear();
+              if (threadId == 'temp') {
+                await AppStateScope.of(context).createOrOpenThread(
+                  otherPartyName: widget.name,
+                  otherPartyImage: widget.image,
+                  initialMessage: text,
+                );
+              } else {
+                await AppStateScope.of(context).sendMessage(threadId, text);
+              }
             },
             child: Container(
               width: 40,
