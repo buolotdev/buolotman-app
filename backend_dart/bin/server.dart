@@ -3641,8 +3641,9 @@ void main() async {
   try {
     await dbPool.execute('ALTER TABLE accounts_technician_profile ADD COLUMN IF NOT EXISTS certifications jsonb DEFAULT \'[]\'::jsonb;');
     await dbPool.execute('ALTER TABLE accounts_technician_profile ADD COLUMN IF NOT EXISTS experience text DEFAULT \'\';');
+    await dbPool.execute('ALTER TABLE accounts_portfolio_item ALTER COLUMN image_url TYPE text;');
   } catch (e) {
-    print('Failed to alter accounts_technician_profile table: $e');
+    print('Failed to alter tables: $e');
   }
 
   final router = Router();
