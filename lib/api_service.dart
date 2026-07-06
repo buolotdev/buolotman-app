@@ -18,8 +18,8 @@ class ApiService {
         return 'http://$host:8000/api';
       }
     }
-    // Fallback for non-web environments (use localhost for desktop / simulator testing)
-    return 'http://127.0.0.1:8000/api';
+    // Fallback for non-web environments (use computer local IP for physical devices on same Wi-Fi)
+    return 'http://192.168.100.76:8000/api';
   }
 
   String? _accessToken;
