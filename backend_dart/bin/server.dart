@@ -1141,7 +1141,22 @@ Future<Response> userPublicProfileHandler(Request request, String userIdStr) asy
       data['completed_jobs'] = prof['completed_jobs'] ?? 0;
       data['average_rating'] = prof['average_rating']?.toString() ?? '0.00';
       data['availability_status'] = prof['availability_status'] ?? 'available';
-      data['portfolio'] = parseJsonField(prof['portfolio']) ?? [];
+      final portfolioQuery = await dbPool.execute(
+        Sql.named('SELECT * FROM accounts_portfolio_item WHERE user_id = @id ORDER BY created_at DESC'),
+        parameters: {'id': userId},
+      );
+      data['portfolio'] = portfolioQuery.map((r) {
+        final row = r.toColumnMap();
+        return {
+          'id': row['id'],
+          'title': row['title'] ?? '',
+          'description': row['description'] ?? '',
+          'category': row['category'] ?? '',
+          'image_url': row['image_url'] ?? '',
+          'completed_date': row['completed_date']?.toString(),
+          'project_value': row['project_value']?.toString(),
+        };
+      }).toList();
       data['certifications'] = parseJsonField(prof['certifications']) ?? [];
       data['experience'] = prof['experience'] ?? '';
       data['response_time'] = prof['response_time'] ?? '';

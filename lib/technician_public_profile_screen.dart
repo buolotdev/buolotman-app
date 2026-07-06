@@ -473,7 +473,7 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
     }
 
     return SizedBox(
-      height: 120,
+      height: 180,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -482,35 +482,55 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
           final item = portfolio[index];
           final String title = item['title']?.toString() ?? 'Project Title';
           final String desc = item['description']?.toString() ?? 'Woodwork / Electric Project Details';
+          final String imageUrl = item['image_url']?.toString() ?? '';
+
           return Container(
-            width: 200,
+            width: 220,
             margin: const EdgeInsets.only(right: 12),
             decoration: BoxDecoration(
               color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.assignment_turned_in, size: 28, color: const Color(0xFF001F3F).withOpacity(0.4)),
-                const SizedBox(height: 8),
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF001F3F)),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  desc,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                ),
-              ],
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: imageUrl.isNotEmpty
+                          ? buildAvatarImage(imageUrl, fit: BoxFit.cover)
+                          : Container(
+                              color: const Color(0xFFF1F5F9),
+                              child: const Icon(Icons.image, color: Color(0xFF94A3B8)),
+                            ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF001F3F)),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          desc,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
