@@ -303,6 +303,7 @@ class BrowseTasksScreen extends StatelessWidget {
   Widget _buildStickyCta(BuildContext context, dynamic task) {
     final appState = AppStateScope.of(context);
     final canBid = appState.currentRole != 'Client';
+    final hasBid = appState.bids.any((b) => b.taskId == task.id.toString());
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -318,14 +319,27 @@ class BrowseTasksScreen extends StatelessWidget {
               Expanded(
                 child: GestureDetector(
                   onTap: () {
-                    appState.createOrOpenThread(
-                      otherPartyName: task.clientName,
-                      otherPartyImage: task.clientAvatar,
-                      initialMessage: 'Hi ${task.clientName}, I have a question about "${task.title}".',
-                    );
+                    String? existingThreadId;
+                    for (final item in appState.threads) {
+                      if (item.name.toLowerCase() == task.clientName.toLowerCase()) {
+                        existingThreadId = item.id;
+                        break;
+                      }
+                    }
+                    if (existingThreadId == null) {
+                      appState.createOrOpenThread(
+                        otherPartyName: task.clientName,
+                        otherPartyImage: task.clientAvatar,
+                        initialMessage: 'Hi ${task.clientName}, I have a question about "${task.title}".',
+                      );
+                    }
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => ChatScreen(name: task.clientName, image: task.clientAvatar),
+                        builder: (context) => ChatScreen(
+                          name: task.clientName,
+                          image: task.clientAvatar,
+                          threadId: existingThreadId,
+                        ),
                       ),
                     );
                   },
@@ -340,7 +354,7 @@ class BrowseTasksScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: GestureDetector(
-                  onTap: canBid
+                  onTap: canBid && !hasBid
                       ? () {
                           Navigator.of(context).push(
                             MaterialPageRoute(builder: (context) => SubmitBidScreen(taskId: task.id)),
@@ -350,12 +364,16 @@ class BrowseTasksScreen extends StatelessWidget {
                   child: Container(
                     height: 52,
                     decoration: BoxDecoration(
-                      color: canBid ? const Color(0xFFFF4500) : const Color(0xFFCBD5E1),
+                      color: (canBid && !hasBid) ? const Color(0xFFFF4500) : const Color(0xFFCBD5E1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      canBid ? 'Submit a Bid' : 'Clients cannot bid',
+                      !canBid
+                          ? 'Clients cannot bid'
+                          : hasBid
+                              ? 'Bid Submitted'
+                              : 'Submit a Bid',
                       style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
                     ),
                   ),

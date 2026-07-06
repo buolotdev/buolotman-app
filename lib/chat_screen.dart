@@ -5,10 +5,11 @@ import 'package:get/get.dart';
 import 'app_state.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key, required this.name, required this.image});
+  const ChatScreen({super.key, required this.name, required this.image, this.threadId});
 
   final String name;
   final String image;
+  final String? threadId;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -18,6 +19,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   Timer? _timer;
   bool _isLoading = true;
+  bool _isSending = false;
+  String? _activeThreadId;
 
   @override
   void dispose() {
@@ -29,6 +32,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    _activeThreadId = widget.threadId;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchMessages();
       _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
@@ -40,14 +44,17 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _fetchMessages() async {
     if (!mounted) return;
     final appState = AppStateScope.of(context);
-    String threadId = 'temp';
-    for (final item in appState.threads) {
-      if (item.name.toLowerCase() == widget.name.toLowerCase()) {
-        threadId = item.id;
-        break;
+    String? threadId = _activeThreadId ?? widget.threadId;
+    if (threadId == null) {
+      for (final item in appState.threads) {
+        if (item.name.toLowerCase() == widget.name.toLowerCase()) {
+          threadId = item.id;
+          _activeThreadId = item.id;
+          break;
+        }
       }
     }
-    if (threadId != 'temp') {
+    if (threadId != null && threadId != 'temp') {
       await appState.syncThreadMessages(threadId);
     } else {
       await appState.syncConversations();
@@ -64,10 +71,22 @@ class _ChatScreenState extends State<ChatScreen> {
     return GetBuilder<AppState>(
       builder: (appState) {
         ChatThread? foundThread;
-        for (final item in appState.threads) {
-          if (item.name.toLowerCase() == widget.name.toLowerCase()) {
-            foundThread = item;
-            break;
+        String? activeId = _activeThreadId ?? widget.threadId;
+        if (activeId != null) {
+          for (final item in appState.threads) {
+            if (item.id == activeId) {
+              foundThread = item;
+              break;
+            }
+          }
+        }
+        if (foundThread == null) {
+          for (final item in appState.threads) {
+            if (item.name.toLowerCase() == widget.name.toLowerCase()) {
+              foundThread = item;
+              _activeThreadId = item.id;
+              break;
+            }
           }
         }
 
@@ -203,28 +222,53 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          GestureDetector(
-            onTap: () async {
-              final text = _controller.text.trim();
-              if (text.isEmpty) return;
-              _controller.clear();
-              if (threadId == 'temp') {
-                await AppStateScope.of(context).createOrOpenThread(
-                  otherPartyName: widget.name,
-                  otherPartyImage: widget.image,
-                  initialMessage: text,
-                );
-              } else {
-                await AppStateScope.of(context).sendMessage(threadId, text);
-              }
-            },
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: const BoxDecoration(color: Color(0xFFFF4500), shape: BoxShape.circle),
-              child: const Icon(Icons.send, color: Colors.white, size: 18),
-            ),
-          ),
+          _isSending
+              ? const SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF4500)),
+                    ),
+                  ),
+                )
+              : GestureDetector(
+                  onTap: () async {
+                    final text = _controller.text.trim();
+                    if (text.isEmpty) return;
+                    _controller.clear();
+                    setState(() {
+                      _isSending = true;
+                    });
+                    try {
+                      if (threadId == 'temp') {
+                        await AppStateScope.of(context).createOrOpenThread(
+                          otherPartyName: widget.name,
+                          otherPartyImage: widget.image,
+                          initialMessage: text,
+                        );
+                      } else {
+                        await AppStateScope.of(context).sendMessage(threadId, text);
+                      }
+                    } catch (e) {
+                      debugPrint('Error sending message: $e');
+                    } finally {
+                      if (mounted) {
+                        setState(() {
+                          _isSending = false;
+                        });
+                      }
+                    }
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: const BoxDecoration(color: Color(0xFFFF4500), shape: BoxShape.circle),
+                    child: const Icon(Icons.send, color: Colors.white, size: 18),
+                  ),
+                ),
         ],
       ),
     );

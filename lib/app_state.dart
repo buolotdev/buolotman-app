@@ -236,6 +236,7 @@ class AppState extends GetxController {
     await syncConversations();
     await syncPublicData();
     await syncMyServices();
+    await syncBids();
   }
 
   TaskItem _mapTaskItem(dynamic t) {
@@ -530,6 +531,34 @@ class AppState extends GetxController {
     }
   }
 
+  Future<void> syncBids() async {
+    try {
+      final backendBids = await ApiService.instance.fetchMyBids();
+      _bids = backendBids.map((b) {
+        final taskIdStr = b['task_id']?.toString() ?? '';
+        final double amount = double.tryParse(b['amount']?.toString() ?? '0.0') ?? 0.0;
+        final isAccepted = b['status']?.toString().toLowerCase() == 'accepted';
+        return BidItem(
+          id: b['id']?.toString() ?? '',
+          taskId: taskIdStr,
+          bidderName: b['technician'] != null ? '${b['technician']['first_name'] ?? ''} ${b['technician']['last_name'] ?? ''}'.trim() : _currentUser.name,
+          skill: 'Professional Provider',
+          rating: 4.8,
+          reviews: 50,
+          price: amount,
+          timeline: b['duration'] ?? '3 days',
+          message: b['message'] ?? '',
+          avatar: (b['technician'] != null && b['technician']['avatar_url'] != null && b['technician']['avatar_url'].toString().isNotEmpty) ? b['technician']['avatar_url'] : 'assets/images/onboard1.jpg',
+          role: 'Technician',
+          isAccepted: isAccepted,
+        );
+      }).toList();
+      update();
+    } catch (e) {
+      debugPrint('Sync Bids Error: $e');
+    }
+  }
+
   Future<void> performSearch(String query, {String? category, String? location, String? tab, String? type}) async {
     try {
       final res = await ApiService.instance.searchEverything(
@@ -811,6 +840,7 @@ class AppState extends GetxController {
       message: message,
     );
     await syncTasks();
+    await syncBids();
   }
 
   Future<void> acceptBid(String taskId, String bidId) async {

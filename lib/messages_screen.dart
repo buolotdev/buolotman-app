@@ -121,7 +121,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => ChatScreen(name: thread.name, image: thread.image),
+                        builder: (context) => ChatScreen(name: thread.name, image: thread.image, threadId: thread.id),
                       ),
                     );
                   },

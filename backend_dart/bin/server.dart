@@ -77,21 +77,40 @@ Map<String, dynamic> formatUserMe(Map<String, dynamic> u) {
   };
 }
 
+String formatExactLastSeen(DateTime dt) {
+  final now = DateTime.now();
+  final diff = now.difference(dt);
+  
+  if (diff.inMinutes < 5) {
+    return 'Online';
+  }
+  
+  final hour24 = dt.hour;
+  final minute = dt.minute.toString().padLeft(2, '0');
+  final ampm = hour24 >= 12 ? 'PM' : 'AM';
+  final hour12 = hour24 == 0 ? 12 : (hour24 > 12 ? hour24 - 12 : hour24);
+  final timeStr = '$hour12:$minute $ampm';
+
+  final today = DateTime(now.year, now.month, now.day);
+  final yesterday = today.subtract(const Duration(days: 1));
+  final dtDate = DateTime(dt.year, dt.month, dt.day);
+
+  if (dtDate == today) {
+    return 'Last seen today at $timeStr';
+  } else if (dtDate == yesterday) {
+    return 'Last seen yesterday at $timeStr';
+  } else {
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return 'Last seen on ${months[dt.month - 1]} ${dt.day} at $timeStr';
+  }
+}
+
 Map<String, dynamic> formatUserPublic(Map<String, dynamic> u) {
   final DateTime? updatedAt = u['updated_at'] as DateTime?;
   final now = DateTime.now();
   final difference = updatedAt != null ? now.difference(updatedAt) : const Duration(days: 1);
   final bool isOnline = difference.inMinutes < 5;
-  String lastSeen = 'Offline';
-  if (isOnline) {
-    lastSeen = 'Online';
-  } else if (difference.inMinutes < 60) {
-    lastSeen = 'Last seen ${difference.inMinutes}m ago';
-  } else if (difference.inHours < 24) {
-    lastSeen = 'Last seen ${difference.inHours}h ago';
-  } else {
-    lastSeen = 'Last seen recently';
-  }
+  final String lastSeen = updatedAt != null ? formatExactLastSeen(updatedAt) : 'Last seen recently';
 
   return {
     'id': u['id'],
@@ -823,6 +842,11 @@ Future<Response> registerCompanyHandler(Request request) async {
 
 Future<Response> getMeHandler(Request request) async {
   final userId = getUserId(request);
+  try {
+    await dbPool.execute(Sql.named('UPDATE accounts_user SET updated_at = NOW() WHERE id = @id'), parameters: {'id': userId});
+  } catch (e) {
+    print('Failed to update user presence: $e');
+  }
   final results = await dbPool.execute(Sql.named('SELECT * FROM accounts_user WHERE id = @id'), parameters: {'id': userId});
   if (results.isEmpty) {
     return errorResponse('User not found', statusCode: 404);
