@@ -882,14 +882,18 @@ class ProfileScreen extends StatelessWidget {
                       return;
                     }
                     Navigator.pop(ctx);
+                    BuildContext? loaderContext;
                     showDialog(
                       context: context,
                       barrierDismissible: false,
-                      builder: (context) => const Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF4500)),
-                        ),
-                      ),
+                      builder: (lCtx) {
+                        loaderContext = lCtx;
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF4500)),
+                          ),
+                        );
+                      },
                     );
                     try {
                       await appState.createPortfolioItem(
@@ -898,15 +902,19 @@ class ProfileScreen extends StatelessWidget {
                         category: c,
                         imageUrl: base64DataUrl!,
                       );
+                      if (loaderContext != null && loaderContext!.mounted) {
+                        Navigator.pop(loaderContext!);
+                      }
                       if (context.mounted) {
-                        Navigator.pop(context); // pop loader
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Portfolio item added successfully!')),
                         );
                       }
                     } catch (e) {
+                      if (loaderContext != null && loaderContext!.mounted) {
+                        Navigator.pop(loaderContext!);
+                      }
                       if (context.mounted) {
-                        Navigator.pop(context); // pop loader
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Failed to add portfolio item: $e')),
                         );
