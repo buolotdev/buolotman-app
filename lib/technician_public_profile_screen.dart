@@ -90,7 +90,9 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
     final String ratingText = '$ratingStr ($reviewsVal)';
 
     final double hourlyRateVal = double.tryParse(dataMap['hourly_rate']?.toString() ?? '') ?? 0.0;
-    final String priceText = hourlyRateVal > 0 ? '\$${hourlyRateVal.toStringAsFixed(0)}/hr' : widget.price;
+    final String priceText = _isLoading
+        ? (hourlyRateVal > 0 ? '\$${hourlyRateVal.toStringAsFixed(0)}/hr' : '...')
+        : (hourlyRateVal > 0 ? '\$${hourlyRateVal.toStringAsFixed(0)}/hr' : 'Rate not set');
 
     final String avatarUrl = (dataMap['avatar_url']?.toString().isNotEmpty == true)
         ? dataMap['avatar_url']
