@@ -237,6 +237,7 @@ class AppState extends GetxController {
     await syncPublicData();
     await syncMyServices();
     await syncBids();
+    await syncPortfolio();
   }
 
   TaskItem _mapTaskItem(dynamic t) {

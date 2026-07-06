@@ -43,7 +43,7 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
     try {
       final String techId = widget.rawData['id']?.toString() ?? '';
       if (techId.isNotEmpty) {
-        final response = await ApiService.instance.get('/auth/users/$techId');
+        final response = await ApiService.instance.get('/auth/users/$techId/');
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           if (mounted) {
