@@ -172,6 +172,9 @@ class TaskItem {
     required this.tags,
     this.bidsCount = 0,
     this.acceptedBidId,
+    this.assignedToId,
+    this.assignedToName,
+    this.assignedToAvatar,
   });
 
   final String id;
@@ -191,6 +194,9 @@ class TaskItem {
   final List<String> tags;
   final int bidsCount;
   final String? acceptedBidId;
+  final String? assignedToId;
+  final String? assignedToName;
+  final String? assignedToAvatar;
 
   TaskItem copyWith({
     String? id,
@@ -210,6 +216,9 @@ class TaskItem {
     List<String>? tags,
     int? bidsCount,
     String? acceptedBidId,
+    String? assignedToId,
+    String? assignedToName,
+    String? assignedToAvatar,
   }) {
     return TaskItem(
       id: id ?? this.id,
@@ -229,6 +238,9 @@ class TaskItem {
       tags: tags ?? this.tags,
       bidsCount: bidsCount ?? this.bidsCount,
       acceptedBidId: acceptedBidId ?? this.acceptedBidId,
+      assignedToId: assignedToId ?? this.assignedToId,
+      assignedToName: assignedToName ?? this.assignedToName,
+      assignedToAvatar: assignedToAvatar ?? this.assignedToAvatar,
     );
   }
 }

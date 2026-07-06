@@ -8,6 +8,7 @@ import 'task_feed_screen.dart';
 import 'post_task_form_screen.dart';
 import 'listing_screen.dart';
 import 'edit_task_screen.dart';
+import 'chat_screen.dart';
 
 class MyTasksScreen extends StatefulWidget {
   const MyTasksScreen({super.key});
@@ -304,18 +305,118 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
           const SizedBox(height: 16),
           Row(
             children: [
-              if (isClient)
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => EditTaskScreen(task: task)),
-                      );
-                    },
-                    child: const Text('Edit Details'),
+              if (isClient) ...[
+                if (task.status == 'In Progress') ...[
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.chat_bubble_outline, size: 16),
+                      label: const Text('Message Tech'),
+                      onPressed: () {
+                        final appState = AppStateScope.of(context);
+                        final String otherName = task.assignedToName ?? 'Technician';
+                        final String otherAvatar = task.assignedToAvatar ?? 'assets/images/onboard1.jpg';
+                        
+                        String? existingThreadId;
+                        for (final item in appState.threads) {
+                          if (item.name.toLowerCase() == otherName.toLowerCase()) {
+                            existingThreadId = item.id;
+                            break;
+                          }
+                        }
+                        if (existingThreadId == null) {
+                          appState.createOrOpenThread(
+                            otherPartyName: otherName,
+                            otherPartyImage: otherAvatar,
+                            initialMessage: 'Hi $otherName, let\'s chat about task: "${task.title}".',
+                          );
+                        }
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ChatScreen(
+                              name: otherName,
+                              image: otherAvatar,
+                              threadId: existingThreadId,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                )
-              else
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.check_circle_outline, size: 16),
+                      label: const Text('Complete Task'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF16A34A),
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            title: const Text('Complete Task', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+                            content: Text('Are you sure you want to mark this task as completed? This will release the escrow funds (\$${task.budget.toStringAsFixed(0)}) to ${task.assignedToName ?? 'the technician'}.'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  Navigator.pop(ctx);
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (c) => const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(Color(0xFFFF5500)))),
+                                  );
+                                  try {
+                                    await AppStateScope.of(context).completeTask(task.id);
+                                    if (context.mounted) {
+                                      Navigator.pop(context); // dismiss loader
+                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Task completed successfully! Escrow released.')));
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      Navigator.pop(context); // dismiss loader
+                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error completing task: $e')));
+                                    }
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF5500), foregroundColor: Colors.white),
+                                child: const Text('Complete'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ] else ...[
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) => EditTaskScreen(task: task)),
+                        );
+                      },
+                      child: const Text('Edit Details'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ReceivedBidsScreen(taskId: task.id),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF001F3F), foregroundColor: Colors.white),
+                      child: const Text('View Bids'),
+                    ),
+                  ),
+                ]
+              ] else ...[
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () {
@@ -326,22 +427,21 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                     child: Text(task.status == 'In Progress' ? 'Active Contract' : 'Project Pipeline'),
                   ),
                 ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => isClient
-                            ? ReceivedBidsScreen(taskId: task.id)
-                            : BrowseTasksScreen(taskId: task.id),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF001F3F), foregroundColor: Colors.white),
-                  child: Text(isClient ? 'View Bids' : 'Open Task'),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => BrowseTasksScreen(taskId: task.id),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF001F3F), foregroundColor: Colors.white),
+                    child: const Text('Open Task'),
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ],

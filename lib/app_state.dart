@@ -244,6 +244,13 @@ class AppState extends GetxController {
     final double budgetMin = double.tryParse(t['budget_min']?.toString() ?? '0') ?? 0.0;
     final double budgetMax = double.tryParse(t['budget_max']?.toString() ?? '0') ?? 0.0;
     
+    final assignedMap = t['assigned_to'] as Map<String, dynamic>?;
+    final String? assignedId = assignedMap?['id']?.toString();
+    final String? assignedName = assignedMap != null
+        ? '${assignedMap['first_name'] ?? ''} ${assignedMap['last_name'] ?? ''}'.trim()
+        : null;
+    final String? assignedAvatar = assignedMap?['avatar_url']?.toString();
+
     return TaskItem(
       id: t['id']?.toString() ?? '',
       title: t['title'] ?? '',
@@ -264,7 +271,10 @@ class AppState extends GetxController {
         t['urgency'] ?? 'Flexible',
       ],
       bidsCount: t['bids_count'] ?? 0,
-      acceptedBidId: t['assigned_to']?.toString(),
+      acceptedBidId: assignedId,
+      assignedToId: assignedId,
+      assignedToName: assignedName,
+      assignedToAvatar: assignedAvatar,
     );
   }
 
@@ -703,6 +713,13 @@ class AppState extends GetxController {
     final double budgetMin = double.tryParse(published['budget_min']?.toString() ?? '0') ?? 0.0;
     final double budgetMax = double.tryParse(published['budget_max']?.toString() ?? '0') ?? 0.0;
     
+    final assignedMap = published['assigned_to'] as Map<String, dynamic>?;
+    final String? assignedId = assignedMap?['id']?.toString();
+    final String? assignedName = assignedMap != null
+        ? '${assignedMap['first_name'] ?? ''} ${assignedMap['last_name'] ?? ''}'.trim()
+        : null;
+    final String? assignedAvatar = assignedMap?['avatar_url']?.toString();
+
     return TaskItem(
       id: published['id']?.toString() ?? '',
       title: published['title'] ?? '',
@@ -723,7 +740,10 @@ class AppState extends GetxController {
         published['urgency'] ?? 'Flexible',
       ],
       bidsCount: published['bids_count'] ?? 0,
-      acceptedBidId: published['assigned_to']?.toString(),
+      acceptedBidId: assignedId,
+      assignedToId: assignedId,
+      assignedToName: assignedName,
+      assignedToAvatar: assignedAvatar,
     );
   }
 
