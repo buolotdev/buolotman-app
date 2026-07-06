@@ -110,6 +110,8 @@ class AppState extends GetxController {
         return 'Open';
       case 'in_progress':
         return 'In Progress';
+      case 'delivered':
+        return 'Delivered';
       case 'completed':
         return 'Completed';
       case 'cancelled':
@@ -919,6 +921,12 @@ class AppState extends GetxController {
     await ApiService.instance.completeTask(tId);
     await syncTasks();
     await syncWallet();
+  }
+
+  Future<void> submitWork(String taskId) async {
+    final int tId = int.tryParse(taskId) ?? 0;
+    await ApiService.instance.submitWork(tId);
+    await syncTasks();
   }
 
   Future<void> updateProfile({

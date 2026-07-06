@@ -2059,6 +2059,34 @@ Future<Response> taskCompleteHandler(Request request, String idStr) async {
   return jsonResponse({'message': 'Task completed', 'status': 'completed'});
 }
 
+Future<Response> taskSubmitWorkHandler(Request request, String idStr) async {
+  final id = int.tryParse(idStr) ?? 0;
+  final userId = getUserId(request);
+
+  final taskRes = await dbPool.execute(Sql.named('SELECT client_id, assigned_to_id, title FROM tasks_task WHERE id = @id'), parameters: {'id': id});
+  if (taskRes.isEmpty) return errorResponse('Task not found', statusCode: 404);
+  if (taskRes[0][1] != userId) return errorResponse('Not authorized', statusCode: 403);
+
+  await dbPool.execute(
+    Sql.named('UPDATE tasks_task SET status = \'delivered\' WHERE id = @id'),
+    parameters: {'id': id},
+  );
+
+  final clientRes = await dbPool.execute(Sql.named('SELECT first_name, last_name FROM accounts_user WHERE id = @id'), parameters: {'id': userId});
+  final String techName = clientRes.isNotEmpty ? '${clientRes[0][0] ?? ''} ${clientRes[0][1] ?? ''}'.trim() : 'Technician';
+
+  await createNotification(
+    userId: taskRes[0][0] as int,
+    category: 'task',
+    title: 'Work submitted for review',
+    body: '$techName has marked task "${taskRes[0][2]}" as done. Please review and complete the task.',
+    link: '/dashboard/client/tasks',
+    metadata: {'task_id': id},
+  );
+
+  return jsonResponse({'message': 'Work submitted successfully', 'status': 'delivered'});
+}
+
 Future<Response> taskCancelHandler(Request request, String idStr) async {
   final id = int.tryParse(idStr) ?? 0;
   final userId = getUserId(request);
@@ -3734,6 +3762,7 @@ void main() async {
   router.patch('/api/tasks/<id>/', updateTaskHandler);
   router.post('/api/tasks/<id>/publish/', taskPublishHandler);
   router.post('/api/tasks/<id>/complete/', taskCompleteHandler);
+  router.post('/api/tasks/<id>/submit-work/', taskSubmitWorkHandler);
   router.post('/api/tasks/<id>/cancel/', taskCancelHandler);
 
   // Bids

@@ -278,6 +278,16 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> submitWork(int taskId) async {
+    final response = await post('/tasks/$taskId/submit-work/', {});
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final err = jsonDecode(response.body);
+      throw Exception(err['detail'] ?? err['error'] ?? 'Failed to submit work.');
+    }
+  }
+
   Future<Map<String, dynamic>> cancelTask(int taskId) async {
     final response = await post('/tasks/$taskId/cancel/', {});
     if (response.statusCode == 200) {

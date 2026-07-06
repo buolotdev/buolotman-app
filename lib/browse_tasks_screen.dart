@@ -305,6 +305,77 @@ class BrowseTasksScreen extends StatelessWidget {
     final canBid = appState.currentRole != 'Client';
     final hasBid = appState.bids.any((b) => b.taskId == task.id.toString());
 
+    final isAssigned = task.assignedToId == appState.currentUser.id.toString();
+    final isInProgress = task.status == 'In Progress';
+    final isDelivered = task.status == 'Delivered';
+
+    final bool showSubmitWork = isAssigned && isInProgress;
+    final bool showDelivered = isAssigned && isDelivered;
+
+    VoidCallback? buttonOnTap;
+    String buttonText;
+    Color buttonColor;
+
+    if (showSubmitWork) {
+      buttonText = 'Submit Work';
+      buttonColor = const Color(0xFFFF4500);
+      buttonOnTap = () {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text('Submit Work', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+            content: const Text('Are you sure you want to mark this task as done and submit it for client review?'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (c) => const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500)))),
+                  );
+                  try {
+                    await appState.submitWork(task.id);
+                    if (context.mounted) {
+                      Navigator.pop(context); // dismiss spinner
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Work submitted successfully! Client has been notified.')));
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      Navigator.pop(context); // dismiss spinner
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to submit work: $e')));
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF4500), foregroundColor: Colors.white),
+                child: const Text('Submit'),
+              ),
+            ],
+          ),
+        );
+      };
+    } else if (showDelivered) {
+      buttonText = 'Work Submitted';
+      buttonColor = const Color(0xFFCBD5E1);
+      buttonOnTap = null;
+    } else {
+      buttonText = !canBid
+          ? 'Clients cannot bid'
+          : hasBid
+              ? 'Bid Submitted'
+              : 'Submit a Bid';
+      buttonColor = (canBid && !hasBid) ? const Color(0xFFFF4500) : const Color(0xFFCBD5E1);
+      buttonOnTap = canBid && !hasBid
+          ? () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => SubmitBidScreen(taskId: task.id)),
+              );
+            }
+          : null;
+    }
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       decoration: BoxDecoration(
@@ -354,26 +425,16 @@ class BrowseTasksScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: GestureDetector(
-                  onTap: canBid && !hasBid
-                      ? () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (context) => SubmitBidScreen(taskId: task.id)),
-                          );
-                        }
-                      : null,
+                  onTap: buttonOnTap,
                   child: Container(
                     height: 52,
                     decoration: BoxDecoration(
-                      color: (canBid && !hasBid) ? const Color(0xFFFF4500) : const Color(0xFFCBD5E1),
+                      color: buttonColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      !canBid
-                          ? 'Clients cannot bid'
-                          : hasBid
-                              ? 'Bid Submitted'
-                              : 'Submit a Bid',
+                      buttonText,
                       style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
                     ),
                   ),

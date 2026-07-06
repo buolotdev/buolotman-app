@@ -338,7 +338,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
           Row(
             children: [
               if (isClient) ...[
-                if (task.status == 'In Progress') ...[
+                if (task.status == 'In Progress' || task.status == 'Delivered') ...[
                   Expanded(
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.chat_bubble_outline, size: 16),

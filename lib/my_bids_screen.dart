@@ -64,7 +64,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
           final taskText = '${task?.title ?? ''} ${task?.category ?? ''} ${task?.location ?? ''}'.toLowerCase();
           final matchesSearch = query.isEmpty || taskText.contains(query) || bid.skill.toLowerCase().contains(query);
 
-          final isAccepted = appState.findTask(bid.taskId)?.acceptedBidId == bid.id;
+          final isAccepted = bid.isAccepted;
           final isArchived = isAccepted || bid.role != appState.currentRole;
 
           if (_activeTab == 'Archived') {
@@ -195,7 +195,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
   }
 
   Widget _buildStats(AppState appState, List<dynamic> visibleBids) {
-    final accepted = visibleBids.where((bid) => appState.findTask(bid.taskId)?.acceptedBidId == bid.id).length;
+    final accepted = visibleBids.where((bid) => bid.isAccepted).length;
     final pending = visibleBids.length - accepted;
     final total = visibleBids.fold<double>(0, (sum, bid) => sum + (bid.price as double));
 
@@ -323,7 +323,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
       child: Column(
         children: bids.map((bid) {
           final task = appState.findTask(bid.taskId);
-          final status = task?.acceptedBidId == bid.id ? 'Accepted' : 'Pending';
+          final status = bid.isAccepted ? 'Accepted' : 'Pending';
           return Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: _buildBidCard(appState, bid, task, status),
