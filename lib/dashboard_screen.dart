@@ -1450,7 +1450,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildClientActiveTasks(AppState appState) {
     final myTasks = appState.clientTasks;
-    final activeTasks = myTasks.where((t) => t.status != 'Completed' && t.status != 'Cancelled' && t.status != 'draft').toList();
+    final activeTasks = myTasks.where((t) => t.status != 'Completed' && t.status != 'Cancelled' && t.status != 'draft' && t.status != 'Deleted').toList();
 
     if (activeTasks.isEmpty) {
       return Container(

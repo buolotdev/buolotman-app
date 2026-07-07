@@ -159,12 +159,12 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
         return false;
       }
       if (_activeTab == 'Completed') {
-        return task.status == 'Completed' || task.status == 'Cancelled';
+        return task.status == 'Completed' || task.status == 'Cancelled' || task.status == 'Deleted';
       }
       if (_activeTab == 'Saved') {
         return false;
       }
-      return task.status != 'Completed' && task.status != 'Cancelled';
+      return task.status != 'Completed' && task.status != 'Cancelled' && task.status != 'Deleted';
     }).toList();
 
     if (visibleTasks.isEmpty) {
