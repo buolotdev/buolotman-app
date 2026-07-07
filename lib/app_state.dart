@@ -935,6 +935,12 @@ class AppState extends GetxController {
     await syncTasks();
   }
 
+  Future<void> deleteTask(String taskId) async {
+    final int tId = int.tryParse(taskId) ?? 0;
+    await ApiService.instance.deleteTask(tId);
+    await syncTasks();
+  }
+
   Future<void> updateProfile({
     String? firstName,
     String? lastName,

@@ -2115,6 +2115,36 @@ Future<Response> taskCancelHandler(Request request, String idStr) async {
   return jsonResponse({'message': 'Task cancelled', 'status': 'cancelled'});
 }
 
+Future<Response> taskDeleteHandler(Request request, String idStr) async {
+  final id = int.tryParse(idStr) ?? 0;
+  final userId = getUserId(request);
+
+  final taskRes = await dbPool.execute(Sql.named('SELECT client_id, assigned_to_id, title FROM tasks_task WHERE id = @id'), parameters: {'id': id});
+  if (taskRes.isEmpty) return errorResponse('Task not found', statusCode: 404);
+  if (taskRes[0][0] as int != userId) return errorResponse('Not authorized', statusCode: 403);
+
+  // Update status to 'deleted'
+  await dbPool.execute(
+    Sql.named('UPDATE tasks_task SET status = \'deleted\' WHERE id = @id'),
+    parameters: {'id': id},
+  );
+
+  // If there is an assigned technician, notify them!
+  final assignedTechId = taskRes[0][1] as int?;
+  if (assignedTechId != null) {
+    await createNotification(
+      userId: assignedTechId,
+      category: 'task',
+      title: 'Contract Cancelled & Deleted',
+      body: 'The client has cancelled and deleted the task: "${taskRes[0][2]}". Any pending escrow has been returned.',
+      link: '/dashboard/technician/tasks',
+      metadata: {'task_id': id},
+    );
+  }
+
+  return jsonResponse({'message': 'Task deleted successfully', 'status': 'deleted'});
+}
+
 // ─── BIDDING CONTROLLERS ───────────────────────────────────────────────────
 
 Future<Response> taskBidsHandler(Request request, String idStr) async {
@@ -3776,6 +3806,7 @@ void main() async {
   router.post('/api/tasks/<id>/complete/', taskCompleteHandler);
   router.post('/api/tasks/<id>/submit-work/', taskSubmitWorkHandler);
   router.post('/api/tasks/<id>/cancel/', taskCancelHandler);
+  router.post('/api/tasks/<id>/delete/', taskDeleteHandler);
 
   // Bids
   router.get('/api/tasks/<id>/bids/', taskBidsHandler);

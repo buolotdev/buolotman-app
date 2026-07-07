@@ -22,6 +22,37 @@ class BrowseTasksScreen extends StatelessWidget {
             child: Column(
               children: [
                 _buildHeader(context),
+                if (task.status == 'Deleted')
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFEF2F2),
+                      border: Border(bottom: BorderSide(color: Color(0xFFFCA5A5))),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, color: Color(0xFFDC2626), size: 24),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Contract Terminated / Deleted',
+                                style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF991B1B), fontSize: 14),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'This task has been cancelled and deleted by the client. Any escrow hold funds have been refunded to the client\'s wallet.',
+                                style: TextStyle(color: const Color(0xFFB91C1C), fontSize: 12, height: 1.4),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -316,6 +347,7 @@ class BrowseTasksScreen extends StatelessWidget {
     final isAssigned = task.assignedToId == appState.currentUser.id.toString();
     final isInProgress = task.status == 'In Progress';
     final isDelivered = task.status == 'Delivered';
+    final isDeleted = task.status == 'Deleted';
 
     final bool showSubmitWork = isAssigned && isInProgress;
     final bool showDelivered = isAssigned && isDelivered;
@@ -324,7 +356,11 @@ class BrowseTasksScreen extends StatelessWidget {
     String buttonText;
     Color buttonColor;
 
-    if (showSubmitWork) {
+    if (isDeleted) {
+      buttonText = 'Contract Terminated';
+      buttonColor = const Color(0xFFCBD5E1);
+      buttonOnTap = null;
+    } else if (showSubmitWork) {
       buttonText = 'Submit Work';
       buttonColor = const Color(0xFFFF4500);
       buttonOnTap = () {

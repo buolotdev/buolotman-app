@@ -155,13 +155,16 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
 
   Widget _buildTasksList(List<dynamic> tasks, bool isClient) {
     final visibleTasks = tasks.where((task) {
+      if (isClient && task.status == 'Deleted') {
+        return false;
+      }
       if (_activeTab == 'Completed') {
-        return task.status == 'Completed';
+        return task.status == 'Completed' || task.status == 'Cancelled';
       }
       if (_activeTab == 'Saved') {
         return false;
       }
-      return task.status != 'Completed';
+      return task.status != 'Completed' && task.status != 'Cancelled';
     }).toList();
 
     if (visibleTasks.isEmpty) {
@@ -406,7 +409,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                                   showDialog(
                                     context: context,
                                     barrierDismissible: false,
-                                    builder: (c) => const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(Color(0xFFFF5500)))),
+                                    builder: (c) => const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500)))),
                                   );
                                   try {
                                     await AppStateScope.of(context).completeTask(task.id);
@@ -455,7 +458,13 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                       child: const Text('View Bids'),
                     ),
                   ),
-                ]
+                ],
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  tooltip: 'Delete Task',
+                  onPressed: () => _showDeleteConfirmationDialog(context, task.id),
+                ),
               ] else ...[
                 Expanded(
                   child: OutlinedButton(
@@ -560,5 +569,42 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
         ),
       );
     }
+  }
+  void _showDeleteConfirmationDialog(BuildContext context, String taskId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Delete Task', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFB91C1C))),
+        content: const Text('Are you sure you want to delete this task? This action will cancel any active contracts, release/refund escrow funds, and notify the assigned technician.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (c) => const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500)))),
+              );
+              try {
+                await AppStateScope.of(context).deleteTask(taskId);
+                if (context.mounted) {
+                  Navigator.pop(context); // dismiss spinner
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Task deleted successfully.'), backgroundColor: Color(0xFF1E8E3E)));
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context); // dismiss spinner
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete task: $e'), backgroundColor: Colors.red));
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFB91C1C), foregroundColor: Colors.white),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
   }
 }

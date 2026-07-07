@@ -298,6 +298,16 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> deleteTask(int taskId) async {
+    final response = await post('/tasks/$taskId/delete/', {});
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final err = jsonDecode(response.body);
+      throw Exception(err['detail'] ?? err['error'] ?? 'Failed to delete task.');
+    }
+  }
+
   // ─── BIDDING ENDPOINTS ─────────────────────────────────────────────────────
 
   Future<List<dynamic>> fetchTaskBids(int taskId) async {
