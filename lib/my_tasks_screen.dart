@@ -316,10 +316,18 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: const Color(0xFFE6F4EA), borderRadius: BorderRadius.circular(4)),
-                child: Text(task.status.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF1E8E3E))),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(color: const Color(0xFFE6F4EA), borderRadius: BorderRadius.circular(4)),
+                    child: Text(task.status.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF1E8E3E))),
+                  ),
+                  if (task.deadline != null) ...[
+                    const SizedBox(width: 8),
+                    _buildDeadlineTracker(task.deadline!),
+                  ],
+                ],
               ),
               Text(task.createdLabel, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
             ],
@@ -479,5 +487,78 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildDeadlineTracker(String deadlineStr) {
+    if (deadlineStr.isEmpty) return const SizedBox.shrink();
+    final deadline = DateTime.tryParse(deadlineStr);
+    if (deadline == null) return const SizedBox.shrink();
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final deadlineDate = DateTime(deadline.year, deadline.month, deadline.day);
+    final difference = deadlineDate.difference(today).inDays;
+
+    if (difference < 0) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFEE2E2),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: const Color(0xFFEF4444)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.warning_amber_rounded, size: 10, color: Color(0xFFB91C1C)),
+            const SizedBox(width: 3),
+            Text(
+              'EXCEEDED BY ${difference.abs()} D',
+              style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFFB91C1C)),
+            ),
+          ],
+        ),
+      );
+    } else if (difference == 0) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFEF3C7),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: const Color(0xFFF59E0B)),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.access_time_filled, size: 10, color: Color(0xFFB45309)),
+            SizedBox(width: 3),
+            Text(
+              'DUE TODAY',
+              style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFFB45309)),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE0F2FE),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: const Color(0xFF0284C7)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.calendar_today_outlined, size: 8, color: Color(0xFF0369A1)),
+            const SizedBox(width: 3),
+            Text(
+              '$difference D LEFT',
+              style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF0369A1)),
+            ),
+          ],
+        ),
+      );
+    }
   }
 }

@@ -35,10 +35,109 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
     });
   }
 
+  String _sortBy = 'Default';
+  String _statusFilter = 'All';
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _openFilterSheet() {
+    String tempSortBy = _sortBy;
+    String tempStatusFilter = _statusFilter;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModal) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Filter & Sort Bids', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Sort By Bid Price', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    children: ['Default', 'Price: Low to High', 'Price: High to Low'].map((opt) {
+                      final selected = tempSortBy == opt;
+                      return GestureDetector(
+                        onTap: () => setModal(() => tempSortBy = opt),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: selected ? const Color(0xFFFF4500) : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(opt, style: TextStyle(color: selected ? Colors.white : const Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 13)),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text('Status Filter', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    children: ['All', 'Pending', 'Accepted'].map((opt) {
+                      final selected = tempStatusFilter == opt;
+                      return GestureDetector(
+                        onTap: () => setModal(() => tempStatusFilter = opt),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: selected ? const Color(0xFFFF4500) : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(opt, style: TextStyle(color: selected ? Colors.white : const Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 13)),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 28),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _sortBy = tempSortBy;
+                          _statusFilter = tempStatusFilter;
+                        });
+                        Navigator.pop(ctx);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF4500),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Apply Options', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -67,11 +166,22 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
           final isAccepted = bid.isAccepted;
           final isArchived = isAccepted || bid.role != appState.currentRole;
 
+          // Status filter
+          if (_statusFilter == 'Pending' && isAccepted) return false;
+          if (_statusFilter == 'Accepted' && !isAccepted) return false;
+
           if (_activeTab == 'Archived') {
             return matchesSearch && isArchived;
           }
           return matchesSearch && !isArchived;
         }).toList();
+
+        // Sorting
+        if (_sortBy == 'Price: Low to High') {
+          visibleBids.sort((a, b) => a.price.compareTo(b.price));
+        } else if (_sortBy == 'Price: High to Low') {
+          visibleBids.sort((a, b) => b.price.compareTo(a.price));
+        }
 
         return Scaffold(
           backgroundColor: const Color(0xFFF4F6F8),
@@ -270,15 +380,29 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              borderRadius: BorderRadius.circular(8),
+          GestureDetector(
+            onTap: _openFilterSheet,
+            child: Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: _sortBy != 'Default' || _statusFilter != 'All'
+                    ? const Color(0xFFFF4500)
+                    : Colors.white,
+                border: Border.all(
+                  color: _sortBy != 'Default' || _statusFilter != 'All'
+                      ? const Color(0xFFFF4500)
+                      : const Color(0xFFE2E8F0),
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.tune,
+                color: _sortBy != 'Default' || _statusFilter != 'All'
+                    ? Colors.white
+                    : const Color(0xFF001F3F),
+              ),
             ),
-            child: const Icon(Icons.tune, color: Color(0xFF001F3F)),
           ),
         ],
       ),

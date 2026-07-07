@@ -199,6 +199,9 @@ Map<String, dynamic> formatJoinedTask(Map<String, dynamic> row) {
 }
 
 Map<String, dynamic> formatBid(Map<String, dynamic> row) {
+  final ratingVal = double.tryParse(row['tech_rating']?.toString() ?? '') ?? 4.9;
+  final reviewsVal = int.tryParse(row['tech_reviews']?.toString() ?? '') ?? 0;
+
   return {
     'id': row['id'],
     'task_id': row['task_id'],
@@ -219,6 +222,8 @@ Map<String, dynamic> formatBid(Map<String, dynamic> row) {
       'last_name': row['tech_last_name'] ?? '',
       'avatar_url': row['tech_avatar'] ?? '',
       'is_verified': row['tech_is_verified'] ?? false,
+      'rating': ratingVal,
+      'reviews': reviewsVal,
     }
   };
 }
@@ -2110,7 +2115,7 @@ Future<Response> taskBidsHandler(Request request, String idStr) async {
 
   if (request.method == 'GET') {
     final results = await dbPool.execute(
-      Sql.named('SELECT b.*, u.id as tech_id, u.email as tech_email, u.first_name as tech_first_name, u.last_name as tech_last_name, u.avatar_url as tech_avatar, u.is_verified as tech_is_verified FROM tasks_bid b JOIN accounts_user u ON b.technician_id = u.id WHERE b.task_id = @id AND b.status != \'withdrawn\' ORDER BY b.created_at DESC'),
+      Sql.named('SELECT b.*, u.id as tech_id, u.email as tech_email, u.first_name as tech_first_name, u.last_name as tech_last_name, u.avatar_url as tech_avatar, u.is_verified as tech_is_verified, tp.average_rating as tech_rating, tp.completed_jobs as tech_reviews FROM tasks_bid b JOIN accounts_user u ON b.technician_id = u.id LEFT JOIN accounts_technician_profile tp ON u.id = tp.user_id WHERE b.task_id = @id AND b.status != \'withdrawn\' ORDER BY b.created_at DESC'),
       parameters: {'id': id},
     );
     return jsonResponse(results.map((r) => formatBid(r.toColumnMap())).toList());
@@ -2178,7 +2183,7 @@ Future<Response> taskBidsHandler(Request request, String idStr) async {
 Future<Response> myBidsHandler(Request request) async {
   final userId = getUserId(request);
   final results = await dbPool.execute(
-    Sql.named('SELECT b.*, u.id as tech_id, u.email as tech_email, u.first_name as tech_first_name, u.last_name as tech_last_name, u.avatar_url as tech_avatar, u.is_verified as tech_is_verified FROM tasks_bid b JOIN accounts_user u ON b.technician_id = u.id WHERE b.technician_id = @userId ORDER BY b.created_at DESC'),
+    Sql.named('SELECT b.*, u.id as tech_id, u.email as tech_email, u.first_name as tech_first_name, u.last_name as tech_last_name, u.avatar_url as tech_avatar, u.is_verified as tech_is_verified, tp.average_rating as tech_rating, tp.completed_jobs as tech_reviews FROM tasks_bid b JOIN accounts_user u ON b.technician_id = u.id LEFT JOIN accounts_technician_profile tp ON u.id = tp.user_id WHERE b.technician_id = @userId ORDER BY b.created_at DESC'),
     parameters: {'userId': userId},
   );
   return jsonResponse(results.map((r) => formatBid(r.toColumnMap())).toList());
@@ -2187,7 +2192,7 @@ Future<Response> myBidsHandler(Request request) async {
 Future<Response> bidDetailHandler(Request request, String idStr) async {
   final id = int.tryParse(idStr) ?? 0;
   final results = await dbPool.execute(
-    Sql.named('SELECT b.*, u.id as tech_id, u.email as tech_email, u.first_name as tech_first_name, u.last_name as tech_last_name, u.avatar_url as tech_avatar, u.is_verified as tech_is_verified FROM tasks_bid b JOIN accounts_user u ON b.technician_id = u.id WHERE b.id = @id'),
+    Sql.named('SELECT b.*, u.id as tech_id, u.email as tech_email, u.first_name as tech_first_name, u.last_name as tech_last_name, u.avatar_url as tech_avatar, u.is_verified as tech_is_verified, tp.average_rating as tech_rating, tp.completed_jobs as tech_reviews FROM tasks_bid b JOIN accounts_user u ON b.technician_id = u.id LEFT JOIN accounts_technician_profile tp ON u.id = tp.user_id WHERE b.id = @id'),
     parameters: {'id': id},
   );
 

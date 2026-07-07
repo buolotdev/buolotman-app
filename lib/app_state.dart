@@ -277,6 +277,7 @@ class AppState extends GetxController {
       assignedToId: assignedId,
       assignedToName: assignedName,
       assignedToAvatar: assignedAvatar,
+      deadline: t['deadline']?.toString(),
     );
   }
 
@@ -561,13 +562,16 @@ class AppState extends GetxController {
             ? tech['avatar_url']
             : ((b['technician'] != null && b['technician']['avatar_url'] != null && b['technician']['avatar_url'].toString().isNotEmpty) ? b['technician']['avatar_url'] : 'assets/images/onboard1.jpg');
 
+        final double rating = double.tryParse(tech['rating']?.toString() ?? '') ?? 4.9;
+        final int reviews = int.tryParse(tech['reviews']?.toString() ?? '') ?? 0;
+
         return BidItem(
           id: b['id']?.toString() ?? '',
           taskId: taskIdStr,
           bidderName: bidderName.isEmpty ? _currentUser.name : bidderName,
           skill: 'Professional Provider',
-          rating: 4.8,
-          reviews: 50,
+          rating: rating,
+          reviews: reviews,
           price: amount,
           timeline: b['duration'] ?? '3 days',
           message: b['message'] ?? '',
@@ -746,6 +750,7 @@ class AppState extends GetxController {
       assignedToId: assignedId,
       assignedToName: assignedName,
       assignedToAvatar: assignedAvatar,
+      deadline: published['deadline']?.toString(),
     );
   }
 
