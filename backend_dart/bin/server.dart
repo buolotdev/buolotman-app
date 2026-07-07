@@ -1927,7 +1927,7 @@ Future<Response> updateTaskHandler(Request request, String idStr) async {
 
     await dbPool.execute(
       Sql.named('UPDATE tasks_task SET title = @title, description = @desc, budget_min = @bMin, budget_max = @bMax, budget_mode = @bMode, '
-                'urgency = @urgency, service_type = @type, location = @loc, city = @city, schedule = @sched, deadline = @deadline, category_id = @catId, updated_at = @now WHERE id = @id'),
+                'urgency = @urgency, service_type = @type, location = @loc, city = @city, schedule = @sched, deadline = @deadline, category_id = @catId, image_url = @imageUrl, updated_at = @now WHERE id = @id'),
       parameters: {
         'id': taskId,
         'title': title,
@@ -1942,6 +1942,7 @@ Future<Response> updateTaskHandler(Request request, String idStr) async {
         'sched': schedule,
         'deadline': deadline,
         'catId': categoryId > 0 ? categoryId : null,
+        'imageUrl': body['image_url']?.toString(),
         'now': DateTime.now(),
       },
     );

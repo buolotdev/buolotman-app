@@ -799,6 +799,7 @@ class AppState extends GetxController {
       'city': draft.city.isNotEmpty ? draft.city : 'Lagos',
       'schedule': draft.timeline,
       'deadline': draft.deadline,
+      'image_url': draft.imageUrl,
     };
 
     await ApiService.instance.updateTask(id, taskData);
