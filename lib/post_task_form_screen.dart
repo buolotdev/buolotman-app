@@ -3,6 +3,8 @@ import 'app_models.dart';
 import 'post_task_step3_screen.dart';
 import 'package:get/get.dart';
 import 'app_state.dart';
+import 'package:file_picker/file_picker.dart' as fp;
+import 'dart:convert';
 
 class PostTaskFormScreen extends StatefulWidget {
   const PostTaskFormScreen({super.key});
@@ -29,6 +31,8 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
   String _selectedPaymentMethod = "Escrow / Wallet";
   String _budgetMode = "fixed"; // fixed or range
   String _selectedSubcategory = "";
+  String? _base64Image;
+  String? _base64ImageName;
 
   static const Map<String, List<String>> _subcategoryMap = {
     "Plumbing & Repair": ["Pipe Leakage", "Drain Cleaning", "Water Heater", "Toilet Repair", "Faucet Installation", "Sewage Issues"],
@@ -499,28 +503,75 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
   }
 
   Widget _buildUploadZone() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 2, style: BorderStyle.none), // Simplified
-        borderRadius: BorderRadius.circular(12),
-      ),
-      width: double.infinity,
-      child: Column(
-        children: const [
-          Icon(Icons.cloud_upload_outlined, color: Color(0xFFFF4500), size: 32),
-          SizedBox(height: 8),
-          Text(
-            "Tap to upload photos or videos",
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF001F3F)),
-          ),
-          SizedBox(height: 4),
-          Text(
-            "Max file size 10MB",
-            style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-          ),
-        ],
+    return GestureDetector(
+      onTap: () async {
+        try {
+          final result = await fp.FilePicker.pickFiles(
+            type: fp.FileType.image,
+            withData: true,
+          );
+          if (result != null && result.files.isNotEmpty) {
+            final file = result.files.first;
+            final bytes = file.bytes;
+            if (bytes != null) {
+              final ext = file.extension ?? 'png';
+              final b64 = base64Encode(bytes);
+              setState(() {
+                _base64Image = 'data:image/$ext;base64,$b64';
+                _base64ImageName = file.name;
+              });
+            }
+          }
+        } catch (e) {
+          debugPrint('Error picking file: $e');
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F5F9),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 2, style: BorderStyle.none), // Simplified
+          borderRadius: BorderRadius.circular(12),
+        ),
+        width: double.infinity,
+        child: Column(
+          children: [
+            const Icon(Icons.cloud_upload_outlined, color: Color(0xFFFF4500), size: 32),
+            const SizedBox(height: 8),
+            Text(
+              _base64ImageName ?? "Tap to upload photos or videos",
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF001F3F)),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _base64Image != null ? "File attached successfully" : "Max file size 10MB",
+              style: TextStyle(fontSize: 12, color: _base64Image != null ? const Color(0xFF1E8E3E) : const Color(0xFF64748B), fontWeight: _base64Image != null ? FontWeight.bold : FontWeight.normal),
+            ),
+            if (_base64Image != null) ...[
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  height: 100,
+                  width: 100,
+                  child: buildAvatarImage(_base64Image!, fit: BoxFit.cover),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _base64Image = null;
+                    _base64ImageName = null;
+                  });
+                },
+                icon: const Icon(Icons.delete_outline, color: Color(0xFFDC2626), size: 16),
+                label: const Text("Remove Attachment", style: TextStyle(color: Color(0xFFDC2626), fontSize: 12, fontWeight: FontWeight.bold)),
+              )
+            ]
+          ],
+        ),
       ),
     );
   }
@@ -747,6 +798,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                   duration: '1 - 3 hrs',
                   isRecurring: false,
                   deadline: _selectedDeadline,
+                  imageUrl: _base64Image,
                 ),
               ),
             ),

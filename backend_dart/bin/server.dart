@@ -194,6 +194,7 @@ Map<String, dynamic> formatJoinedTask(Map<String, dynamic> row) {
     'category': categoryMap,
     'client': clientMap,
     'assigned_to': assignedMap,
+    'image_url': row['image_url'] ?? '',
     'skills': [], // filled externally
   };
 }
@@ -1830,9 +1831,11 @@ Future<Response> createTaskHandler(Request request) async {
       deadline = DateTime.tryParse(deadlineStr);
     }
 
+    final imageUrl = body['image_url']?.toString();
+
     final res = await dbPool.execute(
-      Sql.named('INSERT INTO tasks_task (title, description, status, budget_min, budget_max, budget_mode, urgency, service_type, location, city, latitude, longitude, schedule, deadline, materials_provided, contact_methods, views_count, bids_count, created_at, updated_at, category_id, client_id) '
-                'VALUES (@title, @desc, \'draft\', @bMin, @bMax, @bMode, @urgency, @type, @loc, @city, null, null, @sched, @deadline, @materials, @contact, 0, 0, @now, @now, @catId, @clientId) RETURNING id'),
+      Sql.named('INSERT INTO tasks_task (title, description, status, budget_min, budget_max, budget_mode, urgency, service_type, location, city, latitude, longitude, schedule, deadline, materials_provided, contact_methods, views_count, bids_count, created_at, updated_at, category_id, client_id, image_url) '
+                'VALUES (@title, @desc, \'draft\', @bMin, @bMax, @bMode, @urgency, @type, @loc, @city, null, null, @sched, @deadline, @materials, @contact, 0, 0, @now, @now, @catId, @clientId, @imageUrl) RETURNING id'),
       parameters: {
         'title': title,
         'desc': description,
@@ -1850,6 +1853,7 @@ Future<Response> createTaskHandler(Request request) async {
         'now': DateTime.now(),
         'catId': categoryId > 0 ? categoryId : null,
         'clientId': userId,
+        'imageUrl': imageUrl,
       },
     );
     final newTaskId = res[0][0] as int;
@@ -3751,6 +3755,7 @@ void main() async {
     await dbPool.execute('ALTER TABLE accounts_technician_profile ADD COLUMN IF NOT EXISTS certifications jsonb DEFAULT \'[]\'::jsonb;');
     await dbPool.execute('ALTER TABLE accounts_technician_profile ADD COLUMN IF NOT EXISTS experience text DEFAULT \'\';');
     await dbPool.execute('ALTER TABLE accounts_portfolio_item ALTER COLUMN image_url TYPE text;');
+    await dbPool.execute('ALTER TABLE tasks_task ADD COLUMN IF NOT EXISTS image_url text;');
   } catch (e) {
     print('Failed to alter tables: $e');
   }

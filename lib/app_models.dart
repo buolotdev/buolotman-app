@@ -96,6 +96,7 @@ class TaskDraft {
     required this.duration,
     required this.isRecurring,
     this.deadline,
+    this.imageUrl,
   });
 
   final String title;
@@ -115,6 +116,7 @@ class TaskDraft {
   final String duration;
   final bool isRecurring;
   final String? deadline;
+  final String? imageUrl;
 
   TaskDraft copyWith({
     String? title,
@@ -134,6 +136,7 @@ class TaskDraft {
     String? duration,
     bool? isRecurring,
     String? deadline,
+    String? imageUrl,
   }) {
     return TaskDraft(
       title: title ?? this.title,
@@ -153,6 +156,7 @@ class TaskDraft {
       duration: duration ?? this.duration,
       isRecurring: isRecurring ?? this.isRecurring,
       deadline: deadline ?? this.deadline,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 }
@@ -180,6 +184,7 @@ class TaskItem {
     this.assignedToName,
     this.assignedToAvatar,
     this.deadline,
+    this.imageUrl,
   });
 
   final String id;
@@ -203,6 +208,7 @@ class TaskItem {
   final String? assignedToName;
   final String? assignedToAvatar;
   final String? deadline;
+  final String? imageUrl;
 
   TaskItem copyWith({
     String? id,
@@ -226,6 +232,7 @@ class TaskItem {
     String? assignedToName,
     String? assignedToAvatar,
     String? deadline,
+    String? imageUrl,
   }) {
     return TaskItem(
       id: id ?? this.id,
@@ -249,6 +256,7 @@ class TaskItem {
       assignedToName: assignedToName ?? this.assignedToName,
       assignedToAvatar: assignedToAvatar ?? this.assignedToAvatar,
       deadline: deadline ?? this.deadline,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 }

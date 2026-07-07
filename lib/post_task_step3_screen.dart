@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_state.dart';
+import 'app_models.dart';
 import 'post_task_success_screen.dart';
 
 class PostTaskStep3Screen extends StatelessWidget {
@@ -201,6 +202,22 @@ class PostTaskStep3Screen extends StatelessWidget {
             draft.description,
             style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Color(0xFF001F3F), height: 1.5),
           ),
+          if (draft.imageUrl != null && draft.imageUrl!.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            const Text(
+              "Task Attachment Preview",
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF64748B)),
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                width: double.infinity,
+                height: 150,
+                child: buildAvatarImage(draft.imageUrl!, fit: BoxFit.cover),
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           GridView.count(
             crossAxisCount: 2,

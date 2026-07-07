@@ -280,6 +280,7 @@ class AppState extends GetxController {
       assignedToName: assignedName,
       assignedToAvatar: assignedAvatar,
       deadline: t['deadline']?.toString(),
+      imageUrl: t['image_url']?.toString(),
     );
   }
 
@@ -711,6 +712,7 @@ class AppState extends GetxController {
       'materials_provided': false,
       'contact_methods': ['chat'],
       'skills': [],
+      'image_url': draft.imageUrl,
     };
 
     final createdTask = await ApiService.instance.createTask(taskData);
@@ -755,6 +757,7 @@ class AppState extends GetxController {
       assignedToName: assignedName,
       assignedToAvatar: assignedAvatar,
       deadline: published['deadline']?.toString(),
+      imageUrl: published['image_url']?.toString(),
     );
   }
 
