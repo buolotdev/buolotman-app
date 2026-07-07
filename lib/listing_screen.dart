@@ -5,6 +5,7 @@ import 'app_state.dart';
 import 'browse_tasks_screen.dart';
 import 'company_profile_screen.dart';
 import 'profile_screen.dart';
+import 'technician_public_profile_screen.dart';
 
 class ListingScreen extends StatefulWidget {
   final String? initialQuery;
@@ -17,6 +18,7 @@ class ListingScreen extends StatefulWidget {
 class _ListingScreenState extends State<ListingScreen> {
   late final TextEditingController _searchController;
   String _activeFilter = 'All Categories';
+  bool _isLoading = false;
 
   final List<Map<String, dynamic>> _filters = const [
     {'label': 'All Categories', 'icon': null},
@@ -31,8 +33,19 @@ class _ListingScreenState extends State<ListingScreen> {
     super.initState();
     _searchController = TextEditingController(text: widget.initialQuery ?? '');
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      AppStateScope.of(context).performSearch(_searchController.text.trim());
+      _triggerSearch(_searchController.text.trim());
     });
+  }
+
+  Future<void> _triggerSearch(String query) async {
+    setState(() => _isLoading = true);
+    try {
+      await AppStateScope.of(context).performSearch(query);
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -40,7 +53,7 @@ class _ListingScreenState extends State<ListingScreen> {
     super.didUpdateWidget(oldWidget);
     if (widget.initialQuery != oldWidget.initialQuery && widget.initialQuery != null) {
       _searchController.text = widget.initialQuery!;
-      AppStateScope.of(context).performSearch(widget.initialQuery!);
+      _triggerSearch(widget.initialQuery!);
     }
   }
 
@@ -71,6 +84,7 @@ class _ListingScreenState extends State<ListingScreen> {
             coverageArea: s['location'] ?? 'Lagos, Nigeria',
             availability: 'Flexible Availability',
             pricingModel: s['pricingModel'] ?? 'Hourly Rate',
+            providerId: s['profileId']?.toString() ?? '',
           );
         }).where((service) => _matchesServiceFilter(service)).toList();
 
@@ -116,18 +130,20 @@ class _ListingScreenState extends State<ListingScreen> {
                       _buildFilterBar(),
                       _buildResultsCount(totalCount),
                       Expanded(
-                        child: totalCount == 0
-                            ? _buildEmptyState()
-                            : ListView(
-                                physics: const BouncingScrollPhysics(),
-                                padding: const EdgeInsets.all(16),
-                                children: [
-                                  if (isClient)
-                                    for (final service in services) _buildServiceCard(service),
-                                  if (!isClient)
-                                    for (final task in tasks) _buildTaskCard(task),
-                                ],
-                              ),
+                        child: _isLoading
+                            ? const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))))
+                            : (totalCount == 0
+                                ? _buildEmptyState()
+                                : ListView(
+                                    physics: const BouncingScrollPhysics(),
+                                    padding: const EdgeInsets.all(16),
+                                    children: [
+                                      if (isClient)
+                                        for (final service in services) _buildServiceCard(service),
+                                      if (!isClient)
+                                        for (final task in tasks) _buildTaskCard(task),
+                                    ],
+                                  )),
                       ),
                     ],
                   ),
@@ -204,8 +220,7 @@ class _ListingScreenState extends State<ListingScreen> {
                     child: TextField(
                       controller: _searchController,
                       onChanged: (val) {
-                        appState.performSearch(val.trim());
-                        setState(() {});
+                        _triggerSearch(val.trim());
                       },
                       decoration: const InputDecoration(
                         hintText: 'Search for plumbers, electricians...',
@@ -446,11 +461,18 @@ class _ListingScreenState extends State<ListingScreen> {
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => ProfileScreen(
+        builder: (context) => TechnicianPublicProfileScreen(
           name: service.providerName,
-          tagline: service.providerRole,
+          skill: service.category,
           avatar: service.providerAvatar,
-          isTechnician: service.providerRole == 'Technician',
+          price: service.priceLabel,
+          rating: '4.8',
+          rawData: {
+            'id': service.providerId,
+            'first_name': service.providerName,
+            'avatar_url': service.providerAvatar,
+            'skills': [service.category],
+          },
         ),
       ),
     );

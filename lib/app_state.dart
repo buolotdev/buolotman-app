@@ -499,6 +499,7 @@ class AppState extends GetxController {
           coverageArea: item['location'] ?? 'Lagos, Nigeria',
           availability: 'Flexible Availability',
           pricingModel: item['pricingModel'] ?? 'Hourly Rate',
+          providerId: item['profileId']?.toString() ?? '',
         );
       }).toList();
     } catch (e) {
@@ -533,6 +534,7 @@ class AppState extends GetxController {
             coverageArea: item['coverage_area'] ?? 'Lagos, Nigeria',
             availability: 'Weekdays 9 AM - 6 PM',
             pricingModel: item['pricing_model'] ?? 'Hourly Rate',
+            providerId: currentUser.id.toString(),
           );
         }).toList();
         
@@ -864,6 +866,7 @@ class AppState extends GetxController {
         coverageArea: coverageArea,
         availability: availability,
         pricingModel: pricingModel,
+        providerId: currentUser.id.toString(),
       );
     } else {
       final data = {
@@ -885,6 +888,7 @@ class AppState extends GetxController {
         coverageArea: coverageArea,
         availability: availability,
         pricingModel: pricingModel,
+        providerId: currentUser.id.toString(),
       );
     }
   }

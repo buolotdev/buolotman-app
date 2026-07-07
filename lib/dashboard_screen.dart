@@ -32,6 +32,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isRefreshing = false;
+  bool _isLoading = false;
 
   Future<void> _handleRefresh(AppState appState) async {
     if (_isRefreshing) return;
@@ -71,9 +72,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      AppStateScope.of(context).syncAll();
+    _isLoading = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        await AppStateScope.of(context).syncAll();
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     });
+  }
+
+  Widget _buildLoadingIndicator() {
+    return Container(
+      height: 90,
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      alignment: Alignment.center,
+      child: const CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500)),
+      ),
+    );
   }
 
   @override
@@ -745,6 +766,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildTopProfessionals(AppState appState) {
+    if (_isLoading) {
+      return _buildLoadingIndicator();
+    }
     if (appState.publicPros.isEmpty) {
       return Container(
         height: 100,
@@ -1449,6 +1473,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildClientActiveTasks(AppState appState) {
+    if (_isLoading) {
+      return _buildLoadingIndicator();
+    }
     final myTasks = appState.clientTasks;
     final activeTasks = myTasks.where((t) => t.status != 'Completed' && t.status != 'Cancelled' && t.status != 'draft' && t.status != 'Deleted').toList();
 
@@ -1568,9 +1595,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildSavedProfessionals(AppState appState) {
+    if (_isLoading) {
+      return _buildLoadingIndicator();
+    }
+
     final savedTechs = appState.publicPros.where((user) {
       final idStr = user['id']?.toString() ?? '';
-      return appState.isTechSaved(idStr);
+      final isDirectlySaved = appState.isTechSaved(idStr);
+      final hasSavedService = appState.services.any((service) {
+        final isSaved = appState.isServiceSaved(service.id);
+        final isTheirService = service.providerId == idStr;
+        return isSaved && isTheirService;
+      });
+      return isDirectlySaved || hasSavedService;
     }).toList();
 
     if (savedTechs.isEmpty) {

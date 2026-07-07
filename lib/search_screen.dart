@@ -74,6 +74,7 @@ class _SearchScreenState extends State<SearchScreen> {
             coverageArea: s['location'] ?? 'Lagos, Nigeria',
             availability: 'Flexible Availability',
             pricingModel: s['pricingModel'] ?? 'Hourly Rate',
+            providerId: s['profileId']?.toString() ?? '',
           );
         }).toList();
 

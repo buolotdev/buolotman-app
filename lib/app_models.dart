@@ -402,6 +402,7 @@ class ServiceItem {
     required this.coverageArea,
     required this.availability,
     required this.pricingModel,
+    required this.providerId,
   });
 
   final String id;
@@ -416,6 +417,7 @@ class ServiceItem {
   final String coverageArea;
   final String availability;
   final String pricingModel;
+  final String providerId;
 }
 
 ImageProvider getAvatarImageProvider(String avatarUrl) {
