@@ -95,6 +95,7 @@ class TaskDraft {
     required this.country,
     required this.duration,
     required this.isRecurring,
+    this.deadline,
   });
 
   final String title;
@@ -113,6 +114,7 @@ class TaskDraft {
   final String country;
   final String duration;
   final bool isRecurring;
+  final String? deadline;
 
   TaskDraft copyWith({
     String? title,
@@ -131,6 +133,7 @@ class TaskDraft {
     String? country,
     String? duration,
     bool? isRecurring,
+    String? deadline,
   }) {
     return TaskDraft(
       title: title ?? this.title,
@@ -149,6 +152,7 @@ class TaskDraft {
       country: country ?? this.country,
       duration: duration ?? this.duration,
       isRecurring: isRecurring ?? this.isRecurring,
+      deadline: deadline ?? this.deadline,
     );
   }
 }

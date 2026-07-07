@@ -24,6 +24,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
   String _selectedCategory = "Plumbing & Repair";
   String _locationType = "On-site";
   String _timeline = "By Friday, Oct 25";
+  String? _selectedDeadline;
   String _urgency = "Flexible"; // Added urgency §5.2.2
   String _selectedPaymentMethod = "Escrow / Wallet";
   String _budgetMode = "fixed"; // fixed or range
@@ -117,6 +118,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
       final formatted = "By ${weekdays[picked.weekday % 7]}, ${months[picked.month - 1]} ${picked.day}";
       setState(() {
         _timeline = formatted;
+        _selectedDeadline = picked.toIso8601String().substring(0, 10);
       });
     }
   }
@@ -744,6 +746,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                   country: userCountry,
                   duration: '1 - 3 hrs',
                   isRecurring: false,
+                  deadline: _selectedDeadline,
                 ),
               ),
             ),

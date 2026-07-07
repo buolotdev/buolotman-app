@@ -24,6 +24,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
   late String _timeline;
   late String _urgency;
   late String _selectedPaymentMethod;
+  String? _selectedDeadline;
 
   static const Map<String, List<String>> _subcategoryMap = {
     "Plumbing & Repair": ["Pipe Leakage", "Drain Cleaning", "Water Heater", "Toilet Repair", "Faucet Installation", "Sewage Issues"],
@@ -63,6 +64,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
         : widget.task.tags.contains('Hybrid') ? 'Hybrid'
         : 'On-site';
     _timeline = widget.task.schedule;
+    _selectedDeadline = widget.task.deadline;
     _urgency = widget.task.urgency;
     _selectedPaymentMethod = widget.task.paymentMethod.isNotEmpty ? widget.task.paymentMethod : "Escrow / Wallet";
   }
@@ -148,6 +150,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
       final formatted = "By ${weekdays[picked.weekday % 7]}, ${months[picked.month - 1]} ${picked.day}";
       setState(() {
         _timeline = formatted;
+        _selectedDeadline = picked.toIso8601String().substring(0, 10);
       });
     }
   }
@@ -270,6 +273,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
       country: "",
       duration: "Flexible",
       isRecurring: false,
+      deadline: _selectedDeadline,
     );
 
     try {

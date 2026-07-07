@@ -703,7 +703,7 @@ class AppState extends GetxController {
       'location': draft.location,
       'city': draft.city.isNotEmpty ? draft.city : 'Lagos',
       'schedule': draft.timeline,
-      'deadline': null,
+      'deadline': draft.deadline,
       'materials_provided': false,
       'contact_methods': ['chat'],
       'skills': [],
@@ -791,6 +791,7 @@ class AppState extends GetxController {
       'location': draft.location,
       'city': draft.city.isNotEmpty ? draft.city : 'Lagos',
       'schedule': draft.timeline,
+      'deadline': draft.deadline,
     };
 
     await ApiService.instance.updateTask(id, taskData);

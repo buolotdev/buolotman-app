@@ -1914,10 +1914,16 @@ Future<Response> updateTaskHandler(Request request, String idStr) async {
     final location = body['location']?.toString() ?? '';
     final city = body['city']?.toString() ?? '';
     final schedule = body['schedule']?.toString() ?? '';
+    final deadlineStr = body['deadline']?.toString();
+
+    DateTime? deadline;
+    if (deadlineStr != null && deadlineStr.isNotEmpty) {
+      deadline = DateTime.tryParse(deadlineStr);
+    }
 
     await dbPool.execute(
       Sql.named('UPDATE tasks_task SET title = @title, description = @desc, budget_min = @bMin, budget_max = @bMax, budget_mode = @bMode, '
-                'urgency = @urgency, service_type = @type, location = @loc, city = @city, schedule = @sched, category_id = @catId, updated_at = @now WHERE id = @id'),
+                'urgency = @urgency, service_type = @type, location = @loc, city = @city, schedule = @sched, deadline = @deadline, category_id = @catId, updated_at = @now WHERE id = @id'),
       parameters: {
         'id': taskId,
         'title': title,
@@ -1930,6 +1936,7 @@ Future<Response> updateTaskHandler(Request request, String idStr) async {
         'loc': location,
         'city': city,
         'sched': schedule,
+        'deadline': deadline,
         'catId': categoryId > 0 ? categoryId : null,
         'now': DateTime.now(),
       },
