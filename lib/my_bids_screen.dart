@@ -164,7 +164,8 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
           final matchesSearch = query.isEmpty || taskText.contains(query) || bid.skill.toLowerCase().contains(query);
 
           final isAccepted = bid.isAccepted;
-          final isArchived = isAccepted || bid.role != appState.currentRole;
+          final isTaskDeleted = task != null && (task.status == 'Deleted' || task.status == 'Cancelled');
+          final isArchived = isAccepted || isTaskDeleted || bid.role != appState.currentRole;
 
           // Status filter
           if (_statusFilter == 'Pending' && isAccepted) return false;
@@ -447,7 +448,8 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
       child: Column(
         children: bids.map((bid) {
           final task = appState.findTask(bid.taskId);
-          final status = bid.isAccepted ? 'Accepted' : 'Pending';
+          final isTaskDeleted = task != null && (task.status == 'Deleted' || task.status == 'Cancelled');
+          final status = isTaskDeleted ? 'Deleted' : (bid.isAccepted ? 'Accepted' : 'Pending');
           return Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: _buildBidCard(appState, bid, task, status),
@@ -601,6 +603,23 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
           child: const Text('Task unavailable', style: TextStyle(color: Color(0xFF001F3F), fontWeight: FontWeight.w600)),
+        ),
+      );
+    }
+
+    if (status == 'Deleted' || status == 'Cancelled') {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFEF2F2),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFFCA5A5)),
+        ),
+        alignment: Alignment.center,
+        child: const Text(
+          'Contract Terminated / Deleted by Client',
+          style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.bold, fontSize: 13),
         ),
       );
     }
