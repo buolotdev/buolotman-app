@@ -263,7 +263,7 @@ class AppState extends GetxController {
       location: t['location'] ?? 'Lagos, Nigeria',
       clientName: t['client'] != null ? '${t['client']['first_name'] ?? ''} ${t['client']['last_name'] ?? ''}'.trim() : (t['client_name'] ?? 'Client'),
       clientAvatar: (t['client'] != null && t['client']['avatar_url'] != null && t['client']['avatar_url'].toString().isNotEmpty) ? t['client']['avatar_url'] : 'assets/images/onboard3.jpg',
-      clientRating: 4.9,
+      clientRating: t['client'] != null ? (double.tryParse(t['client']['rating']?.toString() ?? '') ?? 4.9) : 4.9,
       budget: budgetMax > 0 ? budgetMax : budgetMin,
       status: _mapStatus(t['status'] ?? 'open'),
       createdLabel: t['created_at']?.toString().substring(0, 10) ?? 'Just now',
@@ -281,6 +281,7 @@ class AppState extends GetxController {
       assignedToAvatar: assignedAvatar,
       deadline: t['deadline']?.toString(),
       imageUrl: t['image_url']?.toString(),
+      clientReviews: t['client'] != null ? (int.tryParse(t['client']['tasks_count']?.toString() ?? '') ?? 0) : 0,
     );
   }
 
@@ -740,7 +741,7 @@ class AppState extends GetxController {
       location: published['location'] ?? 'Lagos, Nigeria',
       clientName: published['client'] != null ? '${published['client']['first_name'] ?? ''} ${published['client']['last_name'] ?? ''}'.trim() : (published['client_name'] ?? 'Client'),
       clientAvatar: (published['client'] != null && published['client']['avatar_url'] != null && published['client']['avatar_url'].toString().isNotEmpty) ? published['client']['avatar_url'] : 'assets/images/onboard3.jpg',
-      clientRating: 4.9,
+      clientRating: published['client'] != null ? (double.tryParse(published['client']['rating']?.toString() ?? '') ?? 4.9) : 4.9,
       budget: budgetMax > 0 ? budgetMax : budgetMin,
       status: _mapStatus(published['status'] ?? 'open'),
       createdLabel: published['created_at']?.toString().substring(0, 10) ?? 'Just now',
@@ -758,6 +759,7 @@ class AppState extends GetxController {
       assignedToAvatar: assignedAvatar,
       deadline: published['deadline']?.toString(),
       imageUrl: published['image_url']?.toString(),
+      clientReviews: published['client'] != null ? (int.tryParse(published['client']['tasks_count']?.toString() ?? '') ?? 0) : 0,
     );
   }
 

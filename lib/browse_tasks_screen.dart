@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'app_state.dart';
-import 'app_models.dart';
 import 'chat_screen.dart';
 import 'submit_bid_screen.dart';
 
@@ -182,22 +181,6 @@ class BrowseTasksScreen extends StatelessWidget {
             task.description,
             style: const TextStyle(fontSize: 15, color: Color(0xFF64748B), height: 1.6),
           ),
-          if (task.imageUrl != null && task.imageUrl!.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            const Text(
-              "Task Attachment",
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF001F3F)),
-            ),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                width: double.infinity,
-                height: 200,
-                child: buildAvatarImage(task.imageUrl!, fit: BoxFit.cover),
-              ),
-            ),
-          ],
           const SizedBox(height: 16),
           _buildMetaGrid(task),
           const SizedBox(height: 16),
@@ -346,7 +329,7 @@ class BrowseTasksScreen extends StatelessWidget {
                         children: [
                           _buildClientMetaItem(Icons.star, '${task.clientRating.toStringAsFixed(1)} rating'),
                           const SizedBox(width: 12),
-                          _buildClientMetaItem(Icons.assignment_turned_in, '${task.bidsCount} bids'),
+                          _buildClientMetaItem(Icons.assignment_turned_in, '${task.clientReviews} tasks posted'),
                           const SizedBox(width: 12),
                           _buildClientMetaItem(Icons.account_balance_wallet_outlined, task.paymentMethod),
                         ],

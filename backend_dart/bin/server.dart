@@ -150,6 +150,8 @@ Map<String, dynamic> formatJoinedTask(Map<String, dynamic> row) {
       'avatar_url': row['client_avatar'] ?? '',
       'role': row['client_role'] ?? '',
       'is_verified': row['client_is_verified'] ?? false,
+      'rating': row['client_rating'] != null ? double.tryParse(row['client_rating'].toString()) ?? 4.9 : 4.9,
+      'tasks_count': row['client_tasks_count'] ?? 0,
     };
   }
 
@@ -1707,7 +1709,7 @@ Future<Response> adminListTasksHandler(Request request) async {
   final params = request.url.queryParameters;
   final statusFilter = params['status'];
 
-  var query = 'SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified, ast.email as assigned_email, ast.first_name as assigned_first_name, ast.last_name as assigned_last_name, ast.avatar_url as assigned_avatar, ast.role as assigned_role, ast.is_verified as assigned_is_verified FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id LEFT JOIN accounts_user ast ON t.assigned_to_id = ast.id';
+  var query = 'SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified, cl.rating as client_rating, cl.tasks_count as client_tasks_count, ast.email as assigned_email, ast.first_name as assigned_first_name, ast.last_name as assigned_last_name, ast.avatar_url as assigned_avatar, ast.role as assigned_role, ast.is_verified as assigned_is_verified FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id LEFT JOIN accounts_user ast ON t.assigned_to_id = ast.id';
   final sqlParams = <String, dynamic>{};
 
   if (statusFilter != null && statusFilter.isNotEmpty) {
@@ -1735,7 +1737,7 @@ Future<Response> listTasksHandler(Request request) async {
   final page = int.tryParse(params['page'] ?? '1') ?? 1;
   final limit = int.tryParse(params['limit'] ?? '20') ?? 20;
 
-  var query = 'SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified, ast.email as assigned_email, ast.first_name as assigned_first_name, ast.last_name as assigned_last_name, ast.avatar_url as assigned_avatar, ast.role as assigned_role, ast.is_verified as assigned_is_verified FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id LEFT JOIN accounts_user ast ON t.assigned_to_id = ast.id WHERE t.status = \'open\'';
+  var query = 'SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified, cl.rating as client_rating, cl.tasks_count as client_tasks_count, ast.email as assigned_email, ast.first_name as assigned_first_name, ast.last_name as assigned_last_name, ast.avatar_url as assigned_avatar, ast.role as assigned_role, ast.is_verified as assigned_is_verified FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id LEFT JOIN accounts_user ast ON t.assigned_to_id = ast.id WHERE t.status = \'open\'';
 
   final clauses = <String>[];
   final sqlParams = <String, dynamic>{};
@@ -1858,6 +1860,12 @@ Future<Response> createTaskHandler(Request request) async {
     );
     final newTaskId = res[0][0] as int;
 
+    // Increment tasks count for the client
+    await dbPool.execute(
+      Sql.named('UPDATE accounts_user SET tasks_count = tasks_count + 1 WHERE id = @id'),
+      parameters: {'id': userId},
+    );
+
     // Insert skills if provided
     final skillsList = body['skills'] as List? ?? [];
     for (final sk in skillsList) {
@@ -1877,7 +1885,7 @@ Future<Response> createTaskHandler(Request request) async {
     }
 
     final taskQuery = await dbPool.execute(
-      Sql.named('SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id WHERE t.id = @id'),
+      Sql.named('SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified, cl.rating as client_rating, cl.tasks_count as client_tasks_count FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id WHERE t.id = @id'),
       parameters: {'id': newTaskId},
     );
 
@@ -1948,7 +1956,7 @@ Future<Response> updateTaskHandler(Request request, String idStr) async {
     );
 
     final taskQuery = await dbPool.execute(
-      Sql.named('SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id WHERE t.id = @id'),
+      Sql.named('SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified, cl.rating as client_rating, cl.tasks_count as client_tasks_count FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id WHERE t.id = @id'),
       parameters: {'id': taskId},
     );
 
@@ -1965,7 +1973,7 @@ Future<Response> myTasksHandler(Request request) async {
   final params = request.url.queryParameters;
   final statusFilter = params['status'];
 
-  var query = 'SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified, ast.email as assigned_email, ast.first_name as assigned_first_name, ast.last_name as assigned_last_name, ast.avatar_url as assigned_avatar, ast.role as assigned_role, ast.is_verified as assigned_is_verified FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id LEFT JOIN accounts_user ast ON t.assigned_to_id = ast.id';
+  var query = 'SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified, cl.rating as client_rating, cl.tasks_count as client_tasks_count, ast.email as assigned_email, ast.first_name as assigned_first_name, ast.last_name as assigned_last_name, ast.avatar_url as assigned_avatar, ast.role as assigned_role, ast.is_verified as assigned_is_verified FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id LEFT JOIN accounts_user ast ON t.assigned_to_id = ast.id';
   final sqlParams = <String, dynamic>{'userId': userId};
 
   if (role == 'TECHNICIAN' || role == 'COMPANY') {
@@ -2024,7 +2032,7 @@ Future<Response> taskDetailHandler(Request request, String idStr) async {
   await dbPool.execute(Sql.named('UPDATE tasks_task SET views_count = views_count + 1 WHERE id = @id'), parameters: {'id': id});
 
   final results = await dbPool.execute(
-    Sql.named('SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified, ast.email as assigned_email, ast.first_name as assigned_first_name, ast.last_name as assigned_last_name, ast.avatar_url as assigned_avatar, ast.role as assigned_role, ast.is_verified as assigned_is_verified FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id LEFT JOIN accounts_user ast ON t.assigned_to_id = ast.id WHERE t.id = @id'),
+    Sql.named('SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified, cl.rating as client_rating, cl.tasks_count as client_tasks_count, ast.email as assigned_email, ast.first_name as assigned_first_name, ast.last_name as assigned_last_name, ast.avatar_url as assigned_avatar, ast.role as assigned_role, ast.is_verified as assigned_is_verified FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id LEFT JOIN accounts_user ast ON t.assigned_to_id = ast.id WHERE t.id = @id'),
     parameters: {'id': id},
   );
 
@@ -2132,6 +2140,12 @@ Future<Response> taskDeleteHandler(Request request, String idStr) async {
   await dbPool.execute(
     Sql.named('UPDATE tasks_task SET status = \'deleted\' WHERE id = @id'),
     parameters: {'id': id},
+  );
+
+  // Decrement tasks count for the client
+  await dbPool.execute(
+    Sql.named('UPDATE accounts_user SET tasks_count = GREATEST(0, tasks_count - 1) WHERE id = @clientId'),
+    parameters: {'clientId': userId},
   );
 
   // If there is an assigned technician, notify them!
@@ -3233,7 +3247,7 @@ Future<Response> searchEverythingHandler(Request request) async {
   final results = <Map<String, dynamic>>[];
 
   if (includeTasks) {
-    var taskSql = 'SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified, ast.email as assigned_email, ast.first_name as assigned_first_name, ast.last_name as assigned_last_name, ast.avatar_url as assigned_avatar, ast.role as assigned_role, ast.is_verified as assigned_is_verified FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id LEFT JOIN accounts_user ast ON t.assigned_to_id = ast.id WHERE t.status = \'open\'';
+    var taskSql = 'SELECT t.*, c.name as category_name, c.slug as category_slug, cl.email as client_email, cl.first_name as client_first_name, cl.last_name as client_last_name, cl.avatar_url as client_avatar, cl.role as client_role, cl.is_verified as client_is_verified, cl.rating as client_rating, cl.tasks_count as client_tasks_count, ast.email as assigned_email, ast.first_name as assigned_first_name, ast.last_name as assigned_last_name, ast.avatar_url as assigned_avatar, ast.role as assigned_role, ast.is_verified as assigned_is_verified FROM tasks_task t LEFT JOIN tasks_category c ON t.category_id = c.id LEFT JOIN accounts_user cl ON t.client_id = cl.id LEFT JOIN accounts_user ast ON t.assigned_to_id = ast.id WHERE t.status = \'open\'';
     final taskClauses = <String>[];
     final taskParams = <String, dynamic>{};
 
@@ -3757,6 +3771,8 @@ void main() async {
     await dbPool.execute('ALTER TABLE accounts_technician_profile ADD COLUMN IF NOT EXISTS experience text DEFAULT \'\';');
     await dbPool.execute('ALTER TABLE accounts_portfolio_item ALTER COLUMN image_url TYPE text;');
     await dbPool.execute('ALTER TABLE tasks_task ADD COLUMN IF NOT EXISTS image_url text;');
+    await dbPool.execute('ALTER TABLE accounts_user ADD COLUMN IF NOT EXISTS rating double precision DEFAULT 4.9;');
+    await dbPool.execute('ALTER TABLE accounts_user ADD COLUMN IF NOT EXISTS tasks_count integer DEFAULT 0;');
   } catch (e) {
     print('Failed to alter tables: $e');
   }

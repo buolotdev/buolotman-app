@@ -185,6 +185,7 @@ class TaskItem {
     this.assignedToAvatar,
     this.deadline,
     this.imageUrl,
+    this.clientReviews = 0,
   });
 
   final String id;
@@ -209,6 +210,7 @@ class TaskItem {
   final String? assignedToAvatar;
   final String? deadline;
   final String? imageUrl;
+  final int clientReviews;
 
   TaskItem copyWith({
     String? id,
@@ -233,6 +235,7 @@ class TaskItem {
     String? assignedToAvatar,
     String? deadline,
     String? imageUrl,
+    int? clientReviews,
   }) {
     return TaskItem(
       id: id ?? this.id,
@@ -257,6 +260,7 @@ class TaskItem {
       assignedToAvatar: assignedToAvatar ?? this.assignedToAvatar,
       deadline: deadline ?? this.deadline,
       imageUrl: imageUrl ?? this.imageUrl,
+      clientReviews: clientReviews ?? this.clientReviews,
     );
   }
 }
