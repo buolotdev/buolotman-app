@@ -116,6 +116,8 @@ class AppState extends GetxController {
         return 'Completed';
       case 'cancelled':
         return 'Cancelled';
+      case 'deleted':
+        return 'Deleted';
       default:
         return 'Open';
     }
