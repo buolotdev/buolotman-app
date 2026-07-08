@@ -242,7 +242,8 @@ class AppState extends GetxController {
     await syncMyServices();
     await syncBids();
     await syncPortfolio();
-    await syncSavedProfessionals();
+    await syncSavedPros();
+    await syncSavedServices();
   }
 
   TaskItem _mapTaskItem(dynamic t) {
@@ -1100,37 +1101,24 @@ class AppState extends GetxController {
   bool isServiceSaved(String serviceId) => _savedServiceIds.contains(serviceId);
 
   Future<void> toggleSavedService(String serviceId) async {
-    ServiceItem? service;
-    for (final s in _services) {
-      if (s.id == serviceId) {
-        service = s;
-        break;
-      }
-    }
-    if (service == null) return;
-    final providerId = service.providerId;
+    final int id = int.tryParse(serviceId) ?? 0;
+    if (id == 0) return;
 
     if (_savedServiceIds.contains(serviceId)) {
       _savedServiceIds.remove(serviceId);
       update();
       try {
-        final response = await ApiService.instance.delete('/auth/saved-pros/$providerId/?service_id=$serviceId');
-        if (response.statusCode != 200 && response.statusCode != 204) {
-          throw Exception('Failed to remove');
-        }
+        await ApiService.instance.unsaveService(id);
       } catch (e) {
         _savedServiceIds.add(serviceId);
         update();
-        debugPrint('Remove saved service error: $e');
+        debugPrint('Unsave service error: $e');
       }
     } else {
       _savedServiceIds.add(serviceId);
       update();
       try {
-        await ApiService.instance.post('/auth/saved-pros/', {
-          'professional_id': providerId,
-          'service_id': serviceId,
-        });
+        await ApiService.instance.saveService(id);
       } catch (e) {
         _savedServiceIds.remove(serviceId);
         update();
@@ -1142,53 +1130,61 @@ class AppState extends GetxController {
   bool isTechSaved(String techId) => _savedTechUserIds.contains(techId);
 
   Future<void> toggleSavedTech(String techId) async {
+    final int id = int.tryParse(techId) ?? 0;
+    if (id == 0) return;
+
     if (_savedTechUserIds.contains(techId)) {
       _savedTechUserIds.remove(techId);
       update();
       try {
-        final response = await ApiService.instance.delete('/auth/saved-pros/$techId/');
-        if (response.statusCode != 200 && response.statusCode != 204) {
-          throw Exception('Failed to remove');
-        }
+        await ApiService.instance.unsaveProfessional(id);
       } catch (e) {
         _savedTechUserIds.add(techId);
         update();
-        debugPrint('Remove saved tech error: $e');
+        debugPrint('Unsave professional error: $e');
       }
     } else {
       _savedTechUserIds.add(techId);
       update();
       try {
-        await ApiService.instance.post('/auth/saved-pros/', {
-          'professional_id': techId,
-        });
+        await ApiService.instance.saveProfessional(id);
       } catch (e) {
         _savedTechUserIds.remove(techId);
         update();
-        debugPrint('Save tech error: $e');
+        debugPrint('Save professional error: $e');
       }
     }
   }
 
-  Future<void> syncSavedProfessionals() async {
+  Future<void> syncSavedPros() async {
     try {
       final list = await ApiService.instance.fetchSavedProfessionals();
       _savedTechUserIds.clear();
-      _savedServiceIds.clear();
       for (final item in list) {
-        final profId = item['professional']?['id']?.toString();
-        final serviceId = item['service_id']?.toString();
+        final String? profId = item['professional']?['id']?.toString();
         if (profId != null) {
-          if (serviceId != null) {
-            _savedServiceIds.add(serviceId);
-          } else {
-            _savedTechUserIds.add(profId);
-          }
+          _savedTechUserIds.add(profId);
         }
       }
       update();
     } catch (e) {
-      debugPrint('Sync saved professionals error: $e');
+      debugPrint('Sync saved pros error: $e');
+    }
+  }
+
+  Future<void> syncSavedServices() async {
+    try {
+      final list = await ApiService.instance.fetchSavedServices();
+      _savedServiceIds.clear();
+      for (final item in list) {
+        final String? servId = item['service']?['id']?.toString();
+        if (servId != null) {
+          _savedServiceIds.add(servId);
+        }
+      }
+      update();
+    } catch (e) {
+      debugPrint('Sync saved services error: $e');
     }
   }
 

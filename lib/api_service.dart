@@ -565,29 +565,6 @@ class ApiService {
     }
   }
 
-  Future<List<dynamic>> fetchSavedProfessionals() async {
-    final response = await get('/auth/saved-pros/');
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to fetch saved professionals.');
-    }
-  }
-
-  Future<void> saveProfessional(String professionalId) async {
-    final response = await post('/auth/saved-pros/', {'professional_id': professionalId});
-    if (response.statusCode != 201 && response.statusCode != 200) {
-      throw Exception('Failed to save professional.');
-    }
-  }
-
-  Future<void> removeSavedProfessional(String professionalId) async {
-    final response = await delete('/auth/saved-pros/$professionalId/');
-    if (response.statusCode != 204 && response.statusCode != 200) {
-      throw Exception('Failed to remove saved professional.');
-    }
-  }
-
   Future<Map<String, dynamic>> publishTechnicianService(Map<String, dynamic> serviceData) async {
     final response = await post('/auth/technician-services/', serviceData);
     if (response.statusCode == 201) {
@@ -723,6 +700,52 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Failed to load tasks for admin review.');
+    }
+  }
+
+  Future<List<dynamic>> fetchSavedProfessionals() async {
+    final response = await get('/auth/saved-pros/');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load saved professionals.');
+    }
+  }
+
+  Future<void> saveProfessional(int professionalId) async {
+    final response = await post('/auth/saved-pros/', {'professional_id': professionalId});
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Failed to save professional.');
+    }
+  }
+
+  Future<void> unsaveProfessional(int professionalId) async {
+    final response = await delete('/auth/saved-pros/$professionalId/');
+    if (response.statusCode != 204 && response.statusCode != 200) {
+      throw Exception('Failed to unsave professional.');
+    }
+  }
+
+  Future<List<dynamic>> fetchSavedServices() async {
+    final response = await get('/auth/saved-services/');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load saved services.');
+    }
+  }
+
+  Future<void> saveService(int serviceId) async {
+    final response = await post('/auth/saved-services/', {'service_id': serviceId});
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Failed to save service.');
+    }
+  }
+
+  Future<void> unsaveService(int serviceId) async {
+    final response = await delete('/auth/saved-services/$serviceId/');
+    if (response.statusCode != 204 && response.statusCode != 200) {
+      throw Exception('Failed to unsave service.');
     }
   }
 
