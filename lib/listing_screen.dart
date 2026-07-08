@@ -112,6 +112,7 @@ class _ListingScreenState extends State<ListingScreen> {
             urgency: 'Flexible',
             paymentMethod: 'Escrow / Wallet',
             tags: ['On-site'],
+            clientReviews: (t['client'] is Map) ? (int.tryParse(t['client']['tasks_count']?.toString() ?? '') ?? 0) : 0,
           );
         }).where((task) => _matchesTaskFilter(task, appState)).toList();
 

@@ -44,9 +44,9 @@ class _SearchScreenState extends State<SearchScreen> {
             description: t['description'] ?? '',
             category: t['category'] is Map ? (t['category']['name'] ?? 'General') : (t['category']?.toString() ?? 'General'),
             location: t['location'] ?? 'Lagos, Nigeria',
-            clientName: t['client_name'] ?? 'Client',
-            clientAvatar: 'assets/images/onboard3.jpg',
-            clientRating: 4.9,
+            clientName: t['client'] != null ? '${t['client']['first_name'] ?? ''} ${t['client']['last_name'] ?? ''}'.trim() : (t['client_name'] ?? 'Client'),
+            clientAvatar: (t['client'] != null && t['client']['avatar_url'] != null && t['client']['avatar_url'].toString().isNotEmpty) ? t['client']['avatar_url'] : 'assets/images/onboard3.jpg',
+            clientRating: t['client'] != null ? (double.tryParse(t['client']['rating']?.toString() ?? '') ?? 4.9) : 4.9,
             budget: priceVal,
             status: 'Open',
             createdLabel: 'Just now',
@@ -54,6 +54,7 @@ class _SearchScreenState extends State<SearchScreen> {
             urgency: 'Flexible',
             paymentMethod: 'Escrow / Wallet',
             tags: ['On-site'],
+            clientReviews: t['client'] != null ? (int.tryParse(t['client']['tasks_count']?.toString() ?? '') ?? 0) : 0,
           );
         }).toList();
 

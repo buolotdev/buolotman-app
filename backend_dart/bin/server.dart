@@ -3773,6 +3773,14 @@ void main() async {
     await dbPool.execute('ALTER TABLE tasks_task ADD COLUMN IF NOT EXISTS image_url text;');
     await dbPool.execute('ALTER TABLE accounts_user ADD COLUMN IF NOT EXISTS rating double precision DEFAULT 4.9;');
     await dbPool.execute('ALTER TABLE accounts_user ADD COLUMN IF NOT EXISTS tasks_count integer DEFAULT 0;');
+    
+    // Seed ratings
+    try {
+      await dbPool.execute("UPDATE accounts_user SET rating = 4.7 WHERE email LIKE '%harry%' OR first_name LIKE '%Harry%';");
+      await dbPool.execute("UPDATE accounts_user SET rating = 5.0 WHERE email LIKE '%haram%' OR first_name LIKE '%Haram%';");
+    } catch (e) {
+      print('Failed to seed ratings: $e');
+    }
   } catch (e) {
     print('Failed to alter tables: $e');
   }
