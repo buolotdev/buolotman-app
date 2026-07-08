@@ -1367,7 +1367,7 @@ Future<Response> deleteSavedProfessionalHandler(Request request, String professi
 Future<Response> listSavedServicesHandler(Request request) async {
   final userId = getUserId(request);
   final results = await dbPool.execute(
-    Sql.named('SELECT s.id, s.created_at, ts.*, c.name as category_name FROM accounts_saved_service s JOIN accounts_technician_service ts ON s.service_id = ts.id LEFT JOIN tasks_category c ON ts.category_id = c.id WHERE s.user_id = @userId'),
+    Sql.named('SELECT s.id, s.service_id, s.created_at, ts.*, c.name as category_name FROM accounts_saved_service s JOIN accounts_technician_service ts ON s.service_id = ts.id LEFT JOIN tasks_category c ON ts.category_id = c.id WHERE s.user_id = @userId'),
     parameters: {'userId': userId},
   );
 
@@ -3874,7 +3874,7 @@ void main() async {
     try {
       await dbPool.execute("UPDATE accounts_user SET rating = 0.0;");
       await dbPool.execute("UPDATE accounts_user u SET tasks_count = (SELECT COUNT(*) FROM tasks_task WHERE client_id = u.id AND status != 'deleted');");
-      await dbPool.execute("UPDATE tasks_task t SET budget_min = b.amount, budget_max = b.amount FROM tasks_bid b WHERE b.task_id = t.id AND b.status = 'accepted' AND t.status IN ('in_progress', 'completed');");
+      await dbPool.execute("UPDATE tasks_task t SET budget_min = b.amount, budget_max = b.amount FROM tasks_bid b WHERE b.task_id = t.id AND b.status = 'accepted' AND t.status IN ('in_progress', 'completed', 'delivered');");
     } catch (e) {
       print('Failed to run startup database sync queries: $e');
     }
