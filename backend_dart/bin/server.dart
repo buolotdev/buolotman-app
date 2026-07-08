@@ -2561,7 +2561,7 @@ Future<Response> depositEscrowHandler(Request request) async {
     if (bidRes.isNotEmpty) {
       final techId = bidRes[0][0] as int;
       await dbPool.execute(Sql.named('UPDATE tasks_bid SET status = \'accepted\', accepted_at = NOW() WHERE id = @id'), parameters: {'id': bidId});
-      await dbPool.execute(Sql.named('UPDATE tasks_task SET status = \'in_progress\', assigned_to_id = @techId WHERE id = @id'), parameters: {'techId': techId, 'id': taskId});
+      await dbPool.execute(Sql.named('UPDATE tasks_task SET status = \'in_progress\', assigned_to_id = @techId, budget_min = @amount, budget_max = @amount WHERE id = @id'), parameters: {'techId': techId, 'amount': amount, 'id': taskId});
 
       await createNotification(
         userId: techId,
@@ -3868,12 +3868,13 @@ void main() async {
     await dbPool.execute('ALTER TABLE accounts_user ADD COLUMN IF NOT EXISTS tasks_count integer DEFAULT 0;');
     await dbPool.execute('CREATE TABLE IF NOT EXISTS accounts_saved_service (id SERIAL PRIMARY KEY, created_at timestamp NOT NULL DEFAULT NOW(), service_id integer REFERENCES accounts_technician_service(id) ON DELETE CASCADE, user_id integer REFERENCES accounts_user(id) ON DELETE CASCADE);');
     
-    // Reset user ratings to 0.0 and dynamically recalculate tasks_count for all clients
+    // Reset user ratings to 0.0, recalculate tasks_count, and sync accepted bid amounts to task budgets
     try {
       await dbPool.execute("UPDATE accounts_user SET rating = 0.0;");
       await dbPool.execute("UPDATE accounts_user u SET tasks_count = (SELECT COUNT(*) FROM tasks_task WHERE client_id = u.id AND status != 'deleted');");
+      await dbPool.execute("UPDATE tasks_task t SET budget_min = b.amount, budget_max = b.amount FROM tasks_bid b WHERE b.task_id = t.id AND b.status = 'accepted' AND t.status IN ('in_progress', 'completed');");
     } catch (e) {
-      print('Failed to reset ratings or recalculate tasks count: $e');
+      print('Failed to run startup database sync queries: $e');
     }
   } catch (e) {
     print('Failed to alter tables: $e');
