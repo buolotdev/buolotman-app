@@ -362,16 +362,24 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
                           style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                         ),
                         const Spacer(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.star, color: Color(0xFFF59E0B), size: 14),
-                            const SizedBox(width: 4),
-                            Text(pro['rating']!, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
-                            const SizedBox(width: 4),
-                            Text('(${pro['reviews']})', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w400)),
-                          ],
-                        ),
+                        Builder(builder: (context) {
+                          final ratingVal = double.tryParse(pro['rating']?.toString() ?? '') ?? 0.0;
+                          final reviewsVal = int.tryParse(pro['reviews']?.toString() ?? '') ?? 0;
+                          if (ratingVal > 0) {
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.star, color: Color(0xFFF59E0B), size: 14),
+                                const SizedBox(width: 4),
+                                Text(ratingVal.toStringAsFixed(1), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
+                                const SizedBox(width: 4),
+                                Text('($reviewsVal)', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w400)),
+                              ],
+                            );
+                          } else {
+                            return const Text('No reviews', style: TextStyle(fontSize: 12, color: Color(0xFF64748B)));
+                          }
+                        }),
                       ],
                     ),
                   ),
@@ -462,14 +470,26 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
                               ],
                             ),
                             const SizedBox(height: 8),
+                            Builder(builder: (context) {
+                              final ratingVal = double.tryParse(service['rating']?.toString() ?? '') ?? 0.0;
+                              final reviewsVal = int.tryParse(service['reviews']?.toString() ?? '') ?? 0;
+                              if (ratingVal > 0) {
+                                return Row(
+                                  children: [
+                                    const Icon(Icons.star, size: 16, color: Color(0xFFF59E0B)),
+                                    const SizedBox(width: 4),
+                                    Text(ratingVal.toStringAsFixed(1), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
+                                    const SizedBox(width: 4),
+                                    Text('($reviewsVal reviews)', style: const TextStyle(fontSize: 14, color: Color(0xFF64748B))),
+                                  ],
+                                );
+                              } else {
+                                return const Text('No reviews', style: TextStyle(fontSize: 14, color: Color(0xFF64748B)));
+                              }
+                            }),
+                            const SizedBox(height: 8),
                             Row(
                               children: [
-                                const Icon(Icons.star, size: 16, color: Color(0xFFF59E0B)),
-                                const SizedBox(width: 4),
-                                Text(service['rating'], style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
-                                const SizedBox(width: 4),
-                                Text('(${service['reviews']} reviews)', style: const TextStyle(fontSize: 14, color: Color(0xFF64748B))),
-                                const SizedBox(width: 8),
                                 const Icon(Icons.location_on, size: 16, color: Color(0xFF64748B)),
                                 const SizedBox(width: 4),
                                 Expanded(

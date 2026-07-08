@@ -501,13 +501,16 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(bid.bidderName, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                      Row(
-                        children: [
-                          const Icon(Icons.star, color: Color(0xFFF59E0B), size: 12),
-                          const SizedBox(width: 4),
-                          Text('${bid.rating.toStringAsFixed(1)} (${bid.reviews})', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-                        ],
-                      ),
+                      if (bid.rating > 0)
+                        Row(
+                          children: [
+                            const Icon(Icons.star, color: Color(0xFFF59E0B), size: 12),
+                            const SizedBox(width: 4),
+                            Text('${bid.rating.toStringAsFixed(1)} (${bid.reviews})', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                          ],
+                        )
+                      else
+                        const Text('No reviews', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
                     ],
                   ),
                 ],

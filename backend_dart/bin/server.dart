@@ -3771,15 +3771,14 @@ void main() async {
     await dbPool.execute('ALTER TABLE accounts_technician_profile ADD COLUMN IF NOT EXISTS experience text DEFAULT \'\';');
     await dbPool.execute('ALTER TABLE accounts_portfolio_item ALTER COLUMN image_url TYPE text;');
     await dbPool.execute('ALTER TABLE tasks_task ADD COLUMN IF NOT EXISTS image_url text;');
-    await dbPool.execute('ALTER TABLE accounts_user ADD COLUMN IF NOT EXISTS rating double precision DEFAULT 4.9;');
+    await dbPool.execute('ALTER TABLE accounts_user ADD COLUMN IF NOT EXISTS rating double precision DEFAULT 0.0;');
     await dbPool.execute('ALTER TABLE accounts_user ADD COLUMN IF NOT EXISTS tasks_count integer DEFAULT 0;');
     
-    // Seed ratings
+    // Reset any existing test users to 0.0 rating since no review functionality exists yet
     try {
-      await dbPool.execute("UPDATE accounts_user SET rating = 4.7 WHERE email LIKE '%harry%' OR first_name LIKE '%Harry%';");
-      await dbPool.execute("UPDATE accounts_user SET rating = 5.0 WHERE email LIKE '%haram%' OR first_name LIKE '%Haram%';");
+      await dbPool.execute("UPDATE accounts_user SET rating = 0.0 WHERE rating IS NULL OR rating = 4.9;");
     } catch (e) {
-      print('Failed to seed ratings: $e');
+      print('Failed to reset ratings: $e');
     }
   } catch (e) {
     print('Failed to alter tables: $e');

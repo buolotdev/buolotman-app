@@ -410,13 +410,16 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(task.clientName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                        Row(
-                          children: [
-                            const Icon(Icons.star, size: 10, color: Color(0xFFF59E0B)),
-                            const SizedBox(width: 2),
-                            Text(task.clientRating.toStringAsFixed(1), style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-                          ],
-                        ),
+                        if (task.clientRating > 0)
+                          Row(
+                            children: [
+                              const Icon(Icons.star, size: 10, color: Color(0xFFF59E0B)),
+                              const SizedBox(width: 2),
+                              Text(task.clientRating.toStringAsFixed(1), style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                            ],
+                          )
+                        else
+                          const Text('No reviews', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                       ],
                     ),
                   ],

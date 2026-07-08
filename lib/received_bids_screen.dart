@@ -166,7 +166,7 @@ class ReceivedBidsScreen extends StatelessWidget {
                           skill: bid.skill,
                           avatar: bid.avatar,
                           price: '\$${bid.price.toStringAsFixed(0)}/hr',
-                          rating: '${bid.rating} (${bid.reviews})',
+                          rating: bid.rating > 0 ? '${bid.rating.toStringAsFixed(1)} (${bid.reviews})' : 'No reviews',
                           rawData: matchedPro.isNotEmpty ? matchedPro : {
                             'id': bid.technicianId ?? bid.id,
                             'first_name': bid.bidderName,
