@@ -2167,7 +2167,7 @@ Future<Response> taskCompleteHandler(Request request, String idStr) async {
   final id = int.tryParse(idStr) ?? 0;
   final userId = getUserId(request);
 
-  final taskRes = await dbPool.execute(Sql.named('SELECT client_id FROM tasks_task WHERE id = @id'), parameters: {'id': id});
+  final taskRes = await dbPool.execute(Sql.named('SELECT client_id, assigned_to_id, title FROM tasks_task WHERE id = @id'), parameters: {'id': id});
   if (taskRes.isEmpty) return errorResponse('Task not found', statusCode: 404);
   if (taskRes[0][0] != userId) return errorResponse('Not authorized', statusCode: 403);
 
@@ -2176,7 +2176,88 @@ Future<Response> taskCompleteHandler(Request request, String idStr) async {
     parameters: {'id': id},
   );
 
-  return jsonResponse({'message': 'Task completed', 'status': 'completed'});
+  // Automatically release escrow to the technician's wallet on completion
+  try {
+    final clientWalletRes = await dbPool.execute(Sql.named('SELECT id FROM wallet_wallet WHERE user_id = @userId'), parameters: {'userId': userId});
+    if (clientWalletRes.isNotEmpty) {
+      final clientWalletId = clientWalletRes[0][0] as int;
+
+      // Find escrow hold transaction for this task
+      final txRes = await dbPool.execute(
+        Sql.named('SELECT id, amount FROM wallet_transaction WHERE wallet_id = @walletId AND reference_id = @taskId AND category = \'escrow_hold\''),
+        parameters: {'walletId': clientWalletId, 'taskId': id},
+      );
+
+      if (txRes.isNotEmpty) {
+        final txId = txRes[0][0] as int;
+        final amount = double.tryParse(txRes[0][1]?.toString() ?? '0.0') ?? 0.0;
+
+        // Deduct from client escrow
+        await dbPool.execute(
+          Sql.named('UPDATE wallet_wallet SET pending_escrow = GREATEST(0.0, pending_escrow - @amount) WHERE id = @id'),
+          parameters: {'amount': amount, 'id': clientWalletId},
+        );
+
+        // Credit to technician
+        final techId = taskRes[0][1] as int?;
+        if (techId != null) {
+          final techWalletRes = await dbPool.execute(Sql.named('SELECT id FROM wallet_wallet WHERE user_id = @techId'), parameters: {'techId': techId});
+          int techWalletId;
+          if (techWalletRes.isEmpty) {
+            final insertRes = await dbPool.execute(
+              Sql.named('INSERT INTO wallet_wallet (available_balance, pending_escrow, total_earnings, total_withdrawn, currency, created_at, updated_at, user_id) '
+                        'VALUES (0, 0, 0, 0, \'XOF\', NOW(), NOW(), @techId) RETURNING id'),
+              parameters: {'techId': techId},
+            );
+            techWalletId = insertRes[0][0] as int;
+          } else {
+            techWalletId = techWalletRes[0][0] as int;
+          }
+
+          // Update tech wallet balance and earnings
+          await dbPool.execute(
+            Sql.named('UPDATE wallet_wallet SET available_balance = available_balance + @amount, total_earnings = total_earnings + @amount WHERE id = @id'),
+            parameters: {'amount': amount, 'id': techWalletId},
+          );
+
+          // Record credit transaction
+          await dbPool.execute(
+            Sql.named('INSERT INTO wallet_transaction (amount, type, category, description, status, metadata, created_at, reference_id, wallet_id) '
+                      'VALUES (@amount, \'credit\', \'earnings\', @desc, \'completed\', @meta, NOW(), @taskId, @walletId)'),
+            parameters: {
+              'amount': amount,
+              'desc': 'Payment received for: ${taskRes[0][2]}',
+              'meta': jsonEncode({}),
+              'taskId': id,
+              'walletId': techWalletId,
+            },
+          );
+
+          // Update escrow hold transaction to escrow_release
+          await dbPool.execute(
+            Sql.named('UPDATE wallet_transaction SET category = \'escrow_release\', description = @desc WHERE id = @id'),
+            parameters: {
+              'desc': 'Escrow released for task: ${taskRes[0][2]}',
+              'id': txId,
+            },
+          );
+
+          await createNotification(
+            userId: techId,
+            category: 'payment',
+            title: 'Payment received',
+            body: 'Payment for task: ${taskRes[0][2]} completed and your balance was updated.',
+            link: '/dashboard/technician/wallet',
+            metadata: {'task_id': id, 'amount': amount.toString()},
+          );
+        }
+      }
+    }
+  } catch (e) {
+    print('Error auto-releasing escrow on task completion: $e');
+  }
+
+  return jsonResponse({'message': 'Task completed and escrow released', 'status': 'completed'});
 }
 
 Future<Response> taskSubmitWorkHandler(Request request, String idStr) async {
@@ -3870,11 +3951,80 @@ void main() async {
     await dbPool.execute('ALTER TABLE accounts_user ADD COLUMN IF NOT EXISTS tasks_count integer DEFAULT 0;');
     await dbPool.execute('CREATE TABLE IF NOT EXISTS accounts_saved_service (id SERIAL PRIMARY KEY, created_at timestamp NOT NULL DEFAULT NOW(), service_id integer REFERENCES accounts_technician_service(id) ON DELETE CASCADE, user_id integer REFERENCES accounts_user(id) ON DELETE CASCADE);');
     
-    // Reset user ratings to 0.0, recalculate tasks_count, and sync accepted bid amounts to task budgets
+    // Reset user ratings to 0.0, recalculate tasks_count, sync budgets, and release escrow for completed tasks
     try {
       await dbPool.execute("UPDATE accounts_user SET rating = 0.0;");
       await dbPool.execute("UPDATE accounts_user u SET tasks_count = (SELECT COUNT(*) FROM tasks_task WHERE client_id = u.id AND status != 'deleted');");
       await dbPool.execute("UPDATE tasks_task t SET budget_min = b.amount, budget_max = b.amount FROM tasks_bid b WHERE b.task_id = t.id AND b.status = 'accepted' AND t.status IN ('in_progress', 'completed', 'delivered');");
+      
+      // Auto-release stuck escrow for completed tasks
+      final completedTasks = await dbPool.execute("SELECT id, assigned_to_id, title, client_id FROM tasks_task WHERE status = 'completed';");
+      for (final tRow in completedTasks) {
+        final taskId = tRow[0] as int;
+        final techId = tRow[1] as int?;
+        final title = tRow[2]?.toString() ?? '';
+        final clientId = tRow[3] as int;
+
+        final clientWalletRes = await dbPool.execute(Sql.named('SELECT id FROM wallet_wallet WHERE user_id = @clientId'), parameters: {'clientId': clientId});
+        if (clientWalletRes.isNotEmpty) {
+          final clientWalletId = clientWalletRes[0][0] as int;
+
+          final txRes = await dbPool.execute(
+            Sql.named('SELECT id, amount FROM wallet_transaction WHERE wallet_id = @walletId AND reference_id = @taskId AND category = \'escrow_hold\''),
+            parameters: {'walletId': clientWalletId, 'taskId': taskId},
+          );
+
+          if (txRes.isNotEmpty && techId != null) {
+            final txId = txRes[0][0] as int;
+            final amount = double.tryParse(txRes[0][1]?.toString() ?? '0.0') ?? 0.0;
+
+            // Deduct client pending escrow
+            await dbPool.execute(Sql.named('UPDATE wallet_wallet SET pending_escrow = GREATEST(0.0, pending_escrow - @amount) WHERE id = @id'), parameters: {'amount': amount, 'id': clientWalletId});
+
+            // Find/create tech wallet
+            final techWalletRes = await dbPool.execute(Sql.named('SELECT id FROM wallet_wallet WHERE user_id = @techId'), parameters: {'techId': techId});
+            int techWalletId;
+            if (techWalletRes.isEmpty) {
+              final insertRes = await dbPool.execute(
+                Sql.named('INSERT INTO wallet_wallet (available_balance, pending_escrow, total_earnings, total_withdrawn, currency, created_at, updated_at, user_id) '
+                          'VALUES (0, 0, 0, 0, \'XOF\', NOW(), NOW(), @techId) RETURNING id'),
+                parameters: {'techId': techId},
+              );
+              techWalletId = insertRes[0][0] as int;
+            } else {
+              techWalletId = techWalletRes[0][0] as int;
+            }
+
+            // Credit tech
+            await dbPool.execute(
+              Sql.named('UPDATE wallet_wallet SET available_balance = available_balance + @amount, total_earnings = total_earnings + @amount WHERE id = @id'),
+              parameters: {'amount': amount, 'id': techWalletId},
+            );
+
+            // Record transaction
+            await dbPool.execute(
+              Sql.named('INSERT INTO wallet_transaction (amount, type, category, description, status, metadata, created_at, reference_id, wallet_id) '
+                        'VALUES (@amount, \'credit\', \'earnings\', @desc, \'completed\', @meta, NOW(), @taskId, @walletId)'),
+              parameters: {
+                'amount': amount,
+                'desc': 'Payment received for: $title',
+                'meta': '{}',
+                'taskId': taskId,
+                'walletId': techWalletId,
+              },
+            );
+
+            // Update escrow hold to release
+            await dbPool.execute(
+              Sql.named('UPDATE wallet_transaction SET category = \'escrow_release\', description = @desc WHERE id = @id'),
+              parameters: {
+                'desc': 'Escrow released for task: $title',
+                'id': txId,
+              },
+            );
+          }
+        }
+      }
     } catch (e) {
       print('Failed to run startup database sync queries: $e');
     }

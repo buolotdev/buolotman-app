@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'app_state.dart';
-import 'main_navigation_screen.dart';
 import 'withdraw_screen.dart';
 
 class WalletScreen extends StatefulWidget {
@@ -69,7 +68,7 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Widget _buildHeader(BuildContext context) {
-    final role = AppStateScope.of(context).currentRole;
+    final bool canPop = Navigator.canPop(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: const BoxDecoration(
@@ -78,21 +77,20 @@ class _WalletScreenState extends State<WalletScreen> {
       ),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => MainNavigationScreen(role: role, initialIndex: 0)),
-                (route) => false,
-              );
-            },
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: const BoxDecoration(color: Color(0xFFF1F5F9), shape: BoxShape.circle),
-              child: const Icon(Icons.arrow_back, color: Color(0xFF001F3F), size: 20),
+          if (canPop) ...[
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(color: Color(0xFFF1F5F9), shape: BoxShape.circle),
+                child: const Icon(Icons.arrow_back, color: Color(0xFF001F3F), size: 20),
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
+            const SizedBox(width: 12),
+          ],
           const Text('Wallet', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
         ],
       ),
