@@ -1597,16 +1597,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return _buildLoadingIndicator();
     }
 
-    final savedTechs = appState.publicPros.where((user) {
-      final idStr = user['id']?.toString() ?? '';
-      final isDirectlySaved = appState.isTechSaved(idStr);
-      final hasSavedService = appState.services.any((service) {
-        final isSaved = appState.isServiceSaved(service.id);
-        final isTheirService = service.providerId == idStr;
-        return isSaved && isTheirService;
-      });
-      return isDirectlySaved || hasSavedService;
-    }).toList();
+    final savedTechs = appState.savedPros;
 
     if (savedTechs.isEmpty) {
       return Container(

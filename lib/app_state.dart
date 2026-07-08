@@ -30,6 +30,8 @@ class AppState extends GetxController {
   List<ServiceItem> _services = [];
   final Set<String> _savedServiceIds = {};
   final Set<String> _savedTechUserIds = {};
+  List<Map<String, dynamic>> _savedPros = [];
+  List<ServiceItem> _savedServices = [];
   double _walletBalance = 0.0;
   double _pendingBalance = 0.0;
 
@@ -52,7 +54,8 @@ class AppState extends GetxController {
   List<ChatMessage> getMessagesForThread(String threadId) => _threadMessages[threadId] ?? [];
   List<WalletTransaction> get walletTransactions => List.unmodifiable(_walletTransactions);
   List<ServiceItem> get services => List.unmodifiable(_services);
-  List<ServiceItem> get savedServices => _services.where((service) => _savedServiceIds.contains(service.id)).toList();
+  List<ServiceItem> get savedServices => List.unmodifiable(_savedServices);
+  List<Map<String, dynamic>> get savedPros => List.unmodifiable(_savedPros);
   List<Map<String, dynamic>> get publicCompanies => List.unmodifiable(_publicCompanies);
   List<Map<String, dynamic>> get publicPros => List.unmodifiable(_publicPros);
   List<Map<String, dynamic>> get faqPages => List.unmodifiable(_faqPages);
@@ -221,6 +224,8 @@ class AppState extends GetxController {
     _pendingBalance = 0.0;
     _savedServiceIds.clear();
     _savedTechUserIds.clear();
+    _savedPros.clear();
+    _savedServices.clear();
     update();
   }
 
@@ -1111,6 +1116,7 @@ class AppState extends GetxController {
       update();
       try {
         await ApiService.instance.unsaveService(id);
+        await syncSavedServices();
       } catch (e) {
         _savedServiceIds.add(serviceId);
         update();
@@ -1121,6 +1127,7 @@ class AppState extends GetxController {
       update();
       try {
         await ApiService.instance.saveService(id);
+        await syncSavedServices();
       } catch (e) {
         _savedServiceIds.remove(serviceId);
         update();
@@ -1140,6 +1147,7 @@ class AppState extends GetxController {
       update();
       try {
         await ApiService.instance.unsaveProfessional(id);
+        await syncSavedPros();
       } catch (e) {
         _savedTechUserIds.add(techId);
         update();
@@ -1150,6 +1158,7 @@ class AppState extends GetxController {
       update();
       try {
         await ApiService.instance.saveProfessional(id);
+        await syncSavedPros();
       } catch (e) {
         _savedTechUserIds.remove(techId);
         update();
@@ -1162,10 +1171,15 @@ class AppState extends GetxController {
     try {
       final list = await ApiService.instance.fetchSavedProfessionals();
       _savedTechUserIds.clear();
+      _savedPros.clear();
       for (final item in list) {
-        final String? profId = item['professional']?['id']?.toString();
-        if (profId != null) {
-          _savedTechUserIds.add(profId);
+        final Map<String, dynamic>? prof = item['professional'] as Map<String, dynamic>?;
+        if (prof != null) {
+          final String? profId = prof['id']?.toString();
+          if (profId != null) {
+            _savedTechUserIds.add(profId);
+            _savedPros.add(prof);
+          }
         }
       }
       update();
@@ -1178,10 +1192,36 @@ class AppState extends GetxController {
     try {
       final list = await ApiService.instance.fetchSavedServices();
       _savedServiceIds.clear();
+      _savedServices.clear();
       for (final item in list) {
-        final String? servId = item['service']?['id']?.toString();
-        if (servId != null) {
-          _savedServiceIds.add(servId);
+        final Map<String, dynamic>? serviceData = item['service'] as Map<String, dynamic>?;
+        if (serviceData != null) {
+          final String? servId = serviceData['id']?.toString();
+          if (servId != null) {
+            _savedServiceIds.add(servId);
+            
+            final double priceVal = double.tryParse(serviceData['price']?.toString() ?? '') ?? 0.0;
+            final String priceLbl = priceVal > 0 ? '\$${priceVal.toStringAsFixed(0)}/hr' : 'hourly';
+            
+            final techMap = serviceData['technician'] as Map<String, dynamic>?;
+            final techName = techMap != null ? '${techMap['first_name'] ?? ''} ${techMap['last_name'] ?? ''}'.trim() : 'Provider';
+
+            _savedServices.add(ServiceItem(
+              id: servId,
+              title: serviceData['title'] ?? '',
+              category: serviceData['category_name'] ?? 'General',
+              description: serviceData['description'] ?? '',
+              priceLabel: priceLbl,
+              providerName: techName.isEmpty ? (techMap?['username'] ?? 'Provider') : techName,
+              providerAvatar: techMap?['avatar_url']?.toString().isNotEmpty == true ? techMap!['avatar_url'] : 'assets/images/onboard1.jpg',
+              providerRole: 'Technician',
+              serviceType: 'On-site',
+              coverageArea: serviceData['coverage_area'] ?? 'Lagos, Nigeria',
+              availability: 'Flexible Availability',
+              pricingModel: serviceData['pricing_model'] ?? 'Hourly Rate',
+              providerId: techMap?['id']?.toString() ?? '',
+            ));
+          }
         }
       }
       update();

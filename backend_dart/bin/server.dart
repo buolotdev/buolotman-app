@@ -1392,10 +1392,12 @@ Future<Response> listSavedServicesHandler(Request request) async {
         'id': row['service_id'],
         'title': row['title'] ?? '',
         'description': row['description'] ?? '',
-        'price': row['price']?.toString() ?? '0',
+        'price': row['pricing_min']?.toString() ?? '0',
         'is_active': row['is_active'] ?? true,
         'category_name': row['category_name'] ?? 'General',
         'technician': providerMap,
+        'coverage_area': row['coverage_area'] ?? '',
+        'pricing_model': row['pricing_model'] ?? '',
       },
     });
   }
