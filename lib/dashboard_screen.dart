@@ -478,7 +478,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         .map((service) => {
               'title': service.title,
               'price': service.priceLabel,
-              'rating': '4.8',
+              'rating': '0.0',
               'image': service.id.endsWith('1') ? 'assets/images/work1.png' : 'assets/images/work2.png',
             })
         .toList();
@@ -527,31 +527,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           fit: BoxFit.cover,
                         ),
                       ),
-                      Positioned(
-                        bottom: 8,
-                        left: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.star, color: Color(0xFFFFB020), size: 12),
-                              const SizedBox(width: 4),
-                              Text(
-                                service['rating']!,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF001F3F),
+                      if ((double.tryParse(service['rating']?.toString() ?? '') ?? 0.0) > 0)
+                        Positioned(
+                          bottom: 8,
+                          left: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.star, color: Color(0xFFFFB020), size: 12),
+                                const SizedBox(width: 4),
+                                Text(
+                                  service['rating']!,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF001F3F),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                   Padding(

@@ -3774,11 +3774,12 @@ void main() async {
     await dbPool.execute('ALTER TABLE accounts_user ADD COLUMN IF NOT EXISTS rating double precision DEFAULT 0.0;');
     await dbPool.execute('ALTER TABLE accounts_user ADD COLUMN IF NOT EXISTS tasks_count integer DEFAULT 0;');
     
-    // Reset any existing test users to 0.0 rating since no review functionality exists yet
+    // Reset user ratings to 0.0 and dynamically recalculate tasks_count for all clients
     try {
-      await dbPool.execute("UPDATE accounts_user SET rating = 0.0 WHERE rating IS NULL OR rating = 4.9;");
+      await dbPool.execute("UPDATE accounts_user SET rating = 0.0;");
+      await dbPool.execute("UPDATE accounts_user u SET tasks_count = (SELECT COUNT(*) FROM tasks_task WHERE client_id = u.id AND status != 'deleted');");
     } catch (e) {
-      print('Failed to reset ratings: $e');
+      print('Failed to reset ratings or recalculate tasks count: $e');
     }
   } catch (e) {
     print('Failed to alter tables: $e');
