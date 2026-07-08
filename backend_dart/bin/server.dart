@@ -1294,7 +1294,7 @@ Future<Response> deletePortfolioItemHandler(Request request, String itemIdStr) a
 Future<Response> listSavedProfessionalsHandler(Request request) async {
   final userId = getUserId(request);
   final results = await dbPool.execute(
-    Sql.named('SELECT s.id, s.created_at, u.* FROM accounts_saved_professional s JOIN accounts_user u ON s.professional_id = u.id WHERE s.user_id = @userId'),
+    Sql.named('SELECT s.id, s.created_at, s.service_id, u.* FROM accounts_saved_professional s JOIN accounts_user u ON s.professional_id = u.id WHERE s.user_id = @userId'),
     parameters: {'userId': userId},
   );
 
@@ -1303,6 +1303,7 @@ Future<Response> listSavedProfessionalsHandler(Request request) async {
     return {
       'id': row['id'],
       'created_at': row['created_at'] != null ? (row['created_at'] as DateTime).toIso8601String() : '',
+      'service_id': row['service_id'],
       'professional': formatUserPublic(row),
     };
   }).toList();
@@ -1314,12 +1315,15 @@ Future<Response> createSavedProfessionalHandler(Request request) async {
   final userId = getUserId(request);
   final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
   final professionalIdVal = body['professional_id'];
+  final serviceIdVal = body['service_id'];
 
   if (professionalIdVal == null) {
     return errorResponse('professional_id is required', statusCode: 400);
   }
 
   final professionalId = int.tryParse(professionalIdVal.toString()) ?? 0;
+  final serviceId = serviceIdVal != null ? int.tryParse(serviceIdVal.toString()) : null;
+
   final check = await dbPool.execute(
     Sql.named('SELECT id FROM accounts_user WHERE id = @id AND role IN (\'TECHNICIAN\', \'COMPANY\')'),
     parameters: {'id': professionalId},
@@ -1329,9 +1333,10 @@ Future<Response> createSavedProfessionalHandler(Request request) async {
     return errorResponse('Professional not found', statusCode: 404);
   }
 
+  // Check if already saved (matching service_id or matching null service_id)
   final existing = await dbPool.execute(
-    Sql.named('SELECT id FROM accounts_saved_professional WHERE user_id = @userId AND professional_id = @profId'),
-    parameters: {'userId': userId, 'profId': professionalId},
+    Sql.named('SELECT id FROM accounts_saved_professional WHERE user_id = @userId AND professional_id = @profId AND (service_id = @serviceId OR (service_id IS NULL AND @serviceId IS NULL))'),
+    parameters: {'userId': userId, 'profId': professionalId, 'serviceId': serviceId},
   );
 
   if (existing.isNotEmpty) {
@@ -1339,8 +1344,8 @@ Future<Response> createSavedProfessionalHandler(Request request) async {
   }
 
   await dbPool.execute(
-    Sql.named('INSERT INTO accounts_saved_professional (created_at, professional_id, user_id) VALUES (@now, @profId, @userId)'),
-    parameters: {'now': DateTime.now(), 'profId': professionalId, 'userId': userId},
+    Sql.named('INSERT INTO accounts_saved_professional (created_at, professional_id, user_id, service_id) VALUES (@now, @profId, @userId, @serviceId)'),
+    parameters: {'now': DateTime.now(), 'profId': professionalId, 'userId': userId, 'serviceId': serviceId},
   );
 
   return Response(201, body: jsonEncode({'message': 'Saved successfully'}), headers: {'content-type': 'application/json'});
@@ -1349,11 +1354,21 @@ Future<Response> createSavedProfessionalHandler(Request request) async {
 Future<Response> deleteSavedProfessionalHandler(Request request, String professionalIdStr) async {
   final userId = getUserId(request);
   final professionalId = int.tryParse(professionalIdStr) ?? 0;
+  final params = request.url.queryParameters;
+  final serviceIdVal = params['service_id'];
+  final serviceId = serviceIdVal != null ? int.tryParse(serviceIdVal.toString()) : null;
 
-  final res = await dbPool.execute(
-    Sql.named('DELETE FROM accounts_saved_professional WHERE user_id = @userId AND professional_id = @profId'),
-    parameters: {'userId': userId, 'profId': professionalId},
-  );
+  var deleteSql = 'DELETE FROM accounts_saved_professional WHERE user_id = @userId AND professional_id = @profId';
+  final deleteParams = <String, dynamic>{'userId': userId, 'profId': professionalId};
+
+  if (serviceId != null) {
+    deleteSql += ' AND service_id = @serviceId';
+    deleteParams['serviceId'] = serviceId;
+  } else {
+    deleteSql += ' AND service_id IS NULL';
+  }
+
+  final res = await dbPool.execute(Sql.named(deleteSql), parameters: deleteParams);
 
   if (res.affectedRows == 0) {
     return errorResponse('Not found', statusCode: 404);
@@ -3773,6 +3788,7 @@ void main() async {
     await dbPool.execute('ALTER TABLE tasks_task ADD COLUMN IF NOT EXISTS image_url text;');
     await dbPool.execute('ALTER TABLE accounts_user ADD COLUMN IF NOT EXISTS rating double precision DEFAULT 0.0;');
     await dbPool.execute('ALTER TABLE accounts_user ADD COLUMN IF NOT EXISTS tasks_count integer DEFAULT 0;');
+    await dbPool.execute('ALTER TABLE accounts_saved_professional ADD COLUMN IF NOT EXISTS service_id integer;');
     
     // Reset user ratings to 0.0 and dynamically recalculate tasks_count for all clients
     try {

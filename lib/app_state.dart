@@ -242,6 +242,7 @@ class AppState extends GetxController {
     await syncMyServices();
     await syncBids();
     await syncPortfolio();
+    await syncSavedProfessionals();
   }
 
   TaskItem _mapTaskItem(dynamic t) {
@@ -1098,24 +1099,97 @@ class AppState extends GetxController {
 
   bool isServiceSaved(String serviceId) => _savedServiceIds.contains(serviceId);
 
-  void toggleSavedService(String serviceId) {
+  Future<void> toggleSavedService(String serviceId) async {
+    ServiceItem? service;
+    for (final s in _services) {
+      if (s.id == serviceId) {
+        service = s;
+        break;
+      }
+    }
+    if (service == null) return;
+    final providerId = service.providerId;
+
     if (_savedServiceIds.contains(serviceId)) {
       _savedServiceIds.remove(serviceId);
+      update();
+      try {
+        final response = await ApiService.instance.delete('/auth/saved-pros/$providerId/?service_id=$serviceId');
+        if (response.statusCode != 200 && response.statusCode != 204) {
+          throw Exception('Failed to remove');
+        }
+      } catch (e) {
+        _savedServiceIds.add(serviceId);
+        update();
+        debugPrint('Remove saved service error: $e');
+      }
     } else {
       _savedServiceIds.add(serviceId);
+      update();
+      try {
+        await ApiService.instance.post('/auth/saved-pros/', {
+          'professional_id': providerId,
+          'service_id': serviceId,
+        });
+      } catch (e) {
+        _savedServiceIds.remove(serviceId);
+        update();
+        debugPrint('Save service error: $e');
+      }
     }
-    update();
   }
 
   bool isTechSaved(String techId) => _savedTechUserIds.contains(techId);
 
-  void toggleSavedTech(String techId) {
+  Future<void> toggleSavedTech(String techId) async {
     if (_savedTechUserIds.contains(techId)) {
       _savedTechUserIds.remove(techId);
+      update();
+      try {
+        final response = await ApiService.instance.delete('/auth/saved-pros/$techId/');
+        if (response.statusCode != 200 && response.statusCode != 204) {
+          throw Exception('Failed to remove');
+        }
+      } catch (e) {
+        _savedTechUserIds.add(techId);
+        update();
+        debugPrint('Remove saved tech error: $e');
+      }
     } else {
       _savedTechUserIds.add(techId);
+      update();
+      try {
+        await ApiService.instance.post('/auth/saved-pros/', {
+          'professional_id': techId,
+        });
+      } catch (e) {
+        _savedTechUserIds.remove(techId);
+        update();
+        debugPrint('Save tech error: $e');
+      }
     }
-    update();
+  }
+
+  Future<void> syncSavedProfessionals() async {
+    try {
+      final list = await ApiService.instance.fetchSavedProfessionals();
+      _savedTechUserIds.clear();
+      _savedServiceIds.clear();
+      for (final item in list) {
+        final profId = item['professional']?['id']?.toString();
+        final serviceId = item['service_id']?.toString();
+        if (profId != null) {
+          if (serviceId != null) {
+            _savedServiceIds.add(serviceId);
+          } else {
+            _savedTechUserIds.add(profId);
+          }
+        }
+      }
+      update();
+    } catch (e) {
+      debugPrint('Sync saved professionals error: $e');
+    }
   }
 
   Future<void> submitCompanyRegistration({
