@@ -433,6 +433,42 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                       },
                     ),
                   ),
+                ] else if (task.status == 'Completed') ...[
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.chat_bubble_outline, size: 16),
+                      label: const Text('Message Tech'),
+                      onPressed: () {
+                        final appState = AppStateScope.of(context);
+                        final String otherName = task.assignedToName ?? 'Technician';
+                        final String otherAvatar = task.assignedToAvatar ?? 'assets/images/onboard1.jpg';
+                        
+                        String? existingThreadId;
+                        for (final item in appState.threads) {
+                          if (item.name.toLowerCase() == otherName.toLowerCase()) {
+                            existingThreadId = item.id;
+                            break;
+                          }
+                        }
+                        if (existingThreadId == null) {
+                          appState.createOrOpenThread(
+                            otherPartyName: otherName,
+                            otherPartyImage: otherAvatar,
+                            initialMessage: 'Hi $otherName, let\'s chat about task: "${task.title}".',
+                          );
+                        }
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ChatScreen(
+                              name: otherName,
+                              image: otherAvatar,
+                              threadId: existingThreadId,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ] else ...[
                   Expanded(
                     child: OutlinedButton(
@@ -458,13 +494,13 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                       child: const Text('View Bids'),
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    tooltip: 'Delete Task',
+                    onPressed: () => _showDeleteConfirmationDialog(context, task.id),
+                  ),
                 ],
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  tooltip: 'Delete Task',
-                  onPressed: () => _showDeleteConfirmationDialog(context, task.id),
-                ),
               ] else ...[
                 Expanded(
                   child: OutlinedButton(
