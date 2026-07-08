@@ -40,10 +40,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _isRefreshing = true;
     });
     try {
-      await appState.syncProfile();
-      await appState.syncTasks();
-      await appState.syncPublicData();
-      await appState.syncWallet();
+      await appState.syncAll();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Dashboard refreshed successfully!'), duration: Duration(seconds: 1)),
       );

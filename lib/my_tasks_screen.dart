@@ -69,7 +69,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                 onPressed: () async {
                   setState(() => _isLoading = true);
                   try {
-                    await AppStateScope.of(context).syncTasks();
+                    await AppStateScope.of(context).syncAll();
                   } catch (e) {
                     debugPrint('Refresh tasks error: $e');
                   } finally {

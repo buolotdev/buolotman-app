@@ -219,6 +219,8 @@ class AppState extends GetxController {
     _walletTransactions.clear();
     _walletBalance = 0.0;
     _pendingBalance = 0.0;
+    _savedServiceIds.clear();
+    _savedTechUserIds.clear();
     update();
   }
 
