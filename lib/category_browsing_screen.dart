@@ -54,15 +54,9 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
   }
 
   List<String> _deriveCategories(AppState appState) {
-    final names = <String>{'All'};
-    for (final task in appState.tasks) {
-      names.add(task.category);
-    }
-    for (final service in appState.services) {
-      names.add(service.category);
-    }
+    final names = appState.apiCategories.map((c) => c['name'].toString()).toSet();
     final categories = names.toList()..sort();
-    return ['All', ...categories.where((item) => item != 'All')];
+    return ['All', ...categories];
   }
 
   List<Map<String, dynamic>> _featuredServices(AppState appState) {

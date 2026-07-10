@@ -50,6 +50,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
         }
 
         final isClient = appState.currentRole == 'Client';
+        final isCompany = appState.currentRole == 'Company';
         final tasks = appState.tasks;
         final savedServices = appState.savedServices;
 
@@ -81,11 +82,12 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
           ),
           body: Column(
             children: [
-              if (isClient) _buildTabBar(),
+              if (isClient) _buildTabBar(showSaved: true),
+              if (!isClient) _buildTabBar(showSaved: false),
               Expanded(
                 child: _activeTab == 'Saved' && isClient
                     ? (savedServices.isEmpty ? _buildSavedEmptyState() : _buildSavedServicesList(savedServices))
-                    : (tasks.isEmpty ? _buildEmptyState(isClient) : _buildTasksList(tasks, isClient)),
+                    : (tasks.isEmpty ? _buildEmptyState(isClient, isCompany) : _buildTasksList(tasks, isClient, isCompany)),
               ),
             ],
           ),
@@ -94,11 +96,11 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
     );
   }
 
-  Widget _buildTabBar() {
+  Widget _buildTabBar({bool showSaved = true}) {
     return Container(
       color: Colors.white,
       child: Row(
-        children: ['Active', 'Completed', 'Saved'].map(_buildTabItem).toList(),
+        children: (showSaved ? ['Active', 'Completed', 'Saved'] : ['Active', 'Completed']).map(_buildTabItem).toList(),
       ),
     );
   }
@@ -127,14 +129,22 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
     );
   }
 
-  Widget _buildEmptyState(bool isClient) {
+  Widget _buildEmptyState(bool isClient, [bool isCompany = false]) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.assignment_outlined, size: 80, color: Colors.grey[300]),
+          Icon(isCompany ? Icons.business_center_outlined : Icons.assignment_outlined, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
-          Text(isClient ? 'You haven\'t posted any tasks yet' : 'No active projects assigned yet', style: const TextStyle(color: Colors.grey, fontSize: 16)),
+          Text(
+            isClient
+                ? 'You haven\'t posted any tasks yet'
+                : isCompany
+                    ? 'No active contracts yet. Browse tasks to bid.'
+                    : 'No active projects assigned yet',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.grey, fontSize: 16),
+          ),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
@@ -153,7 +163,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
     );
   }
 
-  Widget _buildTasksList(List<dynamic> tasks, bool isClient) {
+  Widget _buildTasksList(List<dynamic> tasks, bool isClient, [bool isCompany = false]) {
     final visibleTasks = tasks.where((task) {
       if (isClient && task.status == 'Deleted') {
         return false;
@@ -168,24 +178,26 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
     }).toList();
 
     if (visibleTasks.isEmpty) {
-      return _buildFilteredEmptyState(isClient);
+      return _buildFilteredEmptyState(isClient, isCompany);
     }
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: visibleTasks.length,
-      itemBuilder: (context, index) => _buildTaskCard(visibleTasks[index], isClient),
+      itemBuilder: (context, index) => _buildTaskCard(visibleTasks[index], isClient, isCompany),
     );
   }
 
-  Widget _buildFilteredEmptyState(bool isClient) {
+  Widget _buildFilteredEmptyState(bool isClient, [bool isCompany = false]) {
     final message = _activeTab == 'Saved'
         ? 'Saved services and professionals will show up here.'
         : _activeTab == 'Completed'
             ? 'Completed tasks will appear here once they are finished.'
             : isClient
                 ? 'No active tasks yet.'
-                : 'No assigned projects yet.';
+                : isCompany
+                    ? 'No active contracts yet. Bid on tasks to get started.'
+                    : 'No assigned projects yet.';
 
     return Padding(
       padding: const EdgeInsets.all(32),
@@ -209,6 +221,16 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
               },
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF001F3F), foregroundColor: Colors.white),
               child: const Text('Post a New Task'),
+            ),
+          if (!isClient && _activeTab == 'Active')
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const TaskFeedScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF001F3F), foregroundColor: Colors.white),
+              child: const Text('Browse Open Tasks'),
             ),
         ],
       ),
@@ -304,7 +326,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
     );
   }
 
-  Widget _buildTaskCard(dynamic task, bool isClient) {
+  Widget _buildTaskCard(dynamic task, bool isClient, [bool isCompany = false]) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -337,7 +359,12 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
           ),
           const SizedBox(height: 12),
           Text(task.title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
+          // Company: show milestone progress if in progress
+          if (isCompany && (task.status == 'In Progress' || task.status == 'Delivered')) ...[
+            _buildMilestoneProgressBar(task),
+            const SizedBox(height: 8),
+          ],
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -605,6 +632,40 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
         ),
       );
     }
+  }
+
+  Widget _buildMilestoneProgressBar(dynamic task) {
+    if (task.milestones == null || task.milestones!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    
+    final milestones = List<Map<String, dynamic>>.from(task.milestones!);
+    final total = milestones.length;
+    final completed = milestones.where((m) => m['status'] == 'completed').length;
+    final progress = total > 0 ? (completed / total) : 0.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Milestones: $completed / $total', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+            Text('${(progress * 100).toInt()}%', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 6,
+            backgroundColor: const Color(0xFFF1F5F9),
+            valueColor: AlwaysStoppedAnimation<Color>(task.status == 'Delivered' ? const Color(0xFF16A34A) : const Color(0xFF2563EB)),
+          ),
+        ),
+      ],
+    );
   }
   void _showDeleteConfirmationDialog(BuildContext context, String taskId) {
     showDialog(

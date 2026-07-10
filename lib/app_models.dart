@@ -186,6 +186,7 @@ class TaskItem {
     this.deadline,
     this.imageUrl,
     this.clientReviews = 0,
+    this.milestones,
   });
 
   final String id;
@@ -211,6 +212,7 @@ class TaskItem {
   final String? deadline;
   final String? imageUrl;
   final int clientReviews;
+  final List<dynamic>? milestones;
 
   TaskItem copyWith({
     String? id,
@@ -236,6 +238,7 @@ class TaskItem {
     String? deadline,
     String? imageUrl,
     int? clientReviews,
+    List<dynamic>? milestones,
   }) {
     return TaskItem(
       id: id ?? this.id,
@@ -261,6 +264,7 @@ class TaskItem {
       deadline: deadline ?? this.deadline,
       imageUrl: imageUrl ?? this.imageUrl,
       clientReviews: clientReviews ?? this.clientReviews,
+      milestones: milestones ?? this.milestones,
     );
   }
 }

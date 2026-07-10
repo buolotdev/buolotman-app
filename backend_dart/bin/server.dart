@@ -3079,11 +3079,12 @@ Future<Response> getCompanyProfileHandler(Request request) async {
   final profile = results[0].toColumnMap();
   final profileId = profile['id'] as int;
 
-  // fetch projects, services, certifications, reviews
+  // fetch projects, services, certifications, reviews, portfolio_items
   final proj = await dbPool.execute(Sql.named('SELECT * FROM companies_project WHERE company_id = @id'), parameters: {'id': profileId});
   final serv = await dbPool.execute(Sql.named('SELECT * FROM companies_service WHERE company_id = @id'), parameters: {'id': profileId});
   final cert = await dbPool.execute(Sql.named('SELECT * FROM companies_certification WHERE company_id = @id'), parameters: {'id': profileId});
   final rev = await dbPool.execute(Sql.named('SELECT cr.*, u.email as rev_email, u.first_name as rev_first, u.last_name as rev_last, u.avatar_url as rev_avatar FROM companies_review cr JOIN accounts_user u ON cr.reviewer_id = u.id WHERE cr.company_id = @id'), parameters: {'id': profileId});
+  final portfolio = await dbPool.execute(Sql.named('SELECT * FROM accounts_portfolio_item WHERE user_id = @userId ORDER BY created_at DESC'), parameters: {'userId': userId});
 
   final data = {
     'id': profile['id'],
@@ -3115,7 +3116,21 @@ Future<Response> getCompanyProfileHandler(Request request) async {
         'progress': row['progress'] ?? 0,
       };
     }).toList(),
-    'services': serv.map((r) => {'id': r[0], 'title': r[2], 'description': r[3]}).toList(),
+    'services': serv.map((r) {
+      final row = r.toColumnMap();
+      return {
+        'id': row['id'],
+        'title': row['title'] ?? '',
+        'description': row['description'] ?? '',
+        'category': row['category'] ?? 'General',
+        'price_label': row['price_label'] ?? '',
+        'pricing_model': row['pricing_model'] ?? 'fixed',
+        'service_type': row['service_type'] ?? 'onsite',
+        'coverage_area': row['coverage_area'] ?? '',
+        'availability': row['availability'] ?? '',
+        'pricing_min': row['pricing_min']?.toString() ?? '0',
+      };
+    }).toList(),
     'certifications': cert.map((r) => {'id': r[0], 'title': r[2], 'description': r[3]}).toList(),
     'reviews': rev.map((r) {
       final row = r.toColumnMap();
@@ -3127,6 +3142,19 @@ Future<Response> getCompanyProfileHandler(Request request) async {
         'created_at': row['created_at'] != null ? (row['created_at'] as DateTime).toIso8601String() : '',
         'reviewer_name': ((row['rev_first']?.toString() ?? '') + ' ' + (row['rev_last']?.toString() ?? '')).trim().isEmpty ? row['rev_email'] : ((row['rev_first']?.toString() ?? '') + ' ' + (row['rev_last']?.toString() ?? '')).trim(),
         'reviewer_avatar': row['rev_avatar'] ?? '',
+      };
+    }).toList(),
+    'portfolio_items': portfolio.map((r) {
+      final row = r.toColumnMap();
+      return {
+        'id': row['id'],
+        'title': row['title'] ?? '',
+        'description': row['description'] ?? '',
+        'category': row['category'] ?? '',
+        'image_url': row['image_url'] ?? '',
+        'completed_date': row['completed_date']?.toString(),
+        'project_value': row['project_value']?.toString(),
+        'created_at': row['created_at'] != null ? (row['created_at'] as DateTime).toIso8601String() : '',
       };
     }).toList(),
   };
@@ -3169,12 +3197,14 @@ Future<Response> companyPublicProfileHandler(Request request, String idStr) asyn
 
   final profile = results[0].toColumnMap();
   final profileId = profile['id'] as int;
+  final companyUserId = profile['user_id'] as int;
 
-  // fetch projects, services, certifications, reviews
+  // fetch projects, services, certifications, reviews, portfolio_items
   final proj = await dbPool.execute(Sql.named('SELECT * FROM companies_project WHERE company_id = @id'), parameters: {'id': profileId});
   final serv = await dbPool.execute(Sql.named('SELECT * FROM companies_service WHERE company_id = @id'), parameters: {'id': profileId});
   final cert = await dbPool.execute(Sql.named('SELECT * FROM companies_certification WHERE company_id = @id'), parameters: {'id': profileId});
   final rev = await dbPool.execute(Sql.named('SELECT cr.*, u.email as rev_email, u.first_name as rev_first, u.last_name as rev_last, u.avatar_url as rev_avatar FROM companies_review cr JOIN accounts_user u ON cr.reviewer_id = u.id WHERE cr.company_id = @id'), parameters: {'id': profileId});
+  final portfolio = await dbPool.execute(Sql.named('SELECT * FROM accounts_portfolio_item WHERE user_id = @userId ORDER BY created_at DESC'), parameters: {'userId': companyUserId});
 
   final data = {
     'id': profile['id'],
@@ -3206,7 +3236,21 @@ Future<Response> companyPublicProfileHandler(Request request, String idStr) asyn
         'progress': row['progress'] ?? 0,
       };
     }).toList(),
-    'services': serv.map((r) => {'id': r[0], 'title': r[2], 'description': r[3]}).toList(),
+    'services': serv.map((r) {
+      final row = r.toColumnMap();
+      return {
+        'id': row['id'],
+        'title': row['title'] ?? '',
+        'description': row['description'] ?? '',
+        'category': row['category'] ?? 'General',
+        'price_label': row['price_label'] ?? '',
+        'pricing_model': row['pricing_model'] ?? 'fixed',
+        'service_type': row['service_type'] ?? 'onsite',
+        'coverage_area': row['coverage_area'] ?? '',
+        'availability': row['availability'] ?? '',
+        'pricing_min': row['pricing_min']?.toString() ?? '0',
+      };
+    }).toList(),
     'certifications': cert.map((r) => {'id': r[0], 'title': r[2], 'description': r[3]}).toList(),
     'reviews': rev.map((r) {
       final row = r.toColumnMap();
@@ -3218,6 +3262,19 @@ Future<Response> companyPublicProfileHandler(Request request, String idStr) asyn
         'created_at': row['created_at'] != null ? (row['created_at'] as DateTime).toIso8601String() : '',
         'reviewer_name': ((row['rev_first']?.toString() ?? '') + ' ' + (row['rev_last']?.toString() ?? '')).trim().isEmpty ? row['rev_email'] : ((row['rev_first']?.toString() ?? '') + ' ' + (row['rev_last']?.toString() ?? '')).trim(),
         'reviewer_avatar': row['rev_avatar'] ?? '',
+      };
+    }).toList(),
+    'portfolio_items': portfolio.map((r) {
+      final row = r.toColumnMap();
+      return {
+        'id': row['id'],
+        'title': row['title'] ?? '',
+        'description': row['description'] ?? '',
+        'category': row['category'] ?? '',
+        'image_url': row['image_url'] ?? '',
+        'completed_date': row['completed_date']?.toString(),
+        'project_value': row['project_value']?.toString(),
+        'created_at': row['created_at'] != null ? (row['created_at'] as DateTime).toIso8601String() : '',
       };
     }).toList(),
   };
@@ -3232,17 +3289,22 @@ Future<Response> companyProjectsHandler(Request request) async {
   final profileId = profileQuery[0][0] as int;
 
   if (request.method == 'GET') {
-    final results = await dbPool.execute(Sql.named('SELECT * FROM companies_project WHERE company_id = @id'), parameters: {'id': profileId});
+    final results = await dbPool.execute(Sql.named('SELECT * FROM companies_project WHERE company_id = @id ORDER BY created_at DESC'), parameters: {'id': profileId});
     return jsonResponse(results.map((r) {
       final row = r.toColumnMap();
       return {
         'id': row['id'],
         'title': row['title'],
-        'status': row['status'],
-        'client_name': row['client_name'],
-        'budget': row['budget']?.toString(),
-        'timeline': row['timeline'],
+        'status': row['status'] ?? 'active',
+        'client_name': row['client_name'] ?? '',
+        'budget': row['budget']?.toString() ?? '0',
+        'timeline': row['timeline'] ?? '',
         'progress': row['progress'] ?? 0,
+        'milestones_total': row['milestones_total'] ?? 0,
+        'milestones_completed': row['milestones_completed'] ?? 0,
+        'payment_status': row['payment_status'] ?? 'awaiting',
+        'location': row['location'] ?? '',
+        'created_at': row['created_at']?.toString() ?? '',
       };
     }).toList());
   } else if (request.method == 'POST') {
@@ -3276,6 +3338,65 @@ Future<Response> companyProjectsHandler(Request request) async {
   }
 
   return errorResponse('Method not allowed', statusCode: 405);
+}
+
+Future<Response> updateCompanyProjectHandler(Request request, String idStr) async {
+  final userId = getUserId(request);
+  final projectId = int.tryParse(idStr) ?? 0;
+
+  // Verify the project belongs to this company
+  final profileQuery = await dbPool.execute(Sql.named('SELECT id FROM companies_profile WHERE user_id = @userId'), parameters: {'userId': userId});
+  if (profileQuery.isEmpty) return errorResponse('Company profile not found', statusCode: 404);
+  final profileId = profileQuery[0][0] as int;
+
+  final ownership = await dbPool.execute(
+    Sql.named('SELECT id FROM companies_project WHERE id = @pid AND company_id = @cid'),
+    parameters: {'pid': projectId, 'cid': profileId},
+  );
+  if (ownership.isEmpty) return errorResponse('Project not found', statusCode: 404);
+
+  final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
+
+  // Build dynamic SET clause
+  final updates = <String>[];
+  final params = <String, dynamic>{'pid': projectId};
+
+  if (body.containsKey('status')) { updates.add('status = @status'); params['status'] = body['status']; }
+  if (body.containsKey('milestones_completed')) { updates.add('milestones_completed = @mc'); params['mc'] = body['milestones_completed']; }
+  if (body.containsKey('milestones_total')) { updates.add('milestones_total = @mt'); params['mt'] = body['milestones_total']; }
+  if (body.containsKey('payment_status')) { updates.add('payment_status = @ps'); params['ps'] = body['payment_status']; }
+  if (body.containsKey('progress')) { updates.add('progress = @prog'); params['prog'] = body['progress']; }
+  if (body.containsKey('title')) { updates.add('title = @title'); params['title'] = body['title']; }
+  if (body.containsKey('client_name')) { updates.add('client_name = @cn'); params['cn'] = body['client_name']; }
+  if (body.containsKey('budget')) { updates.add('budget = @budget'); params['budget'] = double.tryParse(body['budget']?.toString() ?? '0') ?? 0; }
+  if (body.containsKey('timeline')) { updates.add('timeline = @tl'); params['tl'] = body['timeline']; }
+  if (body.containsKey('location')) { updates.add('location = @loc'); params['loc'] = body['location']; }
+
+  if (updates.isEmpty) return errorResponse('No fields to update', statusCode: 400);
+  updates.add('updated_at = NOW()');
+
+  await dbPool.execute(
+    Sql.named('UPDATE companies_project SET ${updates.join(', ')} WHERE id = @pid'),
+    parameters: params,
+  );
+
+  // Return updated row
+  final updated = await dbPool.execute(Sql.named('SELECT * FROM companies_project WHERE id = @pid'), parameters: {'pid': projectId});
+  final row = updated[0].toColumnMap();
+  return jsonResponse({
+    'id': row['id'],
+    'title': row['title'],
+    'status': row['status'] ?? 'active',
+    'client_name': row['client_name'] ?? '',
+    'budget': row['budget']?.toString() ?? '0',
+    'timeline': row['timeline'] ?? '',
+    'progress': row['progress'] ?? 0,
+    'milestones_total': row['milestones_total'] ?? 0,
+    'milestones_completed': row['milestones_completed'] ?? 0,
+    'payment_status': row['payment_status'] ?? 'awaiting',
+    'location': row['location'] ?? '',
+    'created_at': row['created_at']?.toString() ?? '',
+  });
 }
 
 Future<Response> companyCertificationsHandler(Request request) async {
@@ -4118,6 +4239,7 @@ void main() async {
   router.patch('/api/company/profile/', updateCompanyProfileHandler);
   router.get('/api/company/projects/', companyProjectsHandler);
   router.post('/api/company/projects/', companyProjectsHandler);
+  router.patch('/api/company/projects/<id>/', updateCompanyProjectHandler);
   router.get('/api/company/certifications/', companyCertificationsHandler);
   router.post('/api/company/certifications/', companyCertificationsHandler);
   router.get('/api/company/services/', companyServicesHandler);

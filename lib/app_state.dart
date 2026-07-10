@@ -40,6 +40,8 @@ class AppState extends GetxController {
   List<Map<String, dynamic>> _faqPages = [];
   List<dynamic> _searchResults = [];
   List<dynamic> _portfolioItems = [];
+  List<Map<String, dynamic>> _apiCategories = [];
+  List<Map<String, dynamic>> _companyProjects = [];
 
   String? _companyRegistrationStatus;
   String? _companyRegistrationSummary;
@@ -58,9 +60,11 @@ class AppState extends GetxController {
   List<Map<String, dynamic>> get savedPros => List.unmodifiable(_savedPros);
   List<Map<String, dynamic>> get publicCompanies => List.unmodifiable(_publicCompanies);
   List<Map<String, dynamic>> get publicPros => List.unmodifiable(_publicPros);
+  List<Map<String, dynamic>> get apiCategories => List.unmodifiable(_apiCategories);
   List<Map<String, dynamic>> get faqPages => List.unmodifiable(_faqPages);
   List<dynamic> get searchResults => List.unmodifiable(_searchResults);
   List<dynamic> get portfolioItems => List.unmodifiable(_portfolioItems);
+  List<Map<String, dynamic>> get companyProjects => List.unmodifiable(_companyProjects);
   String? get companyRegistrationStatus => _companyRegistrationStatus;
   String? get companyRegistrationSummary => _companyRegistrationSummary;
   String? get verificationStatus => _verificationStatus;
@@ -176,6 +180,9 @@ class AppState extends GetxController {
     required String password,
     required String phone,
     required String role,
+    String? registrationNumber,
+    String? taxId,
+    String? industry,
   }) async {
     if (role == 'Client') {
       await ApiService.instance.registerClient(
@@ -199,6 +206,9 @@ class AppState extends GetxController {
         email: email,
         password: password,
         phone: phone,
+        registrationNumber: registrationNumber,
+        taxId: taxId,
+        industry: industry,
       );
     }
     // Request verification OTP code immediately
@@ -226,6 +236,7 @@ class AppState extends GetxController {
     _savedTechUserIds.clear();
     _savedPros.clear();
     _savedServices.clear();
+    _companyProjects.clear();
     update();
   }
 
@@ -240,13 +251,101 @@ class AppState extends GetxController {
 
   // ─── STATE SYNCHRONIZATION ──────────────────────────────────────────────────
 
+  Future<void> syncCategories() async {
+    try {
+      final response = await ApiService.instance.get('/tasks/categories/', requireAuth: false);
+      if (response.statusCode == 200) {
+        final List data = jsonDecode(response.body);
+        _apiCategories = data.cast<Map<String, dynamic>>();
+        update();
+      }
+    } catch (e) {
+      debugPrint('Failed to sync categories: $e');
+    }
+  }
+
+  Future<void> syncCompanyProjects() async {
+    try {
+      final raw = await ApiService.instance.fetchCompanyProjects();
+      _companyProjects = raw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      update();
+    } catch (e) {
+      debugPrint('Sync company projects error: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> createProject({
+    required String title,
+    required String clientName,
+    required double budget,
+    required String timeline,
+    required int milestonesTotal,
+    String location = '',
+  }) async {
+    final data = await ApiService.instance.createCompanyProject({
+      'title': title,
+      'client_name': clientName,
+      'budget': budget.toString(),
+      'timeline': timeline,
+      'milestones_total': milestonesTotal,
+      'location': location,
+    });
+    await syncCompanyProjects();
+    return data;
+  }
+
+  Future<void> updateProjectMilestone(String projectId, int milestonesCompleted, int milestonesTotal) async {
+    final progress = milestonesTotal > 0
+        ? ((milestonesCompleted / milestonesTotal) * 100).round()
+        : 0;
+    final updated = await ApiService.instance.updateCompanyProject(projectId, {
+      'milestones_completed': milestonesCompleted,
+      'milestones_total': milestonesTotal,
+      'progress': progress,
+      'status': milestonesCompleted >= milestonesTotal && milestonesTotal > 0 ? 'completed' : 'active',
+    });
+    final idx = _companyProjects.indexWhere((p) => p['id']?.toString() == projectId);
+    if (idx >= 0) {
+      _companyProjects[idx] = updated;
+    } else {
+      _companyProjects.insert(0, updated);
+    }
+    update();
+  }
+
+  Future<void> updateProjectPaymentStatus(String projectId, String paymentStatus) async {
+    final updated = await ApiService.instance.updateCompanyProject(projectId, {
+      'payment_status': paymentStatus,
+    });
+    final idx = _companyProjects.indexWhere((p) => p['id']?.toString() == projectId);
+    if (idx >= 0) {
+      _companyProjects[idx] = updated;
+    } else {
+      _companyProjects.insert(0, updated);
+    }
+    update();
+  }
+
+  Future<void> updateProjectStatus(String projectId, String status) async {
+    final updated = await ApiService.instance.updateCompanyProject(projectId, {
+      'status': status,
+    });
+    final idx = _companyProjects.indexWhere((p) => p['id']?.toString() == projectId);
+    if (idx >= 0) {
+      _companyProjects[idx] = updated;
+    }
+    update();
+  }
+
   Future<void> syncAll() async {
     await syncProfile();
     await syncTasks();
     await syncWallet();
     await syncConversations();
     await syncPublicData();
-    await syncMyServices();
+    await syncCategories();
+    if (currentRole == 'Company' || currentRole == 'Technician') await syncMyServices();
+    if (currentRole == 'Company') await syncCompanyProjects();
     await syncBids();
     await syncPortfolio();
     await syncSavedPros();
@@ -291,6 +390,7 @@ class AppState extends GetxController {
       deadline: t['deadline']?.toString(),
       imageUrl: t['image_url']?.toString(),
       clientReviews: t['client'] != null ? (int.tryParse(t['client']['tasks_count']?.toString() ?? '') ?? 0) : 0,
+      milestones: t['milestones'],
     );
   }
 
@@ -530,21 +630,38 @@ class AppState extends GetxController {
 
       if (backendServices.isNotEmpty) {
         final mapped = backendServices.map((item) {
-          final double priceMin = double.tryParse(item['pricing_min']?.toString() ?? '') ?? 0.0;
-          final priceLabel = priceMin > 0 ? '\$${priceMin.toStringAsFixed(0)}/hr' : (item['pricing_model'] ?? 'hourly');
+          String priceLabel;
+          if (currentRole == 'Company') {
+            priceLabel = item['price_label']?.toString().isNotEmpty == true
+                ? item['price_label'].toString()
+                : () {
+                    final pMin = double.tryParse(item['pricing_min']?.toString() ?? '') ?? 0.0;
+                    final model = item['pricing_model']?.toString() ?? 'fixed';
+                    return pMin > 0 ? (model == 'hourly' ? '\$${pMin.toStringAsFixed(0)}/hr' : '\$${pMin.toStringAsFixed(0)}') : 'Contact for pricing';
+                  }();
+          } else {
+            final double priceMin = double.tryParse(item['pricing_min']?.toString() ?? '') ?? 0.0;
+            priceLabel = priceMin > 0 ? '\$${priceMin.toStringAsFixed(0)}/hr' : (item['pricing_model'] ?? 'hourly');
+          }
           return ServiceItem(
             id: item['id']?.toString() ?? '',
             title: item['title'] ?? '',
-            category: item['category_name'] ?? 'General',
+            category: currentRole == 'Company'
+                ? (item['category'] ?? 'General')
+                : (item['category_name'] ?? 'General'),
             description: item['description'] ?? '',
             priceLabel: priceLabel,
             providerName: currentUser.name,
             providerAvatar: currentUser.avatar,
             providerRole: currentRole,
-            serviceType: item['service_type'] == 'remote' ? 'Remote' : 'On-site',
+            serviceType: currentRole == 'Company'
+                ? (item['service_type'] == 'remote' ? 'Remote' : 'On-site')
+                : (item['service_type'] == 'remote' ? 'Remote' : 'On-site'),
             coverageArea: item['coverage_area'] ?? 'Lagos, Nigeria',
-            availability: 'Weekdays 9 AM - 6 PM',
-            pricingModel: item['pricing_model'] ?? 'Hourly Rate',
+            availability: item['availability']?.toString().isNotEmpty == true
+                ? item['availability'].toString()
+                : 'Weekdays 9 AM - 6 PM',
+            pricingModel: item['pricing_model'] == 'hourly' ? 'Hourly Rate' : 'Fixed Price',
             providerId: currentUser.id.toString(),
           );
         }).toList();
@@ -884,18 +1001,40 @@ class AppState extends GetxController {
         providerId: currentUser.id.toString(),
       );
     } else {
+      // Company role: publish with full service data
+      final catLower = category.toLowerCase();
+      String categoryName = category;
+      if (catLower.contains('elec')) categoryName = 'Electrical';
+      else if (catLower.contains('plumb') || catLower.contains('repair')) categoryName = 'Plumbing';
+      else if (catLower.contains('hvac')) categoryName = 'HVAC';
+      else if (catLower.contains('carp')) categoryName = 'Carpentry';
+      else if (catLower.contains('paint')) categoryName = 'Painting';
+      else if (catLower.contains('mason')) categoryName = 'Masonry';
+      else if (catLower.contains('secu')) categoryName = 'Security';
+      else if (catLower.contains('clean')) categoryName = 'Cleaning';
+      else if (catLower.contains('furn')) categoryName = 'Furniture';
+
       final data = {
         'title': title,
         'description': description,
+        'category': categoryName,
+        'price_label': priceLabel,
+        'pricing_model': pricingModel.toLowerCase().contains('hour') ? 'hourly' : 'fixed',
+        'service_type': serviceType.toLowerCase().contains('remote') ? 'remote' : 'onsite',
+        'coverage_area': coverageArea,
+        'availability': availability,
+        'pricing_min': priceVal,
       };
       final published = await ApiService.instance.publishCompanyService(data);
       await syncMyServices();
       return ServiceItem(
         id: published['id']?.toString() ?? '',
         title: published['title'] ?? '',
-        category: category,
+        category: published['category'] ?? categoryName,
         description: published['description'] ?? '',
-        priceLabel: '\$${priceVal.toStringAsFixed(0)}/hr',
+        priceLabel: published['price_label']?.toString().isNotEmpty == true
+            ? published['price_label']
+            : (pricingModel.toLowerCase().contains('hour') ? '\$${priceVal.toStringAsFixed(0)}/hr' : '\$${priceVal.toStringAsFixed(0)}'),
         providerName: providerName,
         providerAvatar: providerAvatar,
         providerRole: providerRole,
@@ -1233,16 +1372,36 @@ class AppState extends GetxController {
   Future<void> submitCompanyRegistration({
     required Map<String, String> details,
   }) async {
+    final website = details['website'] ?? '';
     final body = {
       'company_name': details['companyName'] ?? '',
       'registration_number': details['registrationNumber'] ?? '',
-      'website': (details['website'] != null && details['website']!.startsWith('http')) ? details['website'] : 'https://${details['website']}',
+      'tax_id': details['taxId'] ?? '',
+      'industry': details['industry'] ?? '',
+      'website': website.isEmpty ? '' : (website.startsWith('http') ? website : 'https://$website'),
       'headquarters': details['address'] ?? '',
-      'about': 'Industry: ${details['industry']}',
+      'about': 'Industry: ${details['industry'] ?? ''}',
+      'registration_status': 'pending',
     };
     await ApiService.instance.updateCompanyProfile(body);
     _companyRegistrationStatus = 'Pending Review';
     _companyRegistrationSummary = '${details['companyName']} submitted for compliance review.';
+    // Refresh company profile so the screen shows updated data
+    try {
+      _companyProfile = await ApiService.instance.fetchCompanyProfile();
+    } catch (e) {
+      debugPrint('Refresh company profile after registration: $e');
+    }
+    update();
+  }
+
+  Future<void> updateCompanyProfile(Map<String, dynamic> data) async {
+    await ApiService.instance.updateCompanyProfile(data);
+    try {
+      _companyProfile = await ApiService.instance.fetchCompanyProfile();
+    } catch (e) {
+      debugPrint('Refresh company profile: $e');
+    }
     update();
   }
 

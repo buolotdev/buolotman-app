@@ -34,24 +34,32 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
   String? _base64Image;
   String? _base64ImageName;
 
-  static const Map<String, List<String>> _subcategoryMap = {
-    "Plumbing & Repair": ["Pipe Leakage", "Drain Cleaning", "Water Heater", "Toilet Repair", "Faucet Installation", "Sewage Issues"],
-    "Electrical": ["Wiring & Rewiring", "Switchboard Repair", "Fan / AC Installation", "Generator Setup", "Light Fixtures", "Electrical Inspection"],
-    "Cleaning": ["Home Deep Clean", "Office Cleaning", "Carpet & Upholstery", "Post-Construction Clean", "Window Cleaning", "Disinfection"],
-    "Carpentry": ["Furniture Assembly", "Door & Window Frames", "Custom Shelving", "Cabinet Making", "Wood Repair", "Flooring"],
-    "Painting": ["Interior Painting", "Exterior Painting", "Wallpaper", "Surface Prep & Sanding", "Texture Coating", "Graffiti Removal"],
-    "Repair": ["Appliance Repair", "Roof Repair", "Wall Crack Repair", "Tile & Grout", "Window Repair", "Gate & Fence Repair"],
-  };
+  Map<String, List<String>> get _dynamicSubcategories {
+    final Map<String, List<String>> map = {};
+    final appState = AppStateScope.of(context);
+    final roots = appState.apiCategories.where((c) => c['parent'] == null);
+    for (var root in roots) {
+      final name = root['name'].toString();
+      final subs = appState.apiCategories
+          .where((c) => c['parent'] == root['id'])
+          .map((c) => c['name'].toString())
+          .toList();
+      map[name] = subs;
+    }
+    // Fallback if API hasn't loaded or is empty
+    if (map.isEmpty) {
+      map["Plumbing & Repair"] = ["Leak Repair", "Pipe Installation", "Water Heater", "Drain Cleaning", "Toilet Repair", "Faucet Install"];
+      map["Electrical"] = ["Wiring & Rewiring", "Switchboard Repair", "Fan / AC Installation", "Generator Setup", "Light Fixtures", "Electrical Inspection"];
+      map["Cleaning"] = ["Home Deep Clean", "Office Cleaning", "Carpet & Upholstery", "Post-Construction Clean", "Window Cleaning", "Disinfection"];
+      map["Carpentry"] = ["Furniture Assembly", "Door & Window Frames", "Custom Shelving", "Cabinet Making", "Wood Repair", "Flooring"];
+      map["Painting"] = ["Interior Painting", "Exterior Painting", "Wallpaper", "Surface Prep & Sanding", "Texture Coating", "Graffiti Removal"];
+      map["Repair"] = ["Appliance Repair", "Roof Repair", "Wall Crack Repair", "Tile & Grout", "Window Repair", "Gate & Fence Repair"];
+    }
+    return map;
+  }
 
   void _showCategoryPicker() {
-    final categories = [
-      "Plumbing & Repair",
-      "Electrical",
-      "Cleaning",
-      "Carpentry",
-      "Painting",
-      "Repair",
-    ];
+    final categories = _dynamicSubcategories.keys.toList();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -208,7 +216,8 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                         _selectedSubcategory.isEmpty ? "Select subcategory" : _selectedSubcategory,
                         Icons.chevron_right,
                         onTap: () {
-                          final subs = _subcategoryMap[_selectedCategory] ?? [];
+                          if (_selectedCategory.isEmpty) return;
+                          final subs = _dynamicSubcategories[_selectedCategory] ?? [];
                           if (subs.isEmpty) return;
                           showModalBottomSheet(
                             context: context,

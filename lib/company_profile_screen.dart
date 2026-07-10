@@ -1,8 +1,12 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:file_picker/file_picker.dart' as fp;
 
+import 'app_models.dart';
 import 'app_state.dart';
 import 'chat_screen.dart';
+import 'edit_company_profile_screen.dart';
 import 'login_screen.dart';
 import 'main_navigation_screen.dart';
 import 'notifications_screen.dart';
@@ -78,9 +82,10 @@ class CompanyProfileScreen extends StatelessWidget {
                           if (appState.companyRegistrationStatus != null) ...[
                             _buildSectionTitle('Registration Status'),
                             _buildStatusCard(
-                              title: appState.companyRegistrationStatus!,
-                              subtitle: appState.companyRegistrationSummary ??
-                                  'Registration pending review.',
+                              title: appState.companyProfile?['registration_status']?.toString() == 'verified' ? 'Verified' : 'Pending Review',
+                              subtitle: appState.companyProfile?['registration_number']?.toString().isNotEmpty == true
+                                  ? 'Reg. No: ${appState.companyProfile!['registration_number']}${appState.companyProfile?['tax_id']?.toString().isNotEmpty == true ? ' | Tax ID: ${appState.companyProfile!['tax_id']}' : ''}'
+                                  : 'Registration pending review.',
                             ),
                           ],
                           if (appState.verificationStatus != null) ...[
@@ -96,12 +101,15 @@ class CompanyProfileScreen extends StatelessWidget {
                         _buildSectionTitle('About Company'),
                         _buildOverview(appState, profile),
                         _buildSectionTitle('Services'),
-                        _buildServiceCatalog(appState, profile),
+                        _buildServiceCatalog(context, appState, profile),
                         _buildSectionTitle('Team'),
                         _buildTeamSection(appState, profile),
-                        _buildSectionTitle('Portfolio'),
-                        _buildPortfolioGrid(profile),
+                        _buildPortfolio(context, appState, profile),
+                        _buildSectionTitle('Ratings & Reviews'),
+                        _buildRatings(context, appState, profile),
                         const SizedBox(height: 28),
+                        if (!_isPublicView) _buildEditProfileButton(context),
+                        const SizedBox(height: 12),
                         _buildPrimaryActions(context, appState, displayName),
                         const SizedBox(height: 12),
 
@@ -153,7 +161,16 @@ class CompanyProfileScreen extends StatelessWidget {
         },
       ),
       actions: [
-        if (!_isPublicView)
+        if (!_isPublicView) ...[
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, color: Colors.white),
+            tooltip: 'Edit Profile',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const EditCompanyProfileScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.notifications_none, color: Colors.white),
             onPressed: () {
@@ -163,6 +180,7 @@ class CompanyProfileScreen extends StatelessWidget {
               );
             },
           ),
+        ],
       ],
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
@@ -388,59 +406,183 @@ class CompanyProfileScreen extends StatelessWidget {
 
   Widget _buildOverview(AppState appState, Map<String, dynamic> profile) {
     final about = profile['about']?.toString();
-    final description = about != null && about.isNotEmpty
+    final String description = about != null && about.isNotEmpty
         ? about
         : _isPublicView
             ? 'No company description provided yet.'
             : 'Registered contractor profile with services, project tracking, and compliance flows.';
+    final String industry = profile['industry']?.toString() ?? '';
+    final String regNum = profile['registration_number']?.toString() ?? '';
+    final String headquarters = profile['headquarters']?.toString() ?? '';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Text(
-        description,
-        style: const TextStyle(
-            color: Color(0xFF64748B), height: 1.5, fontSize: 15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            description,
+            style: const TextStyle(color: Color(0xFF64748B), height: 1.5, fontSize: 15),
+          ),
+          if (industry.isNotEmpty || regNum.isNotEmpty || headquarters.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                children: [
+                  if (industry.isNotEmpty)
+                    _buildInfoRow(Icons.business_outlined, 'Industry', industry),
+                  if (regNum.isNotEmpty) ...[
+                    const Divider(height: 16),
+                    _buildInfoRow(Icons.badge_outlined, 'Registration No.', regNum),
+                  ],
+                  if (headquarters.isNotEmpty) ...[
+                    const Divider(height: 16),
+                    _buildInfoRow(Icons.location_on_outlined, 'Headquarters', headquarters),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
 
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: const Color(0xFFFF4500)),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8), fontWeight: FontWeight.w600)),
+              Text(value, style: const TextStyle(fontSize: 13, color: Color(0xFF001F3F), fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildServiceCatalog(
-      AppState appState, Map<String, dynamic> profile) {
-    List<String> services;
+      BuildContext context, AppState appState, Map<String, dynamic> profile) {
+    // Public view: show service chip pills
     if (_isPublicView) {
       final offered = profile['services_offered'];
-      services = offered is List
-          ? offered.map((e) => e.toString()).toList()
-          : [];
-    } else {
-      services = appState.services.map((s) => s.title).toList();
-    }
+      final services = offered is List ? offered.map((e) => e.toString()).toList() : <String>[];
+      // Also try profile 'services' list which has richer data
+      final richServices = profile['services'] as List? ?? [];
 
-    if (services.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        child: Text('No services listed yet.',
-            style: TextStyle(color: Color(0xFF64748B))),
+      final displayList = richServices.isNotEmpty
+          ? richServices.map((s) => s['title']?.toString() ?? '').where((t) => t.isNotEmpty).toList()
+          : services;
+
+      if (displayList.isEmpty) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Text('No services listed yet.', style: TextStyle(color: Color(0xFF64748B))),
+        );
+      }
+      return SizedBox(
+        height: 52,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: displayList.length,
+          itemBuilder: (context, index) => Container(
+            margin: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(99)),
+            child: Text(displayList[index],
+                style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
+          ),
+        ),
       );
     }
 
-    return SizedBox(
-      height: 52,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
+    // Own profile: show richer cards from appState.services
+    final services = appState.services
+        .where((s) => s.providerId == appState.currentUser.id.toString())
+        .toList();
+    if (services.isEmpty) {
+      return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: services.length,
-        itemBuilder: (context, index) => Container(
-          margin: const EdgeInsets.only(right: 12),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(99)),
-          child: Text(services[index],
-              style: const TextStyle(
-                  fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
+        child: Column(
+          children: [
+            const Text('No services listed yet.', style: TextStyle(color: Color(0xFF64748B))),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.add, size: 16),
+              label: const Text('Post a Service'),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF4500), foregroundColor: Colors.white, elevation: 0),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PostServiceScreen())),
+            ),
+          ],
         ),
-      ),
+      );
+    }
+
+    return Column(
+      children: [
+        ...services.take(3).map((svc) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(8)),
+                  child: const Icon(Icons.home_repair_service_outlined, color: Color(0xFFFF4500), size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(svc.title, style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF001F3F), fontSize: 14)),
+                      Text('${svc.category} · ${svc.serviceType}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                    ],
+                  ),
+                ),
+                Text(svc.priceLabel, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFF4500), fontSize: 14)),
+              ],
+            ),
+          ),
+        )),
+        if (services.length > 3)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            child: Text('+ ${services.length - 3} more services', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+          ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.add, size: 16),
+            label: const Text('Add a Service'),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF4500), foregroundColor: Colors.white, elevation: 0),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PostServiceScreen())),
+          ),
+        ),
+      ],
     );
   }
 
@@ -492,7 +634,7 @@ class CompanyProfileScreen extends StatelessWidget {
     final extraCount = (teamSize - 1).clamp(0, 99);
 
     return SizedBox(
-      height: 104,
+      height: 120,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -567,82 +709,503 @@ class CompanyProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPortfolioGrid(Map<String, dynamic> profile) {
-    final List<dynamic> projects = profile['projects'] ?? [];
-    if (projects.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: Text(
-          'No projects in portfolio yet.',
-          style: TextStyle(
-              color: Color(0xFF64748B), fontStyle: FontStyle.italic),
+  Widget _buildPortfolio(BuildContext context, AppState appState, Map<String, dynamic> profile) {
+    final List<dynamic> items = _isPublicView
+        ? (profile['portfolio_items'] ?? [])
+        : appState.portfolioItems;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Portfolio & Gallery',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF001F3F)),
+              ),
+              if (!_isPublicView)
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline, color: Color(0xFFFF4500)),
+                  onPressed: () => _showAddPortfolioDialog(context, appState),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (items.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Text(
+                  'No portfolio items yet. Add some to showcase your work.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Color(0xFF64748B)),
+                ),
+              ),
+            )
+          else
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1.0,
+              ),
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                final int itemId = item['id'] ?? 0;
+                final imageUrl = item['image_url']?.toString() ?? '';
+                return Stack(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: const Color(0xFFF1F5F9),
+                        image: imageUrl.isNotEmpty
+                            ? DecorationImage(
+                                image: getAvatarImageProvider(imageUrl),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child: imageUrl.isEmpty
+                          ? const Center(child: Icon(Icons.image_not_supported, color: Color(0xFF94A3B8)))
+                          : null,
+                    ),
+                    if (!_isPublicView && itemId != 0)
+                      Positioned(
+                        right: 4,
+                        top: 4,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.black54,
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.white, size: 18),
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: const Text('Delete Portfolio Item'),
+                                  content: const Text('Are you sure you want to delete this item?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, false),
+                                      child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B))),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true) {
+                                try {
+                                  await appState.removePortfolioItem(itemId);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Portfolio item deleted.')),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Failed to delete: $e')),
+                                    );
+                                  }
+                                }
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddPortfolioDialog(BuildContext context, AppState appState) {
+    final titleController = TextEditingController();
+    final descController = TextEditingController();
+    final catController = TextEditingController(text: appState.currentUser.skills.isNotEmpty ? appState.currentUser.skills.first : 'General');
+    
+    String? base64DataUrl;
+    String selectedFileName = '';
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Text('Add Portfolio Item', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: titleController,
+                      decoration: const InputDecoration(
+                        labelText: 'Project Title',
+                        hintText: 'e.g., Office Renovation',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: descController,
+                      decoration: const InputDecoration(
+                        labelText: 'Description',
+                        hintText: 'Describe the work done',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: catController,
+                      decoration: const InputDecoration(
+                        labelText: 'Category',
+                        hintText: 'e.g., Commercial',
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Column(
+                        children: [
+                          if (base64DataUrl != null) ...[
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: Image.memory(
+                                base64Decode(base64DataUrl!.split(',').last),
+                                height: 120,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              selectedFileName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              final result = await fp.FilePicker.pickFiles(
+                                type: fp.FileType.image,
+                                withData: true,
+                              );
+                              if (result != null && result.files.isNotEmpty) {
+                                final file = result.files.first;
+                                final bytes = file.bytes;
+                                if (bytes != null) {
+                                  final ext = file.extension ?? 'png';
+                                  final b64 = base64Encode(bytes);
+                                  setStateDialog(() {
+                                    base64DataUrl = 'data:image/$ext;base64,$b64';
+                                    selectedFileName = file.name;
+                                  });
+                                }
+                              }
+                            },
+                            icon: Icon(base64DataUrl == null ? Icons.image : Icons.refresh, size: 18),
+                            label: Text(base64DataUrl == null ? 'Select Image File' : 'Change Image'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFF001F3F),
+                              side: const BorderSide(color: Color(0xFFE2E8F0)),
+                              elevation: 0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B))),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (titleController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please enter a title')),
+                      );
+                      return;
+                    }
+                    if (base64DataUrl == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please select an image')),
+                      );
+                      return;
+                    }
+                    Navigator.pop(ctx);
+                    try {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) => const Center(child: CircularProgressIndicator()),
+                      );
+                      await appState.createPortfolioItem(
+                        title: titleController.text.trim(),
+                        description: descController.text.trim(),
+                        category: catController.text.trim(),
+                        imageUrl: base64DataUrl!,
+                      );
+                      if (context.mounted) {
+                        Navigator.pop(context); // Close loading dialog
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Portfolio item added successfully!')),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        Navigator.pop(context); // Close loading dialog
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to add portfolio item: $e')),
+                        );
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF4500),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Add Item', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildRatings(
+      BuildContext context, AppState appState, Map<String, dynamic> profile) {
+    final List<dynamic> reviews = profile['reviews'] ?? [];
+    final double avgRating =
+        double.tryParse(profile['average_rating']?.toString() ?? '0') ?? 0.0;
+    final int reviewCount =
+        int.tryParse(profile['review_count']?.toString() ?? '0') ?? reviews.length;
+
+    if (reviews.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            children: [
+              const Icon(Icons.star_outline, color: Color(0xFFCBD5E1), size: 40),
+              const SizedBox(height: 8),
+              const Text(
+                'No reviews yet',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF64748B),
+                    fontSize: 14),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Complete projects to start earning reviews.',
+                style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.9,
-      ),
-      itemCount: projects.length,
-      itemBuilder: (context, index) {
-        final proj = projects[index];
-        final String title = proj['title'] ?? 'Project';
-        final String location = proj['location']?.toString().isNotEmpty == true
-            ? proj['location']
-            : 'Location not specified';
-        final int progress = int.tryParse(proj['progress']?.toString() ?? '0') ?? 0;
-        return Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: const Color(0xFFF8FAFC),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: Container(
-                  color: const Color(0xFF001F3F),
-                  child: const Icon(Icons.business, size: 40, color: Colors.white30),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Summary bar
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF001F3F),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF001F3F))),
-                    const SizedBox(height: 2),
-                    Text(location,
-                        style: const TextStyle(
-                            fontSize: 12, color: Color(0xFF64748B))),
-                    const SizedBox(height: 2),
-                    Text('Progress: $progress%',
-                        style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFFFF4500))),
+                    Text(
+                      avgRating.toStringAsFixed(1),
+                      style: const TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    ),
+                    Row(
+                      children: List.generate(5, (i) {
+                        if (i < avgRating.floor()) {
+                          return const Icon(Icons.star, color: Color(0xFFFBBF24), size: 18);
+                        } else if (i < avgRating) {
+                          return const Icon(Icons.star_half, color: Color(0xFFFBBF24), size: 18);
+                        } else {
+                          return const Icon(Icons.star_outline, color: Color(0xFFFBBF24), size: 18);
+                        }
+                      }),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$reviewCount review${reviewCount == 1 ? '' : 's'}',
+                      style: const TextStyle(color: Colors.white60, fontSize: 13),
+                    ),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        );
-      },
+          const SizedBox(height: 16),
+          // Individual reviews
+          ...reviews.take(3).map((rev) {
+            final name = rev['reviewer_name']?.toString() ?? 'Client';
+            final avatar = rev['reviewer_avatar']?.toString() ?? '';
+            final rating = (rev['rating'] as num?)?.toDouble() ?? 0;
+            final text = rev['text']?.toString() ?? '';
+            final service = rev['service']?.toString() ?? '';
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundColor: const Color(0xFFF1F5F9),
+                        backgroundImage: avatar.startsWith('http')
+                            ? NetworkImage(avatar) as ImageProvider
+                            : null,
+                        child: !avatar.startsWith('http')
+                            ? Text(
+                                name.isNotEmpty ? name[0].toUpperCase() : '?',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF001F3F)),
+                              )
+                            : null,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(name,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    color: Color(0xFF001F3F))),
+                            if (service.isNotEmpty)
+                              Text(service,
+                                  style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF94A3B8))),
+                          ],
+                        ),
+                      ),
+                      Row(
+                        children: List.generate(5, (i) => Icon(
+                          i < rating ? Icons.star : Icons.star_outline,
+                          color: const Color(0xFFFBBF24),
+                          size: 14,
+                        )),
+                      ),
+                    ],
+                  ),
+                  if (text.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Text(text,
+                        style: const TextStyle(
+                            fontSize: 13,
+                            color: Color(0xFF475569),
+                            height: 1.5)),
+                  ],
+                ],
+              ),
+            );
+          }),
+          if (reviews.length > 3)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                '+ ${reviews.length - 3} more reviews',
+                style:
+                    const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEditProfileButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (context) => const EditCompanyProfileScreen()),
+            );
+          },
+          icon: const Icon(Icons.edit_outlined, color: Color(0xFF001F3F)),
+          label: const Text(
+            'Edit Company Profile',
+            style: TextStyle(
+                color: Color(0xFF001F3F), fontWeight: FontWeight.w700),
+          ),
+          style: OutlinedButton.styleFrom(
+            side: const BorderSide(color: Color(0xFF001F3F)),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      ),
     );
   }
 

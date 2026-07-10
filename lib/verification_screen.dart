@@ -30,6 +30,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final appState = AppStateScope.of(context);
+    final role = appState.currentRole;
+    final isCompany = role == 'Company';
+    final totalSteps = isCompany ? 2 : 3;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -39,38 +44,40 @@ class _VerificationScreenState extends State<VerificationScreen> {
           icon: const Icon(Icons.arrow_back, color: Color(0xFF001F3F)),
           onPressed: _isLoading ? null : () => Navigator.pop(context),
         ),
-        title: const Text("Get Verified", style: TextStyle(color: Color(0xFF001F3F), fontWeight: FontWeight.bold)),
+        title: Text(
+          isCompany ? 'Company Verification' : 'Get Verified',
+          style: const TextStyle(color: Color(0xFF001F3F), fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
       ),
       body: Column(
         children: [
-          _buildProgressIndicator(),
+          _buildProgressIndicator(totalSteps),
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.all(24),
               child: IgnorePointer(
                 ignoring: _isLoading,
-                child: _buildStepContent(),
+                child: isCompany ? _buildCompanyStepContent() : _buildStepContent(),
               ),
             ),
           ),
-          _buildBottomActions(),
+          _buildBottomActions(totalSteps),
         ],
       ),
     );
   }
 
-  Widget _buildProgressIndicator() {
+  Widget _buildProgressIndicator(int totalSteps) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
         children: [
-          _buildStepDot(1),
-          _buildStepLine(1),
-          _buildStepDot(2),
-          _buildStepLine(2),
-          _buildStepDot(3),
+          for (int i = 1; i <= totalSteps; i++) ...[
+            _buildStepDot(i),
+            if (i < totalSteps) _buildStepLine(i),
+          ]
         ],
       ),
     );
@@ -99,6 +106,58 @@ class _VerificationScreenState extends State<VerificationScreen> {
     );
   }
 
+  // Company-specific verification steps
+  Widget _buildCompanyStepContent() {
+    if (_currentStep == 1) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Business Registration",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+          const SizedBox(height: 12),
+          const Text(
+            "Upload your official business registration documents and trade license to verify your company.",
+            style: TextStyle(color: Color(0xFF64748B), height: 1.5),
+          ),
+          const SizedBox(height: 32),
+          _buildUploadBox("Business Registration Certificate", Icons.business_outlined),
+          const SizedBox(height: 20),
+          _buildUploadBox("Trade License / Permit", Icons.assignment_outlined),
+          const SizedBox(height: 20),
+          _buildUploadBox("Tax ID / VAT Certificate (Optional)", Icons.receipt_long_outlined),
+          const SizedBox(height: 24),
+          _buildLabel("Registration Number"),
+          _buildTextField(_licenseController, "e.g. BN-123456"),
+        ],
+      );
+    } else {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Compliance Review",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+          const SizedBox(height: 12),
+          const Text(
+            "Provide additional compliance details. This helps us ensure your company meets platform standards.",
+            style: TextStyle(color: Color(0xFF64748B), height: 1.5),
+          ),
+          const SizedBox(height: 32),
+          _buildLabel("Industry / Sector"),
+          _buildTextField(_specializationController, "e.g. Construction, IT, Electrical"),
+          const SizedBox(height: 20),
+          _buildLabel("Years in Operation"),
+          _buildTextField(_experienceController, "e.g. 8 years"),
+          const SizedBox(height: 20),
+          _buildLabel("Company Description"),
+          _buildTextField(_bioController, "Brief overview of your company and services...", maxLines: 4),
+          const SizedBox(height: 20),
+          _buildUploadBox("Director / Signatory ID", Icons.person_outline),
+        ],
+      );
+    }
+  }
+
+  // Technician verification steps
   Widget _buildStepContent() {
     if (_currentStep == 1) {
       return Column(
@@ -195,7 +254,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
     );
   }
 
-  Widget _buildBottomActions() {
+  Widget _buildBottomActions(int totalSteps) {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
       decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0xFFE2E8F0)))),
@@ -219,7 +278,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
               onPressed: _isLoading
                   ? null
                   : () async {
-                      if (_currentStep < 3) {
+                      if (_currentStep < totalSteps) {
                         setState(() => _currentStep++);
                       } else {
                         setState(() {
@@ -267,7 +326,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : Text(_currentStep == 3 ? "Submit for Review" : "Continue"),
+                  : Text(_currentStep == totalSteps ? "Submit for Review" : "Continue"),
             ),
           ),
         ],

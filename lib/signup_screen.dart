@@ -20,7 +20,9 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
-
+  final TextEditingController _regNumController = TextEditingController();
+  final TextEditingController _taxIdController = TextEditingController();
+  final TextEditingController _industryController = TextEditingController();
   int _passwordStrength = 0;
   String _passwordStrengthText = "";
   Color _passwordStrengthColor = const Color(0xFFE2E8F0);
@@ -30,6 +32,9 @@ class _SignupScreenState extends State<SignupScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
+    _regNumController.dispose();
+    _taxIdController.dispose();
+    _industryController.dispose();
     super.dispose();
   }
 
@@ -179,9 +184,9 @@ class _SignupScreenState extends State<SignupScreen> {
 
                       // Full Name
                       RichText(
-                        text: const TextSpan(
-                          text: "Full Name",
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF001F3F)),
+                        text: TextSpan(
+                          text: _selectedRole == "Company" ? "Company Name" : "Full Name",
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF001F3F)),
                           children: [
                             TextSpan(text: " *", style: TextStyle(color: Color(0xFFEF4444))),
                           ],
@@ -191,9 +196,9 @@ class _SignupScreenState extends State<SignupScreen> {
                       TextField(
                         controller: _nameController,
                         decoration: InputDecoration(
-                          hintText: "e.g. John Doe",
+                          hintText: _selectedRole == "Company" ? "e.g. Acme Corp" : "e.g. John Doe",
                           hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 15),
-                          prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF64748B)),
+                          prefixIcon: Icon(_selectedRole == "Company" ? Icons.business : Icons.person_outline, color: const Color(0xFF64748B)),
                           filled: true,
                           fillColor: Colors.white,
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -203,6 +208,80 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
+
+                      if (_selectedRole == "Company") ...[
+                        // Registration Number
+                        RichText(
+                          text: const TextSpan(
+                            text: "Registration Number",
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF001F3F)),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _regNumController,
+                          decoration: InputDecoration(
+                            hintText: "e.g. RC-123456",
+                            hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 15),
+                            prefixIcon: const Icon(Icons.numbers, color: Color(0xFF64748B)),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF001F3F))),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Tax ID
+                        RichText(
+                          text: const TextSpan(
+                            text: "Tax ID (Optional)",
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF001F3F)),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _taxIdController,
+                          decoration: InputDecoration(
+                            hintText: "e.g. 000-111-222",
+                            hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 15),
+                            prefixIcon: const Icon(Icons.receipt_long, color: Color(0xFF64748B)),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF001F3F))),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Industry
+                        RichText(
+                          text: const TextSpan(
+                            text: "Industry",
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF001F3F)),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _industryController,
+                          decoration: InputDecoration(
+                            hintText: "e.g. Real Estate, Plumbing, Tech",
+                            hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 15),
+                            prefixIcon: const Icon(Icons.category_outlined, color: Color(0xFF64748B)),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF001F3F))),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
 
                       // Email Address
                       RichText(
@@ -399,6 +478,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                 password: password,
                                 phone: phone,
                                 role: _selectedRole,
+                                registrationNumber: _selectedRole == 'Company' ? _regNumController.text.trim() : null,
+                                taxId: _selectedRole == 'Company' ? _taxIdController.text.trim() : null,
+                                industry: _selectedRole == 'Company' ? _industryController.text.trim() : null,
                               );
                               final challengeId = otpRes['challenge_id'] as int;
 

@@ -163,12 +163,18 @@ class ApiService {
     required String email,
     required String password,
     required String phone,
+    String? registrationNumber,
+    String? taxId,
+    String? industry,
   }) async {
     final response = await post('/auth/register/company/', {
       'company_name': companyName,
       'email': email,
       'password': password,
       'phone': phone,
+      if (registrationNumber != null) 'registration_number': registrationNumber,
+      if (taxId != null) 'tax_id': taxId,
+      if (industry != null) 'industry': industry,
     }, requireAuth: false);
 
     if (response.statusCode != 201) {
@@ -746,6 +752,42 @@ class ApiService {
     final response = await delete('/auth/saved-services/$serviceId/');
     if (response.statusCode != 204 && response.statusCode != 200) {
       throw Exception('Failed to unsave service.');
+    }
+  }
+
+  // ─── COMPANY PROJECTS ────────────────────────────────────────────────────────
+
+  Future<List<dynamic>> fetchCompanyProjects() async {
+    final response = await get('/company/projects/');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load company projects.');
+    }
+  }
+
+  Future<Map<String, dynamic>> createCompanyProject(Map<String, dynamic> body) async {
+    final response = await post('/company/projects/', body);
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final err = jsonDecode(response.body);
+      throw Exception(err['error'] ?? 'Failed to create project.');
+    }
+  }
+
+  Future<Map<String, dynamic>> updateCompanyProject(String id, Map<String, dynamic> body) async {
+    final url = Uri.parse('$baseUrl/company/projects/$id/');
+    final response = await http.patch(
+      url,
+      headers: _getHeaders(),
+      body: jsonEncode(body),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final err = jsonDecode(response.body);
+      throw Exception(err['error'] ?? 'Failed to update project.');
     }
   }
 

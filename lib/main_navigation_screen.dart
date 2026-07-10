@@ -11,6 +11,7 @@ import 'wallet_screen.dart';
 import 'company_profile_screen.dart';
 import 'post_service_screen.dart';
 import 'admin_panel_screen.dart';
+import 'projects_contracts_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   final int initialIndex;
@@ -51,7 +52,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     } else if (role == 'Company') {
       _screens = [
         const DashboardScreen(role: 'Company'),
-        const MyTasksScreen(),
+        const ProjectsContractsScreen(),
         const MessagesScreen(),
         const CompanyProfileScreen(),
       ];

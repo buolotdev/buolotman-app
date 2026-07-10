@@ -15,18 +15,7 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = 'All';
 
-  final List<String> _categories = [
-    'All',
-    'Plumbing',
-    'Electrical',
-    'HVAC',
-    'Carpentry',
-    'Painting',
-    'Masonry',
-    'Security',
-    'Cleaning',
-    'Furniture'
-  ];
+
 
   @override
   void dispose() {
@@ -38,6 +27,7 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
   Widget build(BuildContext context) {
     return GetBuilder<AppState>(
       builder: (appState) {
+        final List<String> categories = ['All', ...appState.apiCategories.map((c) => c['name'].toString())];
         final query = _searchController.text.trim().toLowerCase();
         final filteredPros = appState.publicPros.where((user) {
           final String name = '${user['first_name'] ?? ''} ${user['last_name'] ?? ''}'.trim().toLowerCase();
@@ -78,7 +68,7 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
             child: Column(
               children: [
                 _buildSearchSection(),
-                _buildCategoryChips(),
+                _buildCategoryChips(categories),
                 Expanded(
                   child: filteredPros.isEmpty
                       ? _buildEmptyState()
@@ -141,16 +131,16 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
     );
   }
 
-  Widget _buildCategoryChips() {
+  Widget _buildCategoryChips(List<String> categories) {
     return Container(
       height: 56,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        itemCount: _categories.length,
+        itemCount: categories.length,
         itemBuilder: (context, index) {
-          final cat = _categories[index];
+          final cat = categories[index];
           final active = _selectedCategory == cat;
           return GestureDetector(
             onTap: () => setState(() => _selectedCategory = cat),

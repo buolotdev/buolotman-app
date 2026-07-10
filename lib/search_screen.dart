@@ -374,14 +374,8 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildSuggestedCategories() {
-    final categories = [
-      {'label': 'Electrical', 'icon': Icons.bolt},
-      {'label': 'Plumbing', 'icon': Icons.opacity},
-      {'label': 'Carpentry', 'icon': Icons.handyman},
-      {'label': 'Painting', 'icon': Icons.format_paint},
-      {'label': 'Moving Services', 'icon': Icons.local_shipping},
-      {'label': 'Handyman', 'icon': Icons.build},
-    ];
+    final appState = AppStateScope.of(context);
+    final categories = appState.apiCategories.take(6).toList();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
@@ -398,7 +392,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   (cat) => GestureDetector(
                     onTap: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => ListingScreen(initialQuery: cat['label'] as String)),
+                        MaterialPageRoute(builder: (context) => ListingScreen(initialQuery: cat['name'] as String)),
                       );
                     },
                     child: Container(
@@ -410,9 +404,9 @@ class _SearchScreenState extends State<SearchScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(cat['icon'] as IconData, size: 18, color: const Color(0xFF001F3F)),
+                          const Icon(Icons.category_outlined, size: 16, color: Color(0xFF64748B)),
                           const SizedBox(width: 8),
-                          Text(cat['label'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
+                          Text(cat['name'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
                         ],
                       ),
                     ),

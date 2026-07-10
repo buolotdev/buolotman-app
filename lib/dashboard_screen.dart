@@ -57,14 +57,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  final List<Map<String, dynamic>> _categories = [
-    {'label': 'Plumbing', 'icon': Icons.opacity},
-    {'label': 'Electrical', 'icon': Icons.bolt},
-    {'label': 'Cleaning', 'icon': Icons.auto_awesome},
-    {'label': 'Carpentry', 'icon': Icons.handyman},
-    {'label': 'Painting', 'icon': Icons.format_paint},
-    {'label': 'Repair', 'icon': Icons.build},
-  ];
 
   @override
   void initState() {
@@ -124,17 +116,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           _buildSectionHeader("Active Projects", "Manage", onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MyTasksScreen()));
                           }),
-                          _buildRecentTasks(appState),
+                          _buildCompanyActiveProjects(appState),
                           const SizedBox(height: 28),
                           _buildSectionHeader("Your Team", "Open", onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const CompanyProfileScreen()));
                           }),
-                          _buildTopProfessionals(appState),
+                          _buildCompanyTeam(appState),
                           const SizedBox(height: 28),
                           _buildSectionHeader("Service Catalog", "Edit", onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PostServiceScreen()));
                           }),
-                          _buildPopularServices(appState),
+                          _buildCompanyServiceCatalog(appState),
                         ] else ...[
                           _buildWalletCard(appState),
                           const SizedBox(height: 24),
@@ -721,6 +713,312 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  // ── Company-specific dashboard sections ─────────────────────────────────────
+
+  /// Shows ONLY this company's own posted projects (from clientTasks, posted by this user)
+  Widget _buildCompanyActiveProjects(AppState appState) {
+    final myTasks = appState.clientTasks;
+
+    if (myTasks.isEmpty) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Column(
+          children: [
+            const Icon(Icons.assignment_outlined, size: 36, color: Color(0xFF94A3B8)),
+            const SizedBox(height: 8),
+            const Text('No active projects yet',
+                style: TextStyle(color: Color(0xFF64748B), fontSize: 14, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 4),
+            const Text('Post a task to start finding professionals',
+                style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12), textAlign: TextAlign.center),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: myTasks.map((task) {
+          final statusColor = task.status == 'In Progress'
+              ? const Color(0xFF16A34A)
+              : task.status == 'Completed'
+                  ? const Color(0xFF2563EB)
+                  : const Color(0xFFFF4500);
+          return GestureDetector(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const MyTasksScreen()),
+            ),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.assignment_outlined, color: statusColor, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(task.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on_outlined, size: 13, color: const Color(0xFF94A3B8)),
+                            const SizedBox(width: 3),
+                            Expanded(
+                              child: Text(task.location,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('\$${task.budget.toStringAsFixed(0)}',
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(task.status,
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: statusColor)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  /// Shows technicians hired/saved by this company from companyProfile team data
+  Widget _buildCompanyTeam(AppState appState) {
+    final teamData = appState.companyProfile?['team'] as List<dynamic>? ?? [];
+
+    if (teamData.isEmpty) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Column(
+          children: [
+            const Icon(Icons.group_outlined, size: 36, color: Color(0xFF94A3B8)),
+            const SizedBox(height: 8),
+            const Text('No team members yet',
+                style: TextStyle(color: Color(0xFF64748B), fontSize: 14, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 4),
+            const Text('Hire professionals to build your team',
+                style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12), textAlign: TextAlign.center),
+          ],
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 130,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        physics: const BouncingScrollPhysics(),
+        itemCount: teamData.length,
+        itemBuilder: (context, index) {
+          final member = teamData[index] as Map<String, dynamic>;
+          final name = '${member['first_name'] ?? ''} ${member['last_name'] ?? ''}'.trim().isNotEmpty
+              ? '${member['first_name']} ${member['last_name']}'.trim()
+              : (member['username'] ?? 'Member');
+          final role = member['role']?.toString() ?? member['skills']?.toString() ?? 'Team Member';
+          final avatarUrl = member['avatar_url']?.toString() ?? '';
+          return Container(
+            width: 110,
+            margin: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: avatarUrl.startsWith('http')
+                      ? ClipOval(child: Image.network(avatarUrl, fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(Icons.person, color: Color(0xFF94A3B8), size: 24)))
+                      : const Icon(Icons.person, color: Color(0xFF94A3B8), size: 24),
+                ),
+                const SizedBox(height: 8),
+                Text(name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
+                const SizedBox(height: 2),
+                Text(role,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Shows ONLY this company's own posted services — no hardcoded images
+  Widget _buildCompanyServiceCatalog(AppState appState) {
+    final myId = appState.currentUser.id.toString();
+    final myServices = appState.services
+        .where((s) => s.providerId == myId)
+        .toList();
+
+    if (myServices.isEmpty) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Column(
+          children: [
+            const Icon(Icons.miscellaneous_services_outlined, size: 36, color: Color(0xFF94A3B8)),
+            const SizedBox(height: 8),
+            const Text('No services posted yet',
+                style: TextStyle(color: Color(0xFF64748B), fontSize: 14, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 4),
+            const Text('Tap "Edit" above to post your first service',
+                style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12), textAlign: TextAlign.center),
+          ],
+        ),
+      );
+    }
+
+    // Category → icon mapping
+    IconData _categoryIcon(String cat) {
+      final c = cat.toLowerCase();
+      if (c.contains('elec')) return Icons.electrical_services;
+      if (c.contains('plumb')) return Icons.plumbing;
+      if (c.contains('clean')) return Icons.cleaning_services;
+      if (c.contains('hvac')) return Icons.ac_unit;
+      if (c.contains('carp')) return Icons.carpenter;
+      if (c.contains('paint')) return Icons.format_paint;
+      if (c.contains('secur')) return Icons.security;
+      if (c.contains('it') || c.contains('tech') || c.contains('dev')) return Icons.computer;
+      if (c.contains('land') || c.contains('garden')) return Icons.grass;
+      return Icons.miscellaneous_services_outlined;
+    }
+
+    return SizedBox(
+      height: 155,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: myServices.length,
+        itemBuilder: (context, index) {
+          final svc = myServices[index];
+          final icon = _categoryIcon(svc.category);
+          return Container(
+            width: 165,
+            margin: const EdgeInsets.only(right: 14),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF001F3F).withValues(alpha: 0.03),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF4500).withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: const Color(0xFFFF4500), size: 24),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  svc.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF001F3F)),
+                ),
+                const Spacer(),
+                Text(
+                  svc.priceLabel,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFFFF4500)),
+                ),
+                Text(
+                  svc.category,
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildTrustBanner() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1300,10 +1598,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     if (role != 'Client') ...[
                       const Divider(height: 24, thickness: 1, indent: 20, endIndent: 20),
                       _buildDrawerSection('Categories'),
-                      ..._categories.map((cat) => _buildDrawerItem(
+                      ...appState.apiCategories.map((cat) => _buildDrawerItem(
                         context: context,
-                        icon: cat['icon'],
-                        label: cat['label'],
+                        icon: Icons.category_outlined,
+                        label: cat['name'] ?? '',
                         onTap: () {
                           Navigator.pop(context);
                           Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TaskFeedScreen()));
