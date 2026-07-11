@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'chat_screen.dart';
 import 'package:get/get.dart';
 import 'app_state.dart';
 
@@ -456,9 +457,44 @@ class _ProjectDetailSheetState extends State<_ProjectDetailSheet> {
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFF001F3F))),
                                 const SizedBox(height: 4),
-                                Text('Client: $clientName',
+                                Text(widget.appState.currentRole == 'Company' ? 'Client: $clientName' : 'Company: ${project['company_name'] ?? 'Unknown'}',
                                     style: const TextStyle(
                                         fontSize: 14, color: Color(0xFF64748B))),
+                                const SizedBox(height: 8),
+                                OutlinedButton.icon(
+                                  icon: const Icon(Icons.chat_bubble_outline, size: 14),
+                                  label: Text(widget.appState.currentRole == 'Company' ? 'Message Client' : 'Message Company', style: const TextStyle(fontSize: 12)),
+                                  onPressed: () {
+                                    final otherName = widget.appState.currentRole == 'Company' ? clientName : (project['company_name']?.toString() ?? 'Company');
+                                    final existingThreadId = widget.appState.threads
+                                        .where((t) => t.name == otherName)
+                                        .map((t) => t.id)
+                                        .firstOrNull;
+                                    if (existingThreadId == null) {
+                                      widget.appState.createOrOpenThread(
+                                        otherPartyName: otherName,
+                                        otherPartyImage: '',
+                                        initialMessage: 'Hi $otherName, let\'s chat about contract: "$title".',
+                                      );
+                                    }
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => ChatScreen(
+                                          name: otherName,
+                                          image: '',
+                                          threadId: existingThreadId,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                                    minimumSize: const Size(0, 32),
+                                    foregroundColor: const Color(0xFF001F3F),
+                                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -514,7 +550,7 @@ class _ProjectDetailSheetState extends State<_ProjectDetailSheet> {
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF001F3F))),
                       const SizedBox(height: 12),
-                      _buildPaymentStatusSelector(paymentStatus, id),
+                      _buildPaymentStatusSelector(paymentStatus, id, budget, milestonesCompleted, milestonesTotal),
                       const SizedBox(height: 28),
 
                       // Contract Status
@@ -685,49 +721,87 @@ class _ProjectDetailSheetState extends State<_ProjectDetailSheet> {
     );
   }
 
-  Widget _buildPaymentStatusSelector(String current, String projectId) {
-    final options = [
-      {'key': 'awaiting', 'label': '⏳ Awaiting Payment', 'color': const Color(0xFF94A3B8)},
-      {'key': 'in_escrow', 'label': '🔒 Funds in Escrow', 'color': const Color(0xFF7C3AED)},
-      {'key': 'released', 'label': '✓ Payment Released', 'color': const Color(0xFF16A34A)},
-    ];
+  Widget _buildPaymentStatusSelector(String current, String projectId, double budget, int completed, int total) {
+    final double milestoneAmount = total > 0 ? budget / total : budget;
     return Column(
-      children: options.map((opt) {
-        final isSelected = current == opt['key'];
-        final color = opt['color'] as Color;
-        return GestureDetector(
-          onTap: _isUpdating
-              ? null
-              : () => _updatePaymentStatus(projectId, opt['key'] as String),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: isSelected ? color.withValues(alpha: 0.08) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isSelected ? color : const Color(0xFFE2E8F0),
-                width: isSelected ? 1.5 : 1,
+      children: [
+        _buildPaymentCheckbox('Awaiting Payment', current == 'awaiting',
+            isCompleted: current != 'awaiting'),
+        const SizedBox(height: 12),
+        _buildPaymentCheckbox('Funds in Escrow', current == 'in_escrow',
+            isCompleted: current == 'released'),
+        const SizedBox(height: 12),
+        _buildPaymentCheckbox('Payment Released', current == 'released',
+            isCompleted: false),
+        if (widget.appState.currentRole == 'Client') ...[
+          const SizedBox(height: 24),
+          if (current == 'awaiting')
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.account_balance_wallet),
+                label: Text('Fund Escrow (\$${milestoneAmount.toStringAsFixed(2)})'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF16A34A),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: _isUpdating ? null : () async {
+                  setState(() => _isUpdating = true);
+                  await widget.appState.fundContractEscrow(projectId);
+                  if (mounted) {
+                    setState(() => _isUpdating = false);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Funds secured in escrow!'), backgroundColor: Colors.green));
+                    Navigator.pop(context);
+                  }
+                },
+              ),
+            )
+          else if (current == 'in_escrow')
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.check_circle_outline),
+                label: const Text('Release Funds to Company'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: completed == total && total > 0 ? const Color(0xFF2563EB) : Colors.grey,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: _isUpdating || completed < total || total == 0 ? null : () async {
+                  setState(() => _isUpdating = true);
+                  await widget.appState.releaseContractEscrow(projectId);
+                  if (mounted) {
+                    setState(() => _isUpdating = false);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment released successfully!'), backgroundColor: Colors.green));
+                    Navigator.pop(context);
+                  }
+                },
               ),
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(opt['label'] as String,
-                      style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                          color:
-                              isSelected ? color : const Color(0xFF64748B))),
-                ),
-                if (isSelected)
-                  Icon(Icons.check_circle, color: color, size: 20),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPaymentCheckbox(String label, bool isSelected, {required bool isCompleted}) {
+    final color = isCompleted ? const Color(0xFF16A34A) : (isSelected ? const Color(0xFF2563EB) : const Color(0xFF94A3B8));
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isSelected ? color.withValues(alpha: 0.05) : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: isSelected ? color : const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          Icon(isCompleted ? Icons.check_circle : (isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked), color: color, size: 20),
+          const SizedBox(width: 12),
+          Text(label, style: TextStyle(fontWeight: FontWeight.w600, color: isSelected || isCompleted ? const Color(0xFF001F3F) : const Color(0xFF64748B))),
+        ],
+      ),
     );
   }
 

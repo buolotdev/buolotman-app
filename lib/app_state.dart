@@ -42,6 +42,7 @@ class AppState extends GetxController {
   List<dynamic> _portfolioItems = [];
   List<Map<String, dynamic>> _apiCategories = [];
   List<Map<String, dynamic>> _companyProjects = [];
+  List<Map<String, dynamic>> _clientContracts = [];
 
   String? _companyRegistrationStatus;
   String? _companyRegistrationSummary;
@@ -65,6 +66,7 @@ class AppState extends GetxController {
   List<dynamic> get searchResults => List.unmodifiable(_searchResults);
   List<dynamic> get portfolioItems => List.unmodifiable(_portfolioItems);
   List<Map<String, dynamic>> get companyProjects => List.unmodifiable(_companyProjects);
+  List<Map<String, dynamic>> get clientContracts => List.unmodifiable(_clientContracts);
   String? get companyRegistrationStatus => _companyRegistrationStatus;
   String? get companyRegistrationSummary => _companyRegistrationSummary;
   String? get verificationStatus => _verificationStatus;
@@ -212,7 +214,7 @@ class AppState extends GetxController {
       );
     }
     // Request verification OTP code immediately
-    return await ApiService.instance.requestPhoneOTP(phone, email: email, purpose: 'register');
+    return await ApiService.instance.requestPhoneOTP(phone: phone, email: email, purpose: 'register');
   }
 
 
@@ -237,6 +239,7 @@ class AppState extends GetxController {
     _savedPros.clear();
     _savedServices.clear();
     _companyProjects.clear();
+    _clientContracts.clear();
     update();
   }
 
@@ -270,11 +273,32 @@ class AppState extends GetxController {
       _companyProjects = raw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
       update();
     } catch (e) {
-      debugPrint('Sync company projects error: $e');
+      debugPrint('Error syncing company projects: $e');
     }
   }
 
+  Future<void> syncClientContracts() async {
+    try {
+      final raw = await ApiService.instance.fetchClientContracts();
+      _clientContracts = raw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      update();
+    } catch (e) {
+      debugPrint('Error syncing client contracts: $e');
+    }
+  }
+
+  Future<void> fundContractEscrow(String projectId) async {
+    await ApiService.instance.fundEscrowPayment(projectId);
+    await syncClientContracts();
+  }
+
+  Future<void> releaseContractEscrow(String projectId) async {
+    await ApiService.instance.releaseEscrowPayment(projectId);
+    await syncClientContracts();
+  }
+
   Future<Map<String, dynamic>> createProject({
+    int? clientId,
     required String title,
     required String clientName,
     required double budget,
@@ -285,6 +309,7 @@ class AppState extends GetxController {
     final data = await ApiService.instance.createCompanyProject({
       'title': title,
       'client_name': clientName,
+      'client_id': clientId,
       'budget': budget.toString(),
       'timeline': timeline,
       'milestones_total': milestonesTotal,
@@ -338,18 +363,35 @@ class AppState extends GetxController {
   }
 
   Future<void> syncAll() async {
-    await syncProfile();
-    await syncTasks();
-    await syncWallet();
-    await syncConversations();
-    await syncPublicData();
-    await syncCategories();
-    if (currentRole == 'Company' || currentRole == 'Technician') await syncMyServices();
-    if (currentRole == 'Company') await syncCompanyProjects();
-    await syncBids();
-    await syncPortfolio();
-    await syncSavedPros();
-    await syncSavedServices();
+    final List<Future<void>> futures = [
+      syncProfile(),
+      syncTasks(),
+      syncWallet(),
+      syncConversations(),
+      syncPublicData(),
+      syncCategories(),
+      syncBids(),
+      syncPortfolio(),
+      syncSavedPros(),
+      syncSavedServices(),
+    ];
+    if (currentRole == 'Company' || currentRole == 'Technician') {
+      futures.add(syncMyServices());
+    }
+    if (currentRole == 'Company') {
+      futures.add(syncCompanyProjects());
+    }
+    if (currentRole == 'Client') {
+      futures.add(syncClientContracts());
+    }
+
+    try {
+      await Future.wait(futures.map((f) => f.catchError((e) {
+        debugPrint('Error in syncAll concurrent sub-task: $e');
+      })));
+    } catch (e) {
+      debugPrint('Sync All Error: $e');
+    }
   }
 
   TaskItem _mapTaskItem(dynamic t) {
@@ -1176,6 +1218,8 @@ class AppState extends GetxController {
           text: m['text'] ?? '',
           time: _formatTime12Hour(m['created_at']),
           isMe: senderId == currentUser.id,
+          attachmentUrl: m['attachment_url'],
+          attachmentName: m['attachment_name'],
         );
       }).toList();
       _threadMessages[threadId] = messages;
@@ -1185,9 +1229,9 @@ class AppState extends GetxController {
     }
   }
 
-  Future<void> sendMessage(String threadId, String text) async {
+  Future<void> sendMessage(String threadId, String text, {String? attachmentUrl, String? attachmentName}) async {
     final int convId = int.tryParse(threadId) ?? 0;
-    await ApiService.instance.sendMessage(convId, text);
+    await ApiService.instance.sendMessage(convId, text, attachmentUrl: attachmentUrl, attachmentName: attachmentName);
     await syncThreadMessages(threadId);
     await syncConversations();
   }
@@ -1201,14 +1245,13 @@ class AppState extends GetxController {
     update();
   }
 
-  Future<void> createOrOpenThread({
+  Future<String?> createOrOpenThread({
     required String otherPartyName,
     required String otherPartyImage,
     String initialMessage = '',
+    String? attachmentUrl,
+    String? attachmentName,
   }) async {
-    // For demo integration, we look up the user by name or create a standard thread
-    // To wire completely, we would fetch users list, find correct id, and call createConversation.
-    // If not found, we fallback to opening thread 1.
     try {
       final usersResponse = await ApiService.instance.get('/auth/users/');
       final List<dynamic> users = jsonDecode(usersResponse.body);
@@ -1225,12 +1268,14 @@ class AppState extends GetxController {
       final conv = await ApiService.instance.createConversation(otherUserId);
       final int convId = conv['id'] ?? 1;
       if (initialMessage.isNotEmpty) {
-        await ApiService.instance.sendMessage(convId, initialMessage);
+        await ApiService.instance.sendMessage(convId, initialMessage, attachmentUrl: attachmentUrl, attachmentName: attachmentName);
       }
       await syncConversations();
       await syncThreadMessages(convId.toString());
+      return convId.toString();
     } catch (e) {
       debugPrint('Create Thread Error: $e');
+      return null;
     }
   }
 
@@ -1240,6 +1285,15 @@ class AppState extends GetxController {
   }) async {
     await ApiService.instance.requestWithdrawal(amount, method);
     await syncWallet();
+  }
+
+  Future<void> deleteCompanyProject(String projectId) async {
+    await ApiService.instance.deleteCompanyProject(projectId);
+    final idx = _companyProjects.indexWhere((p) => p['id']?.toString() == projectId);
+    if (idx >= 0) {
+      _companyProjects[idx]['status'] = 'deleted';
+    }
+    update();
   }
 
   // ─── LOCAL STATE PREFS ─────────────────────────────────────────────────────
@@ -1442,11 +1496,16 @@ class AppState extends GetxController {
   }
 
   Future<Map<String, dynamic>> requestLoginOTP(String phone) async {
-    return await ApiService.instance.requestPhoneOTP(phone, purpose: 'login');
+    return await ApiService.instance.requestPhoneOTP(phone: phone, purpose: 'login');
   }
 
   Future<Map<String, dynamic>> requestOTP(String identifier, String purpose) async {
-    return await ApiService.instance.requestPhoneOTP(identifier, email: identifier.contains('@') ? identifier : null, purpose: purpose);
+    final isEmail = identifier.contains('@');
+    return await ApiService.instance.requestPhoneOTP(
+      phone: isEmail ? null : identifier,
+      email: isEmail ? identifier : null,
+      purpose: purpose,
+    );
   }
 
   Future<void> verifyOTPAndLogin(int challengeId, String code) async {
@@ -1457,6 +1516,18 @@ class AppState extends GetxController {
     } else {
       throw Exception('Login credentials were not returned.');
     }
+  }
+
+  Future<void> resetPassword({
+    required int challengeId,
+    required String code,
+    required String newPassword,
+  }) async {
+    await ApiService.instance.resetPassword(
+      challengeId: challengeId,
+      code: code,
+      newPassword: newPassword,
+    );
   }
 
   List<dynamic> _adminUsersList = [];

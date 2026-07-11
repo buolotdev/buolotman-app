@@ -510,29 +510,41 @@ Future<Response> tokenRefreshHandler(Request request) async {
 
 Future<Response> requestOtpHandler(Request request) async {
   final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
-  final phone = body['phone']?.toString().trim();
-  final email = body['email']?.toString().trim();
+  var phone = body['phone']?.toString().trim() ?? '';
+  final email = body['email']?.toString().trim() ?? '';
   final purpose = body['purpose']?.toString().trim() ?? 'verification';
-
-  if (phone == null || phone.isEmpty) {
-    return errorResponse('phone is required', statusCode: 400);
-  }
 
   // Find user by email or phone
   int? userId;
-  if (email != null && email.isNotEmpty) {
-    final res = await dbPool.execute(Sql.named('SELECT id FROM accounts_user WHERE email = @email'), parameters: {'email': email});
-    if (res.isNotEmpty) userId = res[0][0] as int;
+  if (email.isNotEmpty) {
+    final res = await dbPool.execute(Sql.named('SELECT id, phone FROM accounts_user WHERE email = @email'), parameters: {'email': email});
+    if (res.isNotEmpty) {
+      userId = res[0][0] as int;
+      if (phone.isEmpty) {
+        phone = res[0][1]?.toString().trim() ?? '';
+      }
+    } else {
+      if (purpose == 'forgot_password' || purpose == 'verification') {
+        return errorResponse('A user with this email does not exist.', statusCode: 404);
+      }
+    }
   }
-  if (userId == null) {
+
+  if (userId == null && phone.isNotEmpty) {
     final res = await dbPool.execute(Sql.named('SELECT id FROM accounts_user WHERE phone = @phone'), parameters: {'phone': phone});
     if (res.isNotEmpty) userId = res[0][0] as int;
   }
 
+  if (phone.isEmpty && email.isEmpty) {
+    return errorResponse('phone or email is required', statusCode: 400);
+  }
+
+  final finalPhone = phone.isEmpty ? '0000000000' : phone;
+
   // Mock OTP challenge: code 1234 (or randomized, let's randomize to 4-digit format to match Flutter boxes)
   final code = (1000 + (DateTime.now().microsecondsSinceEpoch % 9000)).toString();
   print('========================');
-  print('OTP SEND REQUESTED FOR: $phone');
+  print('OTP SEND REQUESTED FOR: $finalPhone');
   print('CODE GENERATED: $code');
   print('========================');
 
@@ -543,8 +555,8 @@ Future<Response> requestOtpHandler(Request request) async {
     Sql.named('INSERT INTO accounts_phone_otp_challenge (phone, email, purpose, code_hash, attempts, expires_at, metadata, created_at, user_id) '
               'VALUES (@phone, @email, @purpose, @codeHash, @attempts, @expiresAt, @metadata, @now, @userId) RETURNING id'),
     parameters: {
-      'phone': phone,
-      'email': email ?? '',
+      'phone': finalPhone,
+      'email': email,
       'purpose': purpose,
       'codeHash': codeHash,
       'attempts': 0,
@@ -559,6 +571,7 @@ Future<Response> requestOtpHandler(Request request) async {
     'message': 'OTP sent',
     'challenge_id': res[0][0],
     'expires_at': expiresAt.toIso8601String(),
+    'code': code,
   });
 }
 
@@ -672,6 +685,48 @@ Future<Response> verifyOtpHandler(Request request) async {
   }
 
   return jsonResponse(responseData);
+}
+
+Future<Response> resetPasswordHandler(Request request) async {
+  final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
+  final challengeIdVal = body['challenge_id'];
+  final code = body['code']?.toString().trim();
+  final newPassword = body['new_password']?.toString();
+
+  if (challengeIdVal == null || code == null || code.isEmpty || newPassword == null || newPassword.isEmpty) {
+    return errorResponse('challenge_id, code, and new_password are required', statusCode: 400);
+  }
+
+  final challengeId = int.tryParse(challengeIdVal.toString()) ?? 0;
+  final results = await dbPool.execute(
+    Sql.named('SELECT * FROM accounts_phone_otp_challenge WHERE id = @id'),
+    parameters: {'id': challengeId},
+  );
+
+  if (results.isEmpty) {
+    return errorResponse('OTP challenge not found', statusCode: 404);
+  }
+
+  final challenge = results[0].toColumnMap();
+  final codeHash = challenge['code_hash'] as String? ?? '';
+  final isValid = verifyPassword(code, codeHash);
+  if (!isValid) {
+    return errorResponse('Invalid OTP', statusCode: 400);
+  }
+
+  final userId = challenge['user_id'] as int?;
+  if (userId == null) {
+    return errorResponse('No user associated with this challenge', statusCode: 400);
+  }
+
+  // Hash new password
+  final hashed = hashPassword(newPassword);
+  await dbPool.execute(
+    Sql.named('UPDATE accounts_user SET password = @pwd WHERE id = @id'),
+    parameters: {'pwd': hashed, 'id': userId},
+  );
+
+  return jsonResponse({'message': 'Password reset successful'});
 }
 
 Future<Response> registerClientHandler(Request request) async {
@@ -2787,6 +2842,19 @@ Future<Response> releaseEscrowHandler(Request request, String taskIdStr) async {
 
 // ─── MESSAGING CONTROLLERS ─────────────────────────────────────────────────
 
+
+Future<List<Map<String, dynamic>>> resolveParticipantNames(dynamic dbPool, Iterable<dynamic> pQuery) async {
+  final participants = <Map<String, dynamic>>[];
+  for (final p in pQuery) {
+    final u = p.toColumnMap();
+    if (u['role'] == 'COMPANY' && u['company_name'] != null) {
+      u['first_name'] = u['company_name'];
+    }
+    participants.add(formatUserPublic(u));
+  }
+  return participants;
+}
+
 Future<Response> listConversationsHandler(Request request) async {
   final userId = getUserId(request);
   final results = await dbPool.execute(
@@ -2801,10 +2869,10 @@ Future<Response> listConversationsHandler(Request request) async {
 
     // Get participants
     final participantsQuery = await dbPool.execute(
-      Sql.named('SELECT u.* FROM accounts_user u JOIN messaging_conversation_participants cp ON u.id = cp.user_id WHERE cp.conversation_id = @convId'),
+      Sql.named('SELECT u.*, c.company_name FROM accounts_user u JOIN messaging_conversation_participants cp ON u.id = cp.user_id LEFT JOIN companies_profile c ON u.id = c.user_id WHERE cp.conversation_id = @convId'),
       parameters: {'convId': convId},
     );
-    final participants = participantsQuery.map((u) => formatUserPublic(u.toColumnMap())).toList();
+    final participants = await resolveParticipantNames(dbPool, participantsQuery);
 
     // Get last message
     final msgQuery = await dbPool.execute(
@@ -2889,10 +2957,10 @@ Future<Response> createConversationHandler(Request request) async {
 
   // Return detail
   final pQuery = await dbPool.execute(
-    Sql.named('SELECT u.* FROM accounts_user u JOIN messaging_conversation_participants cp ON u.id = cp.user_id WHERE cp.conversation_id = @cId'),
+    Sql.named('SELECT u.*, c.company_name FROM accounts_user u JOIN messaging_conversation_participants cp ON u.id = cp.user_id LEFT JOIN companies_profile c ON u.id = c.user_id WHERE cp.conversation_id = @cId'),
     parameters: {'cId': convId},
   );
-  final participants = pQuery.map((u) => formatUserPublic(u.toColumnMap())).toList();
+  final participants = await resolveParticipantNames(dbPool, pQuery);
 
   final messagesQuery = await dbPool.execute(
     Sql.named('SELECT * FROM messaging_message WHERE conversation_id = @cId ORDER BY created_at ASC'),
@@ -2934,10 +3002,10 @@ Future<Response> conversationDetailHandler(Request request, String convIdStr) as
   );
 
   final pQuery = await dbPool.execute(
-    Sql.named('SELECT u.* FROM accounts_user u JOIN messaging_conversation_participants cp ON u.id = cp.user_id WHERE cp.conversation_id = @cId'),
+    Sql.named('SELECT u.*, c.company_name FROM accounts_user u JOIN messaging_conversation_participants cp ON u.id = cp.user_id LEFT JOIN companies_profile c ON u.id = c.user_id WHERE cp.conversation_id = @cId'),
     parameters: {'cId': convId},
   );
-  final participants = pQuery.map((u) => formatUserPublic(u.toColumnMap())).toList();
+  final participants = await resolveParticipantNames(dbPool, pQuery);
 
   final messagesQuery = await dbPool.execute(
     Sql.named('SELECT * FROM messaging_message WHERE conversation_id = @cId ORDER BY created_at ASC'),
@@ -2967,6 +3035,8 @@ Future<Response> sendMessageHandler(Request request, String convIdStr) async {
   final convId = int.tryParse(convIdStr) ?? 0;
   final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
   final text = body['text']?.toString() ?? '';
+  final attachmentUrl = body['attachment_url']?.toString() ?? '';
+  final attachmentName = body['attachment_name']?.toString() ?? '';
 
   final check = await dbPool.execute(
     Sql.named('SELECT id FROM messaging_conversation_participants WHERE conversation_id = @cId AND user_id = @uId'),
@@ -2976,8 +3046,8 @@ Future<Response> sendMessageHandler(Request request, String convIdStr) async {
 
   final res = await dbPool.execute(
     Sql.named('INSERT INTO messaging_message (text, attachment_url, attachment_key, attachment_name, attachment_type, attachment_size, attachment_content_type, created_at, read_at, conversation_id, sender_id) '
-              'VALUES (@text, \'\', \'\', \'\', \'file\', 0, \'\', NOW(), null, @cId, @uId) RETURNING id'),
-    parameters: {'text': text, 'cId': convId, 'uId': userId},
+              'VALUES (@text, @attachmentUrl, \'\', @attachmentName, \'file\', 0, \'\', NOW(), null, @cId, @uId) RETURNING id'),
+    parameters: {'text': text, 'attachmentUrl': attachmentUrl, 'attachmentName': attachmentName, 'cId': convId, 'uId': userId},
   );
   final newMsgId = res[0][0] as int;
 
@@ -3282,6 +3352,21 @@ Future<Response> companyPublicProfileHandler(Request request, String idStr) asyn
   return jsonResponse(data);
 }
 
+Future<String> resolveClientName(dynamic dbPool, String clientName) async {
+  if (clientName.trim().isEmpty) return 'Unknown';
+  final query = await dbPool.execute(
+    Sql.named('SELECT first_name, last_name FROM accounts_user WHERE email = @email OR username = @email'),
+    parameters: {'email': clientName.trim()},
+  );
+  if (query.isNotEmpty) {
+    final fName = query[0][0]?.toString() ?? '';
+    final lName = query[0][1]?.toString() ?? '';
+    final fullName = '$fName $lName'.trim();
+    if (fullName.isNotEmpty) return fullName;
+  }
+  return clientName;
+}
+
 Future<Response> companyProjectsHandler(Request request) async {
   final userId = getUserId(request);
   final profileQuery = await dbPool.execute(Sql.named('SELECT id FROM companies_profile WHERE user_id = @userId'), parameters: {'userId': userId});
@@ -3290,23 +3375,27 @@ Future<Response> companyProjectsHandler(Request request) async {
 
   if (request.method == 'GET') {
     final results = await dbPool.execute(Sql.named('SELECT * FROM companies_project WHERE company_id = @id ORDER BY created_at DESC'), parameters: {'id': profileId});
-    return jsonResponse(results.map((r) {
+    final List<Map<String, dynamic>> projects = [];
+    for (final r in results) {
       final row = r.toColumnMap();
-      return {
+      final resolvedName = await resolveClientName(dbPool, row['client_name'] ?? '');
+      projects.add({
         'id': row['id'],
         'title': row['title'],
         'status': row['status'] ?? 'active',
-        'client_name': row['client_name'] ?? '',
+        'client_name': resolvedName,
         'budget': row['budget']?.toString() ?? '0',
         'timeline': row['timeline'] ?? '',
         'progress': row['progress'] ?? 0,
         'milestones_total': row['milestones_total'] ?? 0,
         'milestones_completed': row['milestones_completed'] ?? 0,
+        'milestones_released': row['milestones_released'] ?? 0,
         'payment_status': row['payment_status'] ?? 'awaiting',
         'location': row['location'] ?? '',
         'created_at': row['created_at']?.toString() ?? '',
-      };
-    }).toList());
+      });
+    }
+    return jsonResponse(projects);
   } else if (request.method == 'POST') {
     final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
     final title = body['title']?.toString() ?? '';
@@ -3383,16 +3472,18 @@ Future<Response> updateCompanyProjectHandler(Request request, String idStr) asyn
   // Return updated row
   final updated = await dbPool.execute(Sql.named('SELECT * FROM companies_project WHERE id = @pid'), parameters: {'pid': projectId});
   final row = updated[0].toColumnMap();
+  final resolvedName = await resolveClientName(dbPool, row['client_name'] ?? '');
   return jsonResponse({
     'id': row['id'],
     'title': row['title'],
     'status': row['status'] ?? 'active',
-    'client_name': row['client_name'] ?? '',
+    'client_name': resolvedName,
     'budget': row['budget']?.toString() ?? '0',
     'timeline': row['timeline'] ?? '',
     'progress': row['progress'] ?? 0,
     'milestones_total': row['milestones_total'] ?? 0,
     'milestones_completed': row['milestones_completed'] ?? 0,
+    'milestones_released': row['milestones_released'] ?? 0,
     'payment_status': row['payment_status'] ?? 'awaiting',
     'location': row['location'] ?? '',
     'created_at': row['created_at']?.toString() ?? '',
@@ -4060,7 +4151,28 @@ void main() async {
   }
 
   print('Connecting to Neon PostgreSQL Database...');
-  dbPool = Pool.withUrl(dbUrl);
+  final uri = Uri.parse(dbUrl);
+  final username = uri.userInfo.split(':').first;
+  final password = uri.userInfo.split(':').last;
+  final dbHost = uri.host;
+  final dbPort = uri.port == 0 ? 5432 : uri.port;
+  final dbName = uri.path.replaceAll('/', '');
+
+  final endpoint = Endpoint(
+    host: dbHost,
+    port: dbPort,
+    database: dbName,
+    username: username,
+    password: password,
+  );
+
+  dbPool = Pool.withEndpoints(
+    [endpoint],
+    settings: const PoolSettings(
+      maxConnectionCount: 30,
+      sslMode: SslMode.require,
+    ),
+  );
 
   // Ensure certifications field exists
   try {
@@ -4070,6 +4182,7 @@ void main() async {
     await dbPool.execute('ALTER TABLE tasks_task ADD COLUMN IF NOT EXISTS image_url text;');
     await dbPool.execute('ALTER TABLE accounts_user ADD COLUMN IF NOT EXISTS rating double precision DEFAULT 0.0;');
     await dbPool.execute('ALTER TABLE accounts_user ADD COLUMN IF NOT EXISTS tasks_count integer DEFAULT 0;');
+    await dbPool.execute('ALTER TABLE messaging_message ALTER COLUMN attachment_url TYPE text;');
     await dbPool.execute('CREATE TABLE IF NOT EXISTS accounts_saved_service (id SERIAL PRIMARY KEY, created_at timestamp NOT NULL DEFAULT NOW(), service_id integer REFERENCES accounts_technician_service(id) ON DELETE CASCADE, user_id integer REFERENCES accounts_user(id) ON DELETE CASCADE);');
     
     // Reset user ratings to 0.0, recalculate tasks_count, sync budgets, and release escrow for completed tasks
@@ -4079,7 +4192,12 @@ void main() async {
       await dbPool.execute("UPDATE tasks_task t SET budget_min = b.amount, budget_max = b.amount FROM tasks_bid b WHERE b.task_id = t.id AND b.status = 'accepted' AND t.status IN ('in_progress', 'completed', 'delivered');");
       
       // Auto-release stuck escrow for completed tasks
-      final completedTasks = await dbPool.execute("SELECT id, assigned_to_id, title, client_id FROM tasks_task WHERE status = 'completed';");
+      final completedTasks = await dbPool.execute(
+        "SELECT DISTINCT t.id, t.assigned_to_id, t.title, t.client_id "
+        "FROM tasks_task t "
+        "JOIN wallet_transaction tx ON tx.reference_id = t.id AND tx.category = 'escrow_hold' "
+        "WHERE t.status = 'completed';"
+      );
       for (final tRow in completedTasks) {
         final taskId = tRow[0] as int;
         final techId = tRow[1] as int?;
@@ -4160,6 +4278,7 @@ void main() async {
   router.post('/api/auth/token/refresh/', tokenRefreshHandler);
   router.post('/api/auth/otp/request/', requestOtpHandler);
   router.post('/api/auth/otp/verify/', verifyOtpHandler);
+  router.post('/api/auth/reset-password/', resetPasswordHandler);
   router.post('/api/auth/register/client/', registerClientHandler);
   router.post('/api/auth/register/technician/', registerTechnicianHandler);
   router.post('/api/auth/register/company/', registerCompanyHandler);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'app_state.dart';
 import 'signup_screen.dart';
 import 'main_navigation_screen.dart';
+import 'otp_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -50,14 +51,15 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Enter your email or phone number and we will continue the local recovery flow.',
+                'Enter your email and we will send you a reset verification code.',
                 style: TextStyle(color: Color(0xFF64748B), height: 1.5),
               ),
               const SizedBox(height: 20),
               TextField(
                 controller: recoveryController,
+                keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  hintText: 'Email or phone number',
+                  hintText: 'Email',
                   filled: true,
                   fillColor: const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(
@@ -70,11 +72,58 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(sheetContext).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Reset flow opened for this account.')),
+                  onPressed: () async {
+                    final email = recoveryController.text.trim();
+                    if (email.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please enter your email.')),
+                      );
+                      return;
+                    }
+                    if (!email.contains('@')) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please enter a valid email address.')),
+                      );
+                      return;
+                    }
+
+                    final navigator = Navigator.of(context);
+                    final sheetNavigator = Navigator.of(sheetContext);
+                    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF4500)),
+                        ),
+                      ),
                     );
+
+                    try {
+                      final otpRes = await AppStateScope.of(context).requestOTP(email, 'forgot_password');
+                      final challengeId = otpRes['challenge_id'] as int;
+                      final otpCode = otpRes['code']?.toString();
+
+                      navigator.pop(); // Dismiss loader dialog
+                      sheetNavigator.pop(); // Dismiss bottom sheet
+                      navigator.push(
+                        MaterialPageRoute(
+                          builder: (context) => OTPScreen(
+                            email: email,
+                            challengeId: challengeId,
+                            otpCode: otpCode,
+                            purpose: 'forgot_password',
+                          ),
+                        ),
+                      );
+                    } catch (e) {
+                      navigator.pop(); // Dismiss loader dialog
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFF4500),

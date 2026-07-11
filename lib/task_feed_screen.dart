@@ -24,8 +24,11 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
   @override
   void initState() {
     super.initState();
+    final appState = Get.find<AppState>();
+    if (appState.tasks.isEmpty) {
+      _isLoading = true;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      setState(() => _isLoading = true);
       try {
         await AppStateScope.of(context).syncTasks();
       } catch (e) {

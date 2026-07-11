@@ -342,11 +342,15 @@ class ChatMessage {
     required this.text,
     required this.time,
     required this.isMe,
+    this.attachmentUrl,
+    this.attachmentName,
   });
 
   final String text;
   final String time;
   final bool isMe;
+  final String? attachmentUrl;
+  final String? attachmentName;
 }
 
 class ChatThread {

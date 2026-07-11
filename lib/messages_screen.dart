@@ -12,11 +12,15 @@ class MessagesScreen extends StatefulWidget {
 }
 
 class _MessagesScreenState extends State<MessagesScreen> {
-  bool _isLoading = true;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    final appState = Get.find<AppState>();
+    if (appState.threads.isEmpty) {
+      _isLoading = true;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadConversations();
     });
@@ -135,20 +139,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               borderRadius: BorderRadius.circular(28),
                               child: buildAvatarImage(thread.image, width: 56, height: 56, fit: BoxFit.cover),
                             ),
-                            if (thread.online)
-                              Positioned(
-                                right: 0,
-                                bottom: 0,
-                                child: Container(
-                                  width: 14,
-                                  height: 14,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF16A34A),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 2),
-                                  ),
-                                ),
-                              ),
+
                           ],
                         ),
                         const SizedBox(width: 16),

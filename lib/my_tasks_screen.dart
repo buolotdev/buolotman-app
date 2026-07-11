@@ -24,10 +24,18 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
   @override
   void initState() {
     super.initState();
+    final appState = Get.find<AppState>();
+    final isClient = appState.currentRole == 'Client';
+    final hasNoData = appState.tasks.isEmpty && (!isClient || appState.clientContracts.isEmpty);
+    if (hasNoData) {
+      _isLoading = true;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      setState(() => _isLoading = true);
       try {
         await AppStateScope.of(context).syncTasks();
+        if (AppStateScope.of(context).currentRole == 'Client') {
+          await AppStateScope.of(context).syncClientContracts();
+        }
       } catch (e) {
         debugPrint('Sync tasks error: $e');
       } finally {
@@ -82,12 +90,14 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
           ),
           body: Column(
             children: [
-              if (isClient) _buildTabBar(showSaved: true),
-              if (!isClient) _buildTabBar(showSaved: false),
+              if (isClient) _buildTabBar(showSaved: true, showContracts: true),
+              if (!isClient) _buildTabBar(showSaved: false, showContracts: false),
               Expanded(
                 child: _activeTab == 'Saved' && isClient
                     ? (savedServices.isEmpty ? _buildSavedEmptyState() : _buildSavedServicesList(savedServices))
-                    : (tasks.isEmpty ? _buildEmptyState(isClient, isCompany) : _buildTasksList(tasks, isClient, isCompany)),
+                    : _activeTab == 'Contracts' && isClient
+                        ? (appState.clientContracts.isEmpty ? _buildEmptyContractsState() : _buildClientContractsList(appState.clientContracts, context, appState))
+                        : (tasks.isEmpty ? _buildEmptyState(isClient, isCompany) : _buildTasksList(tasks, isClient, isCompany)),
               ),
             ],
           ),
@@ -96,11 +106,14 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
     );
   }
 
-  Widget _buildTabBar({bool showSaved = true}) {
+  Widget _buildTabBar({bool showSaved = true, bool showContracts = false}) {
+    List<String> tabs = ['Active', 'Completed'];
+    if (showContracts) tabs.add('Contracts');
+    if (showSaved) tabs.add('Saved');
     return Container(
       color: Colors.white,
       child: Row(
-        children: (showSaved ? ['Active', 'Completed', 'Saved'] : ['Active', 'Completed']).map(_buildTabItem).toList(),
+        children: tabs.map(_buildTabItem).toList(),
       ),
     );
   }
@@ -702,6 +715,160 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildEmptyContractsState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: const BoxDecoration(color: Color(0xFFF1F5F9), shape: BoxShape.circle),
+            child: const Icon(Icons.assignment_turned_in_outlined, size: 40, color: Color(0xFF94A3B8)),
+          ),
+          const SizedBox(height: 16),
+          const Text('No contracts yet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
+          const SizedBox(height: 6),
+          const Text('Contracts sent by companies will appear here.', style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClientContractsList(List<Map<String, dynamic>> contracts, BuildContext context, AppState appState) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: contracts.length,
+      itemBuilder: (context, index) {
+        final contract = contracts[index];
+        final progress = (contract['progress'] ?? 0) as num;
+        final status = contract['status'] ?? 'active';
+        final paymentStatus = contract['payment_status'] ?? 'awaiting';
+        
+        final double budget = double.tryParse(contract['budget']?.toString() ?? '0') ?? 0.0;
+        final int milestonesCompleted = int.tryParse(contract['milestones_completed']?.toString() ?? '0') ?? 0;
+        final int milestonesTotal = int.tryParse(contract['milestones_total']?.toString() ?? '0') ?? 0;
+        final int milestonesReleased = int.tryParse(contract['milestones_released']?.toString() ?? '0') ?? 0;
+        final double milestoneAmount = milestonesTotal > 0 ? budget / milestonesTotal : budget;
+
+        return Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.only(bottom: 16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(contract['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(color: paymentStatus == 'released' ? Colors.green.shade100 : Colors.orange.shade100, borderRadius: BorderRadius.circular(12)),
+                      child: Text(paymentStatus.toString().toUpperCase(), style: TextStyle(color: paymentStatus == 'released' ? Colors.green.shade700 : Colors.orange.shade700, fontSize: 10, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.monetization_on_outlined, size: 16, color: Color(0xFF64748B)),
+                    const SizedBox(width: 4),
+                    Text('\$${contract['budget']}', style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
+                    const SizedBox(width: 16),
+                    const Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xFF64748B)),
+                    const SizedBox(width: 4),
+                    Text('${contract['timeline']}', style: const TextStyle(color: Color(0xFF64748B))),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text('Progress: ${progress.toInt()}%', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                LinearProgressIndicator(
+                  value: progress / 100,
+                  backgroundColor: const Color(0xFFF1F5F9),
+                  valueColor: AlwaysStoppedAnimation<Color>(progress == 100 ? Colors.green : const Color(0xFFFF4500)),
+                ),
+                const SizedBox(height: 16),
+                if (paymentStatus == 'in_escrow' && milestonesCompleted > milestonesReleased)
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await appState.releaseContractEscrow(contract['id'].toString());
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Escrow released!')));
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                      child: Text('Approve & Release Milestone (\$${milestoneAmount.toStringAsFixed(2)})'),
+                    ),
+                  )
+                else if (paymentStatus == 'awaiting')
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await appState.fundContractEscrow(contract['id'].toString());
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Funds secured in escrow!')));
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF16A34A), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                      child: Text('Fund Escrow (\$${milestoneAmount.toStringAsFixed(2)})'),
+                    ),
+                  )
+                else if (paymentStatus == 'in_escrow')
+                  const Center(child: Text('Funds in Escrow - Awaiting Completion', style: TextStyle(color: Color(0xFF64748B))))
+                else if (paymentStatus == 'released')
+                  const Center(child: Text('Escrow Released', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)))
+                else
+                  const Center(child: Text('Awaiting Company Completion', style: TextStyle(color: Color(0xFF64748B)))),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.chat_bubble_outline, size: 16),
+                    label: const Text('Message Company'),
+                    onPressed: () {
+                      final companyName = contract['company_name']?.toString() ?? 'Company';
+                      final title = contract['title']?.toString() ?? '';
+                      final existingThreadId = appState.threads
+                          .where((t) => t.name == companyName)
+                          .map((t) => t.id)
+                          .firstOrNull;
+                      if (existingThreadId == null) {
+                        appState.createOrOpenThread(
+                          otherPartyName: companyName,
+                          otherPartyImage: '',
+                          initialMessage: 'Hi $companyName, let\'s chat about contract: "$title".',
+                        );
+                      }
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => ChatScreen(
+                            name: companyName,
+                            image: '',
+                            threadId: existingThreadId,
+                          ),
+                        ),
+                      );
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF001F3F),
+                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

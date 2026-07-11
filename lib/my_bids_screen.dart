@@ -22,8 +22,11 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
   @override
   void initState() {
     super.initState();
+    final appState = Get.find<AppState>();
+    if (appState.bids.isEmpty && appState.tasks.isEmpty) {
+      _isLoading = true;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      setState(() => _isLoading = true);
       try {
         await AppStateScope.of(context).syncBids();
         await AppStateScope.of(context).syncTasks();

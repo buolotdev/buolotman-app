@@ -1,6 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart' as fp;
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
+import 'package:universal_html/html.dart' as html;
+import 'package:url_launcher/url_launcher.dart';
 
 import 'app_state.dart';
 
@@ -22,6 +27,8 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isSending = false;
   String? _activeThreadId;
   String? _attachedFileName;
+  dynamic _attachedFileBytes; // Uint8List or dynamic
+  String? _attachedFileBase64;
 
   @override
   void dispose() {
@@ -124,14 +131,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(widget.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF001F3F)), overflow: TextOverflow.ellipsis),
-                      Text(
-                        thread.online ? 'Online' : thread.lastSeen,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: thread.online ? const Color(0xFF16A34A) : const Color(0xFF64748B),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -194,52 +193,58 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // File attachment messages
     final isFile = text.startsWith('[File]');
-    if (isFile) {
-      final fileName = text.replaceFirst('[File] ', '');
+    final hasAttachment = message.attachmentUrl != null && message.attachmentUrl!.isNotEmpty;
+    if (isFile || hasAttachment) {
+      final fileName = hasAttachment ? (message.attachmentName ?? 'file') : text.replaceFirst('[File] ', '');
+      final fileUrl = hasAttachment ? message.attachmentUrl! : '';
       return Align(
         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isMe ? const Color(0xFF001F3F) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: isMe
-                      ? Colors.white.withValues(alpha: 0.15)
-                      : const Color(0xFFFF4500).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.insert_drive_file_outlined,
-                    color: isMe ? Colors.white : const Color(0xFFFF4500), size: 20),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    fileName,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isMe ? Colors.white : const Color(0xFF001F3F),
-                    ),
+        child: InkWell(
+          onTap: () => _openAttachment(context, fileName, fileUrl),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isMe ? const Color(0xFF001F3F) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: isMe
+                        ? Colors.white.withValues(alpha: 0.15)
+                        : const Color(0xFFFF4500).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  Text('Attachment',
+                  child: Icon(Icons.insert_drive_file_outlined,
+                      color: isMe ? Colors.white : const Color(0xFFFF4500), size: 20),
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      fileName,
                       style: TextStyle(
-                          fontSize: 11,
-                          color: isMe ? Colors.white60 : const Color(0xFF94A3B8))),
-                ],
-              ),
-            ],
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isMe ? Colors.white : const Color(0xFF001F3F),
+                      ),
+                    ),
+                    Text('Attachment',
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: isMe ? Colors.white60 : const Color(0xFF94A3B8))),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -273,6 +278,147 @@ class _ChatScreenState extends State<ChatScreen> {
               style: TextStyle(color: isMe ? Colors.white70 : const Color(0xFF64748B), fontSize: 10),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _openAttachment(BuildContext context, String fileName, String fileUrl) {
+    final isImage = fileName.toLowerCase().endsWith('.jpg') ||
+        fileName.toLowerCase().endsWith('.jpeg') ||
+        fileName.toLowerCase().endsWith('.png') ||
+        fileName.toLowerCase().endsWith('.gif') ||
+        fileUrl.startsWith('data:image/');
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          constraints: const BoxConstraints(maxWidth: 450),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Attachment Preview',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF001F3F),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Container(
+                height: 250,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(11),
+                  child: Center(
+                    child: fileUrl.isEmpty
+                        ? Icon(
+                            isImage ? Icons.image_outlined : Icons.insert_drive_file_outlined,
+                            size: 64,
+                            color: const Color(0xFFFF4500),
+                          )
+                        : (isImage
+                            ? (fileUrl.startsWith('data:')
+                                ? Image.memory(
+                                    base64Decode(fileUrl.split(',').last),
+                                    fit: BoxFit.contain,
+                                  )
+                                : Image.network(
+                                    fileUrl,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) => const Icon(
+                                      Icons.broken_image_outlined,
+                                      size: 64,
+                                      color: Color(0xFFFF4500),
+                                    ),
+                                  ))
+                            : Icon(
+                                isImage ? Icons.image_outlined : Icons.insert_drive_file_outlined,
+                                size: 64,
+                                color: const Color(0xFFFF4500),
+                              )),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                fileName,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF001F3F),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        side: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      child: const Text('Close', style: TextStyle(color: Color(0xFF64748B))),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        final downloadUrl = fileUrl.isNotEmpty
+                            ? fileUrl
+                            : 'data:text/plain;charset=utf-8,Simulated attachment download for file: $fileName';
+
+                        if (kIsWeb) {
+                          // Standard, foolproof way to download files in browser on Flutter Web
+                          final anchor = html.AnchorElement(href: downloadUrl)
+                            ..setAttribute("download", fileName)
+                            ..style.display = 'none';
+                          html.document.body?.children.add(anchor);
+                          anchor.click();
+                          anchor.remove();
+                        } else {
+                          final uri = Uri.parse(downloadUrl);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri);
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF4500),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        elevation: 0,
+                      ),
+                      child: const Text('Download', style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -397,36 +543,48 @@ class _ChatScreenState extends State<ChatScreen> {
 
     _controller.clear();
     final attachName = _attachedFileName;
+    final attachBase64 = _attachedFileBase64;
     setState(() {
       _isSending = true;
       _attachedFileName = null;
+      _attachedFileBytes = null;
+      _attachedFileBase64 = null;
     });
 
     try {
-      if (hasAttachment && text.isEmpty) {
-        text = '[File] $attachName';
-      } else if (hasAttachment) {
-        // send file message first, then text
-        final fileMsg = '[File] $attachName';
-        if (threadId == 'temp') {
+      String currentThreadId = threadId;
+
+      if (hasAttachment) {
+        // Send the file attachment and text together (or text as placeholder if empty)
+        final finalMsg = text.isNotEmpty ? text : '[File] $attachName';
+        if (currentThreadId == 'temp') {
+          final newId = await AppStateScope.of(context).createOrOpenThread(
+            otherPartyName: widget.name,
+            otherPartyImage: widget.image,
+            initialMessage: finalMsg,
+            attachmentUrl: attachBase64,
+            attachmentName: attachName,
+          );
+          if (newId != null) currentThreadId = newId;
+        } else {
+          await AppStateScope.of(context).sendMessage(
+            currentThreadId,
+            finalMsg,
+            attachmentUrl: attachBase64,
+            attachmentName: attachName,
+          );
+        }
+      } else {
+        // Normal text message
+        if (currentThreadId == 'temp') {
           await AppStateScope.of(context).createOrOpenThread(
             otherPartyName: widget.name,
             otherPartyImage: widget.image,
-            initialMessage: fileMsg,
+            initialMessage: text,
           );
         } else {
-          await AppStateScope.of(context).sendMessage(threadId, fileMsg);
+          await AppStateScope.of(context).sendMessage(currentThreadId, text);
         }
-      }
-
-      if (threadId == 'temp') {
-        await AppStateScope.of(context).createOrOpenThread(
-          otherPartyName: widget.name,
-          otherPartyImage: widget.image,
-          initialMessage: text,
-        );
-      } else {
-        await AppStateScope.of(context).sendMessage(threadId, text);
       }
     } catch (e) {
       debugPrint('Error sending message: $e');
@@ -473,9 +631,29 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _attachOption(IconData icon, String label, String mockFile, String threadId) {
     return GestureDetector(
-      onTap: () {
-        Navigator.pop(context);
-        setState(() => _attachedFileName = mockFile);
+      onTap: () async {
+        try {
+          fp.FilePickerResult? result = await fp.FilePicker.pickFiles(
+            withData: true,
+          );
+          Navigator.pop(context);
+          if (result != null && result.files.isNotEmpty) {
+            final file = result.files.single;
+            final bytes = file.bytes;
+            if (bytes != null) {
+              final ext = file.extension ?? 'png';
+              final b64 = base64Encode(bytes);
+              setState(() {
+                _attachedFileName = file.name;
+                _attachedFileBytes = bytes;
+                _attachedFileBase64 = 'data:image/$ext;base64,$b64';
+              });
+            }
+          }
+        } catch (e) {
+          Navigator.pop(context);
+          debugPrint('Error picking file: $e');
+        }
       },
       child: Column(
         children: [

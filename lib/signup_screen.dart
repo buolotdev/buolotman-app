@@ -483,6 +483,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 industry: _selectedRole == 'Company' ? _industryController.text.trim() : null,
                               );
                               final challengeId = otpRes['challenge_id'] as int;
+                              final otpCode = otpRes['code']?.toString();
 
                               if (context.mounted) {
                                 Navigator.of(context).pop(); // Dismiss loading
@@ -492,6 +493,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                       email: email,
                                       role: _selectedRole,
                                       challengeId: challengeId,
+                                      otpCode: otpCode,
+                                      purpose: 'register',
                                     ),
                                   ),
                                 );

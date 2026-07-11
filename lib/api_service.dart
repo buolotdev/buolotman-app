@@ -440,9 +440,11 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> sendMessage(int conversationId, String text) async {
+  Future<Map<String, dynamic>> sendMessage(int conversationId, String text, {String? attachmentUrl, String? attachmentName}) async {
     final response = await post('/conversations/$conversationId/messages/', {
       'text': text,
+      if (attachmentUrl != null) 'attachment_url': attachmentUrl,
+      if (attachmentName != null) 'attachment_name': attachmentName,
     });
 
     if (response.statusCode == 201) {
@@ -650,9 +652,9 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> requestPhoneOTP(String phone, {String? email, String purpose = 'verification'}) async {
+  Future<Map<String, dynamic>> requestPhoneOTP({String? phone, String? email, String purpose = 'verification'}) async {
     final response = await post('/auth/otp/request/', {
-      'phone': phone,
+      if (phone != null) 'phone': phone,
       if (email != null) 'email': email,
       'purpose': purpose,
     }, requireAuth: false);
@@ -660,7 +662,37 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Failed to request OTP. Please enter a valid number.');
+      try {
+        final err = jsonDecode(response.body);
+        throw Exception(err['detail'] ?? err['error'] ?? 'Failed to request OTP.');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to request OTP.');
+      }
+    }
+  }
+
+  Future<Map<String, dynamic>> resetPassword({
+    required int challengeId,
+    required String code,
+    required String newPassword,
+  }) async {
+    final response = await post('/auth/reset-password/', {
+      'challenge_id': challengeId,
+      'code': code,
+      'new_password': newPassword,
+    }, requireAuth: false);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      try {
+        final err = jsonDecode(response.body);
+        throw Exception(err['detail'] ?? err['error'] ?? 'Failed to reset password.');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to reset password.');
+      }
     }
   }
 
@@ -757,6 +789,42 @@ class ApiService {
 
   // ─── COMPANY PROJECTS ────────────────────────────────────────────────────────
 
+  Future<List<dynamic>> fetchClientContracts() async {
+    final response = await get('/client/contracts/');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    } else {
+      throw Exception('Failed to load client contracts.');
+    }
+  }
+
+  Future<Map<String, dynamic>> fundEscrowPayment(String projectId) async {
+    final response = await patch('/client/contracts/$projectId/fund/', {});
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fund escrow.');
+    }
+  }
+
+  Future<Map<String, dynamic>> releaseEscrowPayment(String projectId) async {
+    final response = await patch('/client/contracts/$projectId/release/', {});
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to release escrow.');
+    }
+  }
+
+  Future<List<dynamic>> searchClients(String query) async {
+    final response = await get('/company/search-clients/?q=$query');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    } else {
+      throw Exception('Failed to search clients.');
+    }
+  }
+
   Future<List<dynamic>> fetchCompanyProjects() async {
     final response = await get('/company/projects/');
     if (response.statusCode == 200) {
@@ -773,6 +841,13 @@ class ApiService {
     } else {
       final err = jsonDecode(response.body);
       throw Exception(err['error'] ?? 'Failed to create project.');
+    }
+  }
+
+  Future<void> deleteCompanyProject(String projectId) async {
+    final response = await http.delete(Uri.parse('$baseUrl/company/projects/$projectId/'), headers: _getHeaders());
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to delete project.');
     }
   }
 
