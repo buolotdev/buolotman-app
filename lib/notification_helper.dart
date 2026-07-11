@@ -23,6 +23,29 @@ class NotificationHelper {
       );
 
       await _localNotifications.initialize(settings: initSettings);
+
+      // Explicitly request permissions at runtime for iOS & Android
+      try {
+        await _localNotifications
+            .resolvePlatformSpecificImplementation<
+                IOSFlutterLocalNotificationsPlugin>()
+            ?.requestPermissions(
+              alert: true,
+              badge: true,
+              sound: true,
+            );
+      } catch (e) {
+        debugPrint('Failed to request Darwin notification permissions: $e');
+      }
+
+      try {
+        await _localNotifications
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>()
+            ?.requestNotificationsPermission();
+      } catch (e) {
+        debugPrint('Failed to request Android notification permissions: $e');
+      }
     }
     _initialized = true;
   }

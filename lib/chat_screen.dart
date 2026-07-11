@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:flutter/foundation.dart';
 import 'package:universal_html/html.dart' as html;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'app_state.dart';
 
@@ -402,7 +403,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         } else {
                           final uri = Uri.parse(downloadUrl);
                           if (await canLaunchUrl(uri)) {
-                            await launchUrl(uri);
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
                           }
                         }
                       },
@@ -633,21 +634,50 @@ class _ChatScreenState extends State<ChatScreen> {
     return GestureDetector(
       onTap: () async {
         try {
-          fp.FilePickerResult? result = await fp.FilePicker.pickFiles(
-            withData: true,
-          );
-          Navigator.pop(context);
-          if (result != null && result.files.isNotEmpty) {
-            final file = result.files.single;
-            final bytes = file.bytes;
-            if (bytes != null) {
-              final ext = file.extension ?? 'png';
+          final ImagePicker picker = ImagePicker();
+          if (label == 'Photo') {
+            final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+            Navigator.pop(context);
+            if (image != null) {
+              final bytes = await image.readAsBytes();
+              final ext = image.name.split('.').last;
               final b64 = base64Encode(bytes);
               setState(() {
-                _attachedFileName = file.name;
+                _attachedFileName = image.name;
                 _attachedFileBytes = bytes;
                 _attachedFileBase64 = 'data:image/$ext;base64,$b64';
               });
+            }
+          } else if (label == 'Video') {
+            final XFile? video = await picker.pickVideo(source: ImageSource.gallery);
+            Navigator.pop(context);
+            if (video != null) {
+              final bytes = await video.readAsBytes();
+              final ext = video.name.split('.').last;
+              final b64 = base64Encode(bytes);
+              setState(() {
+                _attachedFileName = video.name;
+                _attachedFileBytes = bytes;
+                _attachedFileBase64 = 'data:video/$ext;base64,$b64';
+              });
+            }
+          } else {
+            fp.FilePickerResult? result = await fp.FilePicker.pickFiles(
+              withData: true,
+            );
+            Navigator.pop(context);
+            if (result != null && result.files.isNotEmpty) {
+              final file = result.files.single;
+              final bytes = file.bytes;
+              if (bytes != null) {
+                final ext = file.extension ?? 'png';
+                final b64 = base64Encode(bytes);
+                setState(() {
+                  _attachedFileName = file.name;
+                  _attachedFileBytes = bytes;
+                  _attachedFileBase64 = 'data:application/$ext;base64,$b64';
+                });
+              }
             }
           }
         } catch (e) {

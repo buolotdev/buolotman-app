@@ -30,10 +30,12 @@ class _OTPScreenState extends State<OTPScreen> {
   final TextEditingController _confirmPasswordController = TextEditingController();
 
   bool _obscurePassword = true;
+  late int _activeChallengeId;
 
   @override
   void initState() {
     super.initState();
+    _activeChallengeId = widget.challengeId;
     if (widget.otpCode != null && widget.otpCode!.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // 1. Auto-fill the inputs
@@ -187,7 +189,7 @@ class _OTPScreenState extends State<OTPScreen> {
 
                       try {
                         await AppStateScope.of(context).resetPassword(
-                          challengeId: widget.challengeId,
+                          challengeId: _activeChallengeId,
                           code: code,
                           newPassword: newPassword,
                         );
@@ -218,7 +220,7 @@ class _OTPScreenState extends State<OTPScreen> {
                         ),
                       );
                       try {
-                        await AppStateScope.of(context).verifyOTPAndLogin(widget.challengeId, code);
+                        await AppStateScope.of(context).verifyOTPAndLogin(_activeChallengeId, code);
                         if (context.mounted) {
                           Navigator.of(context).pop(); // Dismiss loading
                           Navigator.of(context).pushAndRemoveUntil(
@@ -265,12 +267,32 @@ class _OTPScreenState extends State<OTPScreen> {
                       ),
                     );
                     try {
-                      await AppStateScope.of(context).requestOTP(widget.email, widget.purpose);
+                      final otpRes = await AppStateScope.of(context).requestOTP(widget.email, widget.purpose);
+                      final newChallengeId = otpRes['challenge_id'] as int;
+                      final newOtpCode = otpRes['code']?.toString();
+
                       if (context.mounted) {
                         Navigator.of(context).pop(); // Dismiss loading
+                        
+                        setState(() {
+                          _activeChallengeId = newChallengeId;
+                          if (newOtpCode != null && newOtpCode.isNotEmpty) {
+                            for (int i = 0; i < newOtpCode.length && i < 4; i++) {
+                              _controllers[i].text = newOtpCode[i];
+                            }
+                          }
+                        });
+
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('A new verification code was sent to your email.')),
+                          const SnackBar(content: Text('A new verification code was sent.')),
                         );
+
+                        if (newOtpCode != null && newOtpCode.isNotEmpty) {
+                          NotificationHelper.showNotification(
+                            'Boulot Man',
+                            'Your new simulated OTP code is $newOtpCode',
+                          );
+                        }
                       }
                     } catch (e) {
                       if (context.mounted) {
