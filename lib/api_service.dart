@@ -19,7 +19,7 @@ class ApiService {
       }
     }
     // Fallback for non-web environments (use computer local IP for physical devices on same Wi-Fi)
-    return 'http://192.168.100.76:8000/api';
+    return 'http://192.168.0.108:8000/api';
   }
 
   String? _accessToken;
