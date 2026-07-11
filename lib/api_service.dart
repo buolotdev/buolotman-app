@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -7,6 +9,9 @@ class ApiService {
   ApiService._privateConstructor();
 
   static final ApiService instance = ApiService._privateConstructor();
+
+  String? ipOverride;
+  bool _showingIpDialog = false;
 
   String get baseUrl {
     if (kIsWeb) {
@@ -17,6 +22,9 @@ class ApiService {
       if (host.isNotEmpty) {
         return 'http://$host:8000/api';
       }
+    }
+    if (ipOverride != null && ipOverride!.isNotEmpty) {
+      return 'http://$ipOverride:8000/api';
     }
     // Fallback for non-web environments (use computer local IP for physical devices on same Wi-Fi)
     return 'http://192.168.0.108:8000/api';
@@ -66,36 +74,116 @@ class ApiService {
     return headers;
   }
 
+  void _showIpOverrideDialog() {
+    if (_showingIpDialog) return;
+    _showingIpDialog = true;
+
+    final controller = TextEditingController(text: ipOverride ?? '192.168.0.108');
+
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Backend IP Config'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Could not connect to the backend. Please enter your PC\'s local IP address:',
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                labelText: 'IP Address',
+                hintText: 'e.g. 192.168.1.15',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Get.back();
+              _showingIpDialog = false;
+            },
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newIp = controller.text.trim();
+              if (newIp.isNotEmpty) {
+                ipOverride = newIp;
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setString('backend_ip_override', newIp);
+              }
+              Get.back();
+              _showingIpDialog = false;
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF4500),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Save & Retry'),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  Future<http.Response> _wrapRequest(Future<http.Response> Function() reqFn) async {
+    try {
+      return await reqFn();
+    } catch (e) {
+      final errStr = e.toString();
+      if (errStr.contains('SocketException') || errStr.contains('Connection failed') || errStr.contains('Connection timed out') || errStr.contains('Operation timed out') || errStr.contains('timed out')) {
+        _showIpOverrideDialog();
+      }
+      rethrow;
+    }
+  }
+
   Future<http.Response> get(String path, {bool requireAuth = true}) async {
-    final url = Uri.parse('$baseUrl$path');
-    final response = await http.get(url, headers: _getHeaders(requireAuth: requireAuth));
-    return response;
+    return _wrapRequest(() async {
+      final url = Uri.parse('$baseUrl$path');
+      final response = await http.get(url, headers: _getHeaders(requireAuth: requireAuth));
+      return response;
+    });
   }
 
   Future<http.Response> post(String path, Map<String, dynamic> body, {bool requireAuth = true}) async {
-    final url = Uri.parse('$baseUrl$path');
-    final response = await http.post(
-      url,
-      headers: _getHeaders(requireAuth: requireAuth),
-      body: jsonEncode(body),
-    );
-    return response;
+    return _wrapRequest(() async {
+      final url = Uri.parse('$baseUrl$path');
+      final response = await http.post(
+        url,
+        headers: _getHeaders(requireAuth: requireAuth),
+        body: jsonEncode(body),
+      );
+      return response;
+    });
   }
 
   Future<http.Response> patch(String path, Map<String, dynamic> body, {bool requireAuth = true}) async {
-    final url = Uri.parse('$baseUrl$path');
-    final response = await http.patch(
-      url,
-      headers: _getHeaders(requireAuth: requireAuth),
-      body: jsonEncode(body),
-    );
-    return response;
+    return _wrapRequest(() async {
+      final url = Uri.parse('$baseUrl$path');
+      final response = await http.patch(
+        url,
+        headers: _getHeaders(requireAuth: requireAuth),
+        body: jsonEncode(body),
+      );
+      return response;
+    });
   }
 
   Future<http.Response> delete(String path, {bool requireAuth = true}) async {
-    final url = Uri.parse('$baseUrl$path');
-    final response = await http.delete(url, headers: _getHeaders(requireAuth: requireAuth));
-    return response;
+    return _wrapRequest(() async {
+      final url = Uri.parse('$baseUrl$path');
+      final response = await http.delete(url, headers: _getHeaders(requireAuth: requireAuth));
+      return response;
+    });
   }
 
   // ─── AUTHENTICATION ENDPOINTS ──────────────────────────────────────────────

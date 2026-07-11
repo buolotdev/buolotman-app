@@ -9,8 +9,17 @@ import 'main_navigation_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final savedIp = prefs.getString('backend_ip_override');
+    if (savedIp != null && savedIp.isNotEmpty) {
+      ApiService.instance.ipOverride = savedIp;
+    }
+  } catch (e) {
+    debugPrint('Failed to load backend IP override: $e');
+  }
   Get.put(AppState(), permanent: true);
   runApp(const MyApp());
 }
