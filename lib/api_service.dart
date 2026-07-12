@@ -35,8 +35,8 @@ class ApiService {
       // Otherwise treat as raw local IP
       return 'http://$cleanOverride:8000/api';
     }
-    // Fallback for non-web environments (use computer local IP for physical devices on same Wi-Fi)
-    return 'http://192.168.0.108:8000/api';
+    // Fallback to production cloud backend on Render
+    return 'https://buolotman-app.onrender.com/api';
   }
 
   String? _accessToken;
