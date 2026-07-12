@@ -4141,9 +4141,18 @@ Future<Response> platformSettingsHandler(Request request) async {
 // ─── MAIN APP ENTRYPOINT ───────────────────────────────────────────────────
 
 void main() async {
-  final env = DotEnv()..load(['../.env']);
-  final dbUrl = env['DATABASE_URL'];
-  secretKey = env['SECRET_KEY'] ?? r'django-insecure-(d4x++bp=mw#k!cmxm3^+jb3qsv!qwz)z(5^jr=c91$0i%dce$';
+  // Try loading local .env file (fails silently in production)
+  final env = DotEnv();
+  try {
+    env.load(['../.env']);
+  } catch (_) {}
+
+  final dbUrl = Platform.environment['DATABASE_URL'] ?? 
+                (env.isLoaded ? env['DATABASE_URL'] : null);
+                
+  secretKey = Platform.environment['SECRET_KEY'] ?? 
+              (env.isLoaded ? env['SECRET_KEY'] : null) ?? 
+              r'django-insecure-(d4x++bp=mw#k!cmxm3^+jb3qsv!qwz)z(5^jr=c91$0i%dce$';
 
   if (dbUrl == null) {
     print('Error: DATABASE_URL environment variable is missing.');
