@@ -45,7 +45,7 @@ class _OTPScreenState extends State<OTPScreen> {
         // 2. Trigger native OS/system tray notification
         NotificationHelper.showNotification(
           'Boulot Man',
-          'Your simulated OTP code is ${widget.otpCode}',
+          'Your verification code is ${widget.otpCode}',
         );
       });
     }
@@ -290,7 +290,7 @@ class _OTPScreenState extends State<OTPScreen> {
                         if (newOtpCode != null && newOtpCode.isNotEmpty) {
                           NotificationHelper.showNotification(
                             'Boulot Man',
-                            'Your new simulated OTP code is $newOtpCode',
+                            'Your verification code is $newOtpCode',
                           );
                         }
                       }

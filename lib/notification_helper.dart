@@ -78,7 +78,7 @@ class NotificationHelper {
         const androidDetails = AndroidNotificationDetails(
           'otp_channel',
           'OTP Notifications',
-          channelDescription: 'Simulated OTP notifications for local testing',
+          channelDescription: 'OTP notifications',
           importance: Importance.max,
           priority: Priority.high,
           showWhen: true,
