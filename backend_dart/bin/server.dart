@@ -4147,11 +4147,10 @@ void main() async {
     env.load(['../.env']);
   } catch (_) {}
 
-  final dbUrl = Platform.environment['DATABASE_URL'] ?? 
-                (env.isLoaded ? env['DATABASE_URL'] : null);
+  final dbUrl = Platform.environment['DATABASE_URL'] ?? env['DATABASE_URL'];
                 
   secretKey = Platform.environment['SECRET_KEY'] ?? 
-              (env.isLoaded ? env['SECRET_KEY'] : null) ?? 
+              env['SECRET_KEY'] ?? 
               r'django-insecure-(d4x++bp=mw#k!cmxm3^+jb3qsv!qwz)z(5^jr=c91$0i%dce$';
 
   if (dbUrl == null) {
