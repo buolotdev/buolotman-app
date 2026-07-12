@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart' as fp;
 import 'package:get/get.dart';
@@ -7,6 +8,8 @@ import 'package:flutter/foundation.dart';
 import 'package:universal_html/html.dart' as html;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'app_state.dart';
 
@@ -401,9 +404,24 @@ class _ChatScreenState extends State<ChatScreen> {
                           anchor.click();
                           anchor.remove();
                         } else {
-                          final uri = Uri.parse(downloadUrl);
-                          if (await canLaunchUrl(uri)) {
-                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          if (downloadUrl.startsWith('data:')) {
+                            try {
+                              final parts = downloadUrl.split(',');
+                              if (parts.length > 1) {
+                                final bytes = base64Decode(parts.last);
+                                final tempDir = await getTemporaryDirectory();
+                                final file = File('${tempDir.path}/$fileName');
+                                await file.writeAsBytes(bytes);
+                                await Share.shareXFiles([XFile(file.path)], text: fileName);
+                              }
+                            } catch (e) {
+                              debugPrint('Failed to save/share base64 file: $e');
+                            }
+                          } else {
+                            final uri = Uri.parse(downloadUrl);
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            }
                           }
                         }
                       },

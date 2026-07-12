@@ -7,10 +7,12 @@ import 'onboarding_screen.dart';
 import 'api_service.dart';
 import 'main_navigation_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'notification_helper.dart';
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationHelper.initialize();
   try {
     final prefs = await SharedPreferences.getInstance();
     final savedIp = prefs.getString('backend_ip_override');
