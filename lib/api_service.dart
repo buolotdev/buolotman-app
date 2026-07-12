@@ -87,7 +87,7 @@ class ApiService {
     if (_showingIpDialog) return;
     _showingIpDialog = true;
 
-    final controller = TextEditingController(text: ipOverride ?? 'buolotman-app.onrender.com');
+    final controller = TextEditingController(text: ipOverride ?? 'buolot-man-backend.onrender.com');
 
     Get.dialog(
       AlertDialog(
@@ -105,7 +105,7 @@ class ApiService {
               controller: controller,
               decoration: const InputDecoration(
                 labelText: 'Backend IP/URL',
-                hintText: 'e.g. buolotman-app.onrender.com',
+                hintText: 'e.g. 192.168.1.15 or app.onrender.com',
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.url,
