@@ -24,7 +24,16 @@ class ApiService {
       }
     }
     if (ipOverride != null && ipOverride!.isNotEmpty) {
-      return 'http://$ipOverride:8000/api';
+      final cleanOverride = ipOverride!.trim();
+      if (cleanOverride.startsWith('http://') || cleanOverride.startsWith('https://')) {
+        return cleanOverride.endsWith('/api') ? cleanOverride : '$cleanOverride/api';
+      }
+      if (cleanOverride.contains('.') && !RegExp(r'^[0-9.]+$').hasMatch(cleanOverride)) {
+        // It's a domain name (like buolotman-app.onrender.com)
+        return 'https://$cleanOverride/api';
+      }
+      // Otherwise treat as raw local IP
+      return 'http://$cleanOverride:8000/api';
     }
     // Fallback for non-web environments (use computer local IP for physical devices on same Wi-Fi)
     return 'http://192.168.0.108:8000/api';
@@ -78,28 +87,28 @@ class ApiService {
     if (_showingIpDialog) return;
     _showingIpDialog = true;
 
-    final controller = TextEditingController(text: ipOverride ?? '192.168.0.108');
+    final controller = TextEditingController(text: ipOverride ?? 'buolotman-app.onrender.com');
 
     Get.dialog(
       AlertDialog(
-        title: const Text('Backend IP Config'),
+        title: const Text('Backend Connection Config'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'Could not connect to the backend. Please enter your PC\'s local IP address:',
+              'Could not connect to the backend. Please enter your PC\'s local IP address or public URL:',
               style: TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
               decoration: const InputDecoration(
-                labelText: 'IP Address',
-                hintText: 'e.g. 192.168.1.15',
+                labelText: 'Backend IP/URL',
+                hintText: 'e.g. buolotman-app.onrender.com',
                 border: OutlineInputBorder(),
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: TextInputType.url,
             ),
           ],
         ),
