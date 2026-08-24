@@ -208,7 +208,7 @@ class ApiService {
       setTokens(data['access'], data['refresh']);
       return data;
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? 'Failed to log in.');
     }
   }
@@ -229,7 +229,7 @@ class ApiService {
     }, requireAuth: false);
 
     if (response.statusCode != 201) {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
     }
   }
@@ -250,7 +250,7 @@ class ApiService {
     }, requireAuth: false);
 
     if (response.statusCode != 201) {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
     }
   }
@@ -275,7 +275,7 @@ class ApiService {
     }, requireAuth: false);
 
     if (response.statusCode != 201) {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
     }
   }
@@ -294,7 +294,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? 'Failed to update profile.');
     }
   }
@@ -346,7 +346,7 @@ class ApiService {
     if (response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
     }
   }
@@ -356,7 +356,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? 'Failed to update task.');
     }
   }
@@ -366,7 +366,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? 'Failed to publish task.');
     }
   }
@@ -376,7 +376,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? 'Failed to complete task.');
     }
   }
@@ -386,7 +386,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? 'Failed to submit work.');
     }
   }
@@ -396,7 +396,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? 'Failed to cancel task.');
     }
   }
@@ -406,7 +406,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? 'Failed to delete task.');
     }
   }
@@ -439,7 +439,7 @@ class ApiService {
     if (response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
     }
   }
@@ -483,7 +483,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
     }
   }
@@ -502,7 +502,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? 'Failed to deposit escrow.');
     }
   }
@@ -512,7 +512,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? 'Failed to release escrow.');
     }
   }
@@ -554,7 +554,7 @@ class ApiService {
   Future<void> deleteConversation(int conversationId) async {
     final response = await delete('/conversations/$conversationId/');
     if (response.statusCode != 200) {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? 'Failed to delete conversation.');
     }
   }
@@ -567,7 +567,7 @@ class ApiService {
     if (response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? 'Failed to open conversation.');
     }
   }
@@ -619,7 +619,7 @@ class ApiService {
     if (response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
     }
   }
@@ -629,7 +629,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
     }
   }
@@ -639,7 +639,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
     }
   }
@@ -658,7 +658,7 @@ class ApiService {
     if (response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
     }
   }
@@ -675,7 +675,7 @@ class ApiService {
     if (response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
     }
   }
@@ -685,7 +685,7 @@ class ApiService {
     if (response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
     }
   }
@@ -760,7 +760,7 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       try {
-        final err = jsonDecode(response.body);
+        Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
         throw Exception(err['detail'] ?? err['error'] ?? 'Failed to request OTP.');
       } catch (e) {
         if (e is Exception) rethrow;
@@ -784,7 +784,7 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       try {
-        final err = jsonDecode(response.body);
+        Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
         throw Exception(err['detail'] ?? err['error'] ?? 'Failed to reset password.');
       } catch (e) {
         if (e is Exception) rethrow;
@@ -936,7 +936,7 @@ class ApiService {
     if (response.statusCode == 201 || response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['error'] ?? 'Failed to create project.');
     }
   }
@@ -958,7 +958,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      final err = jsonDecode(response.body);
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['error'] ?? 'Failed to update project.');
     }
   }
@@ -977,3 +977,4 @@ class ApiService {
     return list.join('\n');
   }
 }
+
