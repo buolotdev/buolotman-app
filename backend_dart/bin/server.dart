@@ -750,8 +750,8 @@ Future<Response> registerClientHandler(Request request) async {
   final now = DateTime.now();
 
   final res = await dbPool.execute(
-    Sql.named('INSERT INTO accounts_user (username, password, is_superuser, first_name, last_name, email, is_staff, is_active, date_joined, role, phone, avatar_url, is_verified, language_preference, country, created_at, updated_at) '
-              'VALUES (@email, @pwdHash, false, @first, @last, @email, false, true, @now, \'CLIENT\', @phone, \'\', false, \'en\', \'\', @now, @now) RETURNING id'),
+    Sql.named('INSERT INTO accounts_user (username, password, is_superuser, first_name, last_name, email, is_staff, is_active, date_joined, role, phone, avatar_url, banner_url, is_verified, language_preference, country, created_at, updated_at) '
+              'VALUES (@email, @pwdHash, false, @first, @last, @email, false, true, @now, \'CLIENT\', @phone, \'\', \'\', false, \'en\', \'\', @now, @now) RETURNING id'),
     parameters: {
       'email': email,
       'pwdHash': pwdHash,
@@ -804,8 +804,8 @@ Future<Response> registerTechnicianHandler(Request request) async {
   final now = DateTime.now();
 
   final res = await dbPool.execute(
-    Sql.named('INSERT INTO accounts_user (username, password, is_superuser, first_name, last_name, email, is_staff, is_active, date_joined, role, phone, avatar_url, is_verified, language_preference, country, created_at, updated_at) '
-              'VALUES (@email, @pwdHash, false, @first, @last, @email, false, true, @now, \'TECHNICIAN\', @phone, \'\', false, \'en\', \'\', @now, @now) RETURNING id'),
+    Sql.named('INSERT INTO accounts_user (username, password, is_superuser, first_name, last_name, email, is_staff, is_active, date_joined, role, phone, avatar_url, banner_url, is_verified, language_preference, country, created_at, updated_at) '
+              'VALUES (@email, @pwdHash, false, @first, @last, @email, false, true, @now, \'TECHNICIAN\', @phone, \'\', \'\', false, \'en\', \'\', @now, @now) RETURNING id'),
     parameters: {
       'email': email,
       'pwdHash': pwdHash,
@@ -864,8 +864,8 @@ Future<Response> registerCompanyHandler(Request request) async {
   final now = DateTime.now();
 
   final res = await dbPool.execute(
-    Sql.named('INSERT INTO accounts_user (username, password, is_superuser, first_name, last_name, email, is_staff, is_active, date_joined, role, phone, avatar_url, is_verified, language_preference, country, created_at, updated_at) '
-              'VALUES (@email, @pwdHash, false, @first, \'\', @email, false, true, @now, \'COMPANY\', @phone, \'\', false, \'en\', \'\', @now, @now) RETURNING id'),
+    Sql.named('INSERT INTO accounts_user (username, password, is_superuser, first_name, last_name, email, is_staff, is_active, date_joined, role, phone, avatar_url, banner_url, is_verified, language_preference, country, created_at, updated_at) '
+              'VALUES (@email, @pwdHash, false, @first, \'\', @email, false, true, @now, \'COMPANY\', @phone, \'\', \'\', false, \'en\', \'\', @now, @now) RETURNING id'),
     parameters: {
       'email': email,
       'pwdHash': pwdHash,
