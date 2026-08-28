@@ -976,7 +976,7 @@ class ApiService {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data.containsKey('access')) {
-        await setToken(data['access'], data['refresh']);
+        setTokens(data['access'], data['refresh']);
       }
       return data;
     } else {

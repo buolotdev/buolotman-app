@@ -420,7 +420,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: OutlinedButton(
                           onPressed: () async {
                             try {
-                              final GoogleSignIn googleSignIn = GoogleSignIn();
+                              final googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
                               final GoogleSignInAccount? account = await googleSignIn.signIn();
                               if (account != null) {
                                 final GoogleSignInAuthentication auth = await account.authentication;
