@@ -397,6 +397,172 @@ Middleware corsHeaders() {
 
 // ─── AUTH CONTROLLERS ──────────────────────────────────────────────────────
 
+import 'package:http/http.dart' as http;
+
+Future<Response> googleAuthHandler(Request request) async {
+  try {
+    final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
+    final idToken = body['id_token']?.toString();
+    final requestedRole = body['role']?.toString().toUpperCase();
+
+    if (idToken == null || idToken.isEmpty) {
+      return errorResponse('id_token is required', statusCode: 400);
+    }
+
+    // Verify token with Google API
+    final url = Uri.parse('https://oauth2.googleapis.com/tokeninfo?id_token=\$idToken');
+    final response = await http.get(url);
+    if (response.statusCode != 200) {
+      return errorResponse('Invalid Google ID Token', statusCode: 401);
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final email = data['email']?.toString();
+    
+    if (email == null || email.isEmpty) {
+      return errorResponse('No email found in Google token', statusCode: 401);
+    }
+
+    // Check if user exists
+    final results = await dbPool.execute(
+      Sql.named('SELECT * FROM accounts_user WHERE email = @email'),
+      parameters: {'email': email},
+    );
+
+    int userId;
+    String finalRole;
+    Map<String, dynamic>? userRow;
+
+    if (results.isEmpty) {
+      // User doesn't exist, create a new one
+      final role = (requestedRole != null && ['CLIENT', 'TECHNICIAN', 'COMPANY'].contains(requestedRole))
+          ? requestedRole
+          : 'CLIENT';
+
+      final firstName = data['given_name']?.toString() ?? '';
+      final lastName = data['family_name']?.toString() ?? '';
+      final avatarUrl = data['picture']?.toString() ?? '';
+      final username = email;
+
+      final now = DateTime.now();
+
+      final insertResult = await dbPool.execute(
+        Sql.named('''
+          INSERT INTO accounts_user (
+            password, is_superuser, username, first_name, last_name, 
+            email, is_staff, is_active, date_joined, role, phone, 
+            avatar_url, banner_url, is_verified, language_preference, 
+            country, address, created_at, updated_at, education_level, expertise_level
+          ) VALUES (
+            '', false, @username, @first_name, @last_name,
+            @email, false, true, @now, @role, '',
+            @avatarUrl, '', true, 'en',
+            '', '', @now, @now, '', ''
+          ) RETURNING id
+        '''),
+        parameters: {
+          'username': username,
+          'first_name': firstName,
+          'last_name': lastName,
+          'email': email,
+          'now': now,
+          'role': role,
+          'avatarUrl': avatarUrl,
+        },
+      );
+
+      userId = insertResult[0][0] as int;
+      finalRole = role;
+      
+      // Initialize sub-profiles if needed
+      if (role == 'TECHNICIAN') {
+        await dbPool.execute(
+          Sql.named('''
+            INSERT INTO accounts_technician_profile (
+              user_id, bio, phone_number, hourly_rate, languages, portfolio,
+              background_check_status, is_verified, availability_status,
+              completed_jobs, average_rating, response_time
+            ) VALUES (
+              @uid, '', '', 0.0, '[]'::jsonb, '[]'::jsonb,
+              'pending', false, 'online', 0, 0.0, 'N/A'
+            )
+          '''),
+          parameters: {'uid': userId},
+        );
+      } else if (role == 'COMPANY') {
+        await dbPool.execute(
+          Sql.named('''
+            INSERT INTO companies_profile (
+              user_id, company_name, registration_number, industry, website,
+              headquarters, country, city, latitude, longitude,
+              services, expertise, operating_hours, logo_url, cover_url,
+              about, is_verified, rating, reviews_count, completed_projects,
+              active_projects, total_revenue, currency, email_notifications,
+              sms_notifications, profile_visibility, two_factor_enabled,
+              created_at, updated_at
+            ) VALUES (
+              @uid, @company_name, '', '', '',
+              '', '', '', NULL, NULL,
+              '[]'::jsonb, '[]'::jsonb, '{}'::jsonb, '', '',
+              '', false, 0.0, 0, 0,
+              0, 0.0, 'USD', true,
+              false, 'public', false,
+              @now, @now
+            )
+          '''),
+          parameters: {
+            'uid': userId,
+            'company_name': '\$firstName \$lastName'.trim(),
+            'now': now,
+          },
+        );
+      }
+      
+      // Initialize wallet
+      await dbPool.execute(
+        Sql.named('''
+          INSERT INTO wallet_wallet (
+            user_id, available_balance, pending_escrow, 
+            total_earnings, total_withdrawn, currency,
+            created_at, updated_at
+          ) VALUES (
+            @uid, 0, 0, 0, 0, 'USD', @now, @now
+          )
+        '''),
+        parameters: {'uid': userId, 'now': now},
+      );
+    } else {
+      userRow = results[0].toColumnMap();
+      userId = userRow['id'] as int;
+      finalRole = userRow['role'] as String? ?? 'CLIENT';
+      final isActive = userRow['is_active'] as bool? ?? false;
+      if (!isActive) {
+        return errorResponse('This account is suspended.', statusCode: 401);
+      }
+      
+      final now = DateTime.now();
+      await dbPool.execute(
+        Sql.named('UPDATE accounts_user SET last_login = @now WHERE id = @id'),
+        parameters: {'now': now, 'id': userId},
+      );
+    }
+
+    final tokens = generateTokens(userId, email, finalRole);
+    return jsonResponse({
+      'access': tokens['access'],
+      'refresh': tokens['refresh'],
+      'role': finalRole,
+      'username': email,
+      'email': email,
+      'first_name': data['given_name']?.toString() ?? userRow?['first_name']?.toString() ?? '',
+      'last_name': data['family_name']?.toString() ?? userRow?['last_name']?.toString() ?? '',
+      'id': userId,
+    });
+  } catch (e, st) {
+    return errorResponse('Error during Google authentication: \$e');
+  }
+}
+
 Future<Response> loginHandler(Request request) async {
   final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
   final email = body['username']?.toString().trim();
@@ -4280,8 +4446,7 @@ void main() async {
   }
 
   final router = Router();
-
-  // Authentication
+  router.post('/api/auth/google/', googleAuthHandler);
   router.post('/api/auth/login/', loginHandler);
   router.post('/api/auth/token/refresh/', tokenRefreshHandler);
   router.post('/api/auth/otp/request/', requestOtpHandler);

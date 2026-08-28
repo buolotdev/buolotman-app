@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 
 import 'app_state.dart';
@@ -560,6 +561,81 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 24),
+                      const Row(
+                        children: [
+                          Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            child: Text("OR", style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.w600)),
+                          ),
+                          Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        height: 56,
+                        child: OutlinedButton(
+                          onPressed: () async {
+                            try {
+                              final GoogleSignIn googleSignIn = GoogleSignIn();
+                              final GoogleSignInAccount? account = await googleSignIn.signIn();
+                              if (account != null) {
+                                final GoogleSignInAuthentication auth = await account.authentication;
+                                if (auth.idToken != null) {
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (context) => const Center(
+                                      child: CircularProgressIndicator(
+                                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF4500)),
+                                      ),
+                                    ),
+                                  );
+                                  try {
+                                    // Use selected role for signup if it's not Client, otherwise defaults to Client in backend
+                                    await AppStateScope.of(context).googleLogin(auth.idToken!, role: _selectedRole.toUpperCase());
+                                    if (context.mounted) {
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pushAndRemoveUntil(
+                                        MaterialPageRoute(
+                                          builder: (context) => MainNavigationScreen(
+                                            role: AppStateScope.of(context).currentRole,
+                                          ),
+                                        ),
+                                        (route) => false,
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      Navigator.of(context).pop();
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+                                      );
+                                    }
+                                  }
+                                }
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Google Sign-In failed: $e')),
+                              );
+                            }
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFFE2E8F0)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset('assets/images/google_logo.png', height: 24, errorBuilder: (c,e,s) => const Icon(Icons.g_mobiledata, color: Colors.blue, size: 32)),
+                              const SizedBox(width: 12),
+                              const Text("Sign up with Google", style: TextStyle(color: Color(0xFF001F3F), fontSize: 16, fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 16),
                     ],

@@ -10,6 +10,7 @@ dependencies:
   postgres: ^3.0.7
   crypto: ^3.0.3
   dotenv: ^4.2.0
+  http: ^1.6.0
 
 dev_dependencies:
   lints: ^2.1.0

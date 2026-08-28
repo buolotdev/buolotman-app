@@ -963,6 +963,28 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> googleAuth(String idToken, {String? role}) async {
+    final url = Uri.parse('$baseUrl/auth/google/');
+    final response = await http.post(
+      url,
+      headers: _getHeaders(),
+      body: jsonEncode({
+        'id_token': idToken,
+        if (role != null) 'role': role,
+      }),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data.containsKey('access')) {
+        await setToken(data['access'], data['refresh']);
+      }
+      return data;
+    } else {
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
+      throw Exception(err['error'] ?? 'Google Sign-In failed.');
+    }
+  }
+
   // ─── HELPER FOR VALIDATION ERRORS ──────────────────────────────────────────
 
   String _parseValidationErrors(Map<String, dynamic> errors) {
