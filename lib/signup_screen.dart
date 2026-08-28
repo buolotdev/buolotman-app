@@ -580,7 +580,10 @@ class _SignupScreenState extends State<SignupScreen> {
                         child: OutlinedButton(
                           onPressed: () async {
                             try {
-                              final GoogleSignIn googleSignIn = GoogleSignIn();
+                              final googleSignIn = GoogleSignIn(
+                                serverClientId: '1090108678391-00u5aomsoh2gu7rqk2vnfldt9cs4fovq.apps.googleusercontent.com',
+                                scopes: ['email', 'profile'],
+                              );
                               final GoogleSignInAccount? account = await googleSignIn.signIn();
                               if (account != null) {
                                 final GoogleSignInAuthentication auth = await account.authentication;
