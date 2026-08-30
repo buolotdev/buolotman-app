@@ -4759,6 +4759,10 @@ void main() async {
       .addMiddleware(authMiddleware(secretKey))
       .addHandler(router);
 
+  final uploadDir = Directory('uploads');
+  if (!uploadDir.existsSync()) {
+    uploadDir.createSync(recursive: true);
+  }
   final staticHandler = createStaticHandler('uploads');
   Future<Response> handleUploads(Request req) async {
     if (req.url.pathSegments.isNotEmpty && req.url.pathSegments.first == 'uploads') {
