@@ -491,6 +491,11 @@ class AppState extends GetxController {
         skills: (profile['skills'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
         certifications: (profile['certifications'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
         experience: profile['experience'] ?? '',
+        dailyRate: double.tryParse(profile['daily_rate']?.toString() ?? '0') ?? 0.0,
+        fixedPrice: double.tryParse(profile['fixed_price']?.toString() ?? '0') ?? 0.0,
+        inspectionFee: double.tryParse(profile['inspection_fee']?.toString() ?? '0') ?? 0.0,
+        toolsAndEquipment: (profile['tools_and_equipment'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+        workPreferences: (profile['work_preferences'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       );
 
       if (_currentUser.role == 'Technician') {

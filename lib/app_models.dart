@@ -19,6 +19,11 @@ class AppUser {
     this.certifications = const [],
     this.availabilityStatus = 'available',
     this.experience = '',
+    this.dailyRate = 0.0,
+    this.fixedPrice = 0.0,
+    this.inspectionFee = 0.0,
+    this.toolsAndEquipment = const [],
+    this.workPreferences = const [],
   });
 
   final String name;
@@ -37,6 +42,11 @@ class AppUser {
   final List<String> certifications;
   final String availabilityStatus;
   final String experience;
+  final double dailyRate;
+  final double fixedPrice;
+  final double inspectionFee;
+  final List<String> toolsAndEquipment;
+  final List<String> workPreferences;
 
   AppUser copyWith({
     String? name,
@@ -55,6 +65,11 @@ class AppUser {
     List<String>? certifications,
     String? availabilityStatus,
     String? experience,
+    double? dailyRate,
+    double? fixedPrice,
+    double? inspectionFee,
+    List<String>? toolsAndEquipment,
+    List<String>? workPreferences,
   }) {
     return AppUser(
       name: name ?? this.name,
@@ -73,6 +88,11 @@ class AppUser {
       certifications: certifications ?? this.certifications,
       availabilityStatus: availabilityStatus ?? this.availabilityStatus,
       experience: experience ?? this.experience,
+      dailyRate: dailyRate ?? this.dailyRate,
+      fixedPrice: fixedPrice ?? this.fixedPrice,
+      inspectionFee: inspectionFee ?? this.inspectionFee,
+      toolsAndEquipment: toolsAndEquipment ?? this.toolsAndEquipment,
+      workPreferences: workPreferences ?? this.workPreferences,
     );
   }
 }

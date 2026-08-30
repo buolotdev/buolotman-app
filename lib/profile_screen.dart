@@ -157,10 +157,60 @@ class ProfileScreen extends StatelessWidget {
                   _buildSectionCard(
                     title: 'Pricing',
                     children: [
-                      Text(
-                        '\$${appState.currentUser.hourlyRate.toStringAsFixed(2)} / hour',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFFF4500)),
-                      ),
+                      if (appState.currentUser.hourlyRate > 0)
+                        Text('\$${appState.currentUser.hourlyRate.toStringAsFixed(2)} / hour', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFFF4500))),
+                      if (appState.currentUser.hourlyRate > 0) const SizedBox(height: 4),
+                      if (appState.currentUser.dailyRate > 0)
+                        Text('\$${appState.currentUser.dailyRate.toStringAsFixed(2)} / day', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFFF4500))),
+                      if (appState.currentUser.dailyRate > 0) const SizedBox(height: 4),
+                      if (appState.currentUser.fixedPrice > 0)
+                        Text('\$${appState.currentUser.fixedPrice.toStringAsFixed(2)} fixed project price', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFFF4500))),
+                      if (appState.currentUser.fixedPrice > 0) const SizedBox(height: 4),
+                      if (appState.currentUser.inspectionFee > 0)
+                        Text('\$${appState.currentUser.inspectionFee.toStringAsFixed(2)} inspection fee', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFFF4500))),
+                      
+                      if (appState.currentUser.hourlyRate == 0 && appState.currentUser.dailyRate == 0 && appState.currentUser.fixedPrice == 0 && appState.currentUser.inspectionFee == 0)
+                        const Text('No pricing added yet.', style: TextStyle(color: Color(0xFF64748B))),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSectionCard(
+                    title: 'Work Preferences',
+                    children: [
+                      if (appState.currentUser.workPreferences.isEmpty)
+                        const Text('No work preferences added yet.', style: TextStyle(color: Color(0xFF64748B)))
+                      else
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: appState.currentUser.workPreferences.map((s) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(16)),
+                              child: Text(s, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
+                            );
+                          }).toList(),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSectionCard(
+                    title: 'Tools & Equipment',
+                    children: [
+                      if (appState.currentUser.toolsAndEquipment.isEmpty)
+                        const Text('No tools and equipment added yet.', style: TextStyle(color: Color(0xFF64748B)))
+                      else
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: appState.currentUser.toolsAndEquipment.map((s) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(16)),
+                              child: Text(s, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
+                            );
+                          }).toList(),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 16),
