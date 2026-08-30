@@ -30,7 +30,6 @@ class AppUser {
     this.primaryOccupation = '',
     this.licences = const [],
     this.verificationBadge = 'Unverified',
-    this.tagline = '',
     this.startingPrice = 0.0,
     this.ownTools = false,
     this.hasVehicle = false,
@@ -76,7 +75,6 @@ class AppUser {
   final String primaryOccupation;
   final List<String> licences;
   final String verificationBadge; // 'Unverified' | 'Identity Verified' | 'Professional Verified' | 'BM Verified Professional'
-  final String tagline;
   final double startingPrice;
   final bool ownTools;
   final bool hasVehicle;
@@ -122,7 +120,6 @@ class AppUser {
     String? primaryOccupation,
     List<String>? licences,
     String? verificationBadge,
-    String? tagline,
     double? startingPrice,
     bool? ownTools,
     bool? hasVehicle,
@@ -168,7 +165,6 @@ class AppUser {
       primaryOccupation: primaryOccupation ?? this.primaryOccupation,
       licences: licences ?? this.licences,
       verificationBadge: verificationBadge ?? this.verificationBadge,
-      tagline: tagline ?? this.tagline,
       startingPrice: startingPrice ?? this.startingPrice,
       ownTools: ownTools ?? this.ownTools,
       hasVehicle: hasVehicle ?? this.hasVehicle,

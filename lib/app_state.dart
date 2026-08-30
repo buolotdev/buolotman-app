@@ -502,7 +502,6 @@ class AppState extends GetxController {
         primaryOccupation: profile['primary_occupation'] ?? '',
         licences: (profile['licences'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
         verificationBadge: profile['verification_badge'] ?? 'Unverified',
-        tagline: profile['tagline'] ?? '${_mapRole(profile['role'] ?? 'CLIENT')} Account',
         startingPrice: double.tryParse(profile['starting_price']?.toString() ?? '0') ?? 0.0,
         ownTools: profile['own_tools'] == true || profile['own_tools'] == 'true',
         hasVehicle: profile['has_vehicle'] == true || profile['has_vehicle'] == 'true',
