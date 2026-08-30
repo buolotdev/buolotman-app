@@ -17,7 +17,7 @@ void main() async {
   // Parse Supabase connection string
   final uri = Uri.parse(dbUrl);
   final host = uri.host;
-  final port = uri.port;
+  final port = uri.hasPort ? uri.port : 5432;
   final databaseName = uri.path.replaceAll('/', '');
   final username = uri.userInfo.split(':')[0];
   final password = uri.userInfo.split(':')[1];
