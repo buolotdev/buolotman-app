@@ -139,9 +139,10 @@ class AppState extends GetxController {
     await syncAll();
   }
 
-  Future<void> googleLogin(String idToken, {String? role}) async {
-    await ApiService.instance.googleAuth(idToken, role: role);
+  Future<bool> googleLogin(String idToken, {String? role}) async {
+    final response = await ApiService.instance.googleAuth(idToken, role: role);
     await syncAll();
+    return response['is_new_user'] == true;
   }
 
   Future<void> registerAndLogin({

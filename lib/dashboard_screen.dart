@@ -18,6 +18,9 @@ import 'messages_screen.dart';
 import 'notifications_screen.dart';
 import 'browse_professionals_screen.dart';
 
+import 'package:showcaseview/showcaseview.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'profile_setup_screen.dart';
 import 'wallet_screen.dart';
 import 'technician_public_profile_screen.dart';
 
@@ -31,6 +34,11 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  
+  final GlobalKey _tourKey1 = GlobalKey();
+  final GlobalKey _tourKey2 = GlobalKey();
+  final GlobalKey _tourKey3 = GlobalKey();
+
   bool _isRefreshing = false;
   bool _isLoading = false;
 
@@ -86,10 +94,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  bool _tourChecked = false;
+
+  Future<void> _checkAndShowTour(BuildContext showcaseContext) async {
+    if (_tourChecked) return;
+    _tourChecked = true;
+    
+    final prefs = await SharedPreferences.getInstance();
+    final role = widget.role;
+    final hasShownTour = prefs.getBool('has_shown_tour_$role') ?? false;
+    
+    if (!hasShownTour) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ShowCaseWidget.of(showcaseContext).startShowCase([_tourKey1, _tourKey2, _tourKey3]);
+      });
+      await prefs.setBool('has_shown_tour_$role', true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<AppState>(
-      builder: (appState) {
+    return ShowCaseWidget(
+      builder: (showcaseContext) {
+        _checkAndShowTour(showcaseContext);
+        return GetBuilder<AppState>(
+            builder: (appState) {
         final greetingName = appState.currentUser.name.split(' ').first;
         final location = appState.currentUser.location;
         final bottomPadding = MediaQuery.of(context).padding.bottom + 120;
@@ -108,15 +137,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        _buildProfileCompletionBanner(appState),
                         if (widget.role == 'Company') ...[
-                          _buildCompanyStats(appState),
+                          Showcase(
+                            key: _tourKey1,
+                            description: 'Track your active projects, team size, and total revenue.',
+                            child: _buildCompanyStats(appState),
+                          ),
                           const SizedBox(height: 28),
                           _buildCompanySummary(appState),
                           const SizedBox(height: 28),
                           _buildSectionHeader("Active Projects", "Manage", onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MyTasksScreen()));
                           }),
-                          _buildCompanyActiveProjects(appState),
+                          Showcase(
+                            key: _tourKey2,
+                            description: 'Monitor your ongoing company projects and milestones.',
+                            child: _buildCompanyActiveProjects(appState),
+                          ),
                           const SizedBox(height: 28),
                           _buildSectionHeader("Your Team", "Open", onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const CompanyProfileScreen()));
@@ -126,11 +164,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           _buildSectionHeader("Service Catalog", "Edit", onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PostServiceScreen()));
                           }),
-                          _buildCompanyServiceCatalog(appState),
-                        ] else ...[
-                          _buildWalletCard(appState),
+                          Showcase(
+                            key: _tourKey3,
+                            description: 'Add and edit the services your company offers.',
+                            child: _buildCompanyServiceCatalog(appState),
+                          ),
+                        ] else if (widget.role == 'Technician') ...[
+                          Showcase(
+                            key: _tourKey1,
+                            description: 'Track your earnings, pending escrow, and withdraw funds.',
+                            child: _buildWalletCard(appState),
+                          ),
                           const SizedBox(height: 24),
-                          _buildQuickActionBanner(appState),
+                          Showcase(
+                            key: _tourKey2,
+                            description: 'Find open jobs and submit your bids to get hired.',
+                            child: _buildQuickActionBanner(appState),
+                          ),
                           const SizedBox(height: 28),
                           _buildSectionHeader("Your Active Tasks", "Manage", onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MyTasksScreen()));
@@ -141,6 +191,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BrowseProfessionalsScreen()));
                           }),
                           _buildSavedProfessionals(appState),
+                          const SizedBox(height: 28),
+                          _buildSectionHeader("Top Rated Professionals", "See all", onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BrowseProfessionalsScreen()));
+                          }),
+                          Showcase(
+                            key: _tourKey3,
+                            description: 'See how you rank against top professionals in your area.',
+                            child: _buildTopProfessionals(appState),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildTrustBanner(),
+                        ] else ...[
+                          _buildWalletCard(appState),
+                          const SizedBox(height: 24),
+                          Showcase(
+                            key: _tourKey1,
+                            description: 'Need something done? Start by posting a task for professionals to see.',
+                            child: _buildQuickActionBanner(appState),
+                          ),
+                          const SizedBox(height: 28),
+                          _buildSectionHeader("Your Active Tasks", "Manage", onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MyTasksScreen()));
+                          }),
+                          Showcase(
+                            key: _tourKey2,
+                            description: 'Manage all your open and ongoing tasks right here.',
+                            child: _buildClientActiveTasks(appState),
+                          ),
+                          const SizedBox(height: 28),
+                          _buildSectionHeader("Saved Professionals", "Browse All", onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BrowseProfessionalsScreen()));
+                          }),
+                          Showcase(
+                            key: _tourKey3,
+                            description: 'Keep track of the professionals you love working with.',
+                            child: _buildSavedProfessionals(appState),
+                          ),
                           const SizedBox(height: 28),
                           _buildSectionHeader("Top Rated Professionals", "See all", onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const BrowseProfessionalsScreen()));
@@ -159,6 +246,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         );
       },
+    );
+      },
+    );
+  }
+
+  Widget _buildProfileCompletionBanner(AppState appState) {
+    // If location is default or empty, we assume profile is incomplete
+    final isLocationEmpty = appState.currentUser.location.isEmpty || appState.currentUser.location == 'Lagos, Nigeria';
+    
+    if (!isLocationEmpty) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF4E5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFFD8A8)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.warning_amber_rounded, color: Color(0xFFFF8C00)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Complete Your Profile',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF001F3F)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Get the most out of Buolot by adding your required details.',
+            style: TextStyle(color: Color(0xFF666666), fontSize: 13),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileSetupScreen()));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF4500),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text('Complete Now'),
+            ),
+          )
+        ],
+      ),
     );
   }
 

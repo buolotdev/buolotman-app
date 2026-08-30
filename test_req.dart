@@ -1,0 +1,1 @@
+import 'package:http/http.dart' as http; import 'dart:convert'; void main() async { final res = await http.post(Uri.parse('http://localhost:8000/api/auth/register/client/'), body: jsonEncode({'email':'testxyza@test.com','password':'password','first_name':'Test','last_name':'User','phone':'+237675771994'})); print(res.body); }

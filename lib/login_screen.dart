@@ -3,6 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'app_state.dart';
 import 'signup_screen.dart';
 import 'main_navigation_screen.dart';
+import 'google_role_selection_screen.dart';
 import 'otp_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -438,17 +439,26 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   );
                                   try {
-                                    await AppStateScope.of(context).googleLogin(auth.idToken!);
+                                    final isNewUser = await AppStateScope.of(context).googleLogin(auth.idToken!);
                                     if (context.mounted) {
-                                      Navigator.of(context).pop();
-                                      Navigator.of(context).pushAndRemoveUntil(
-                                        MaterialPageRoute(
-                                          builder: (context) => MainNavigationScreen(
-                                            role: AppStateScope.of(context).currentRole,
+                                      Navigator.of(context).pop(); // dismiss dialog
+                                      
+                                      if (isNewUser) {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) => const GoogleRoleSelectionScreen(initialRole: 'CLIENT'),
                                           ),
-                                        ),
-                                        (route) => false,
-                                      );
+                                        );
+                                      } else {
+                                        Navigator.of(context).pushAndRemoveUntil(
+                                          MaterialPageRoute(
+                                            builder: (context) => MainNavigationScreen(
+                                              role: AppStateScope.of(context).currentRole,
+                                            ),
+                                          ),
+                                          (route) => false,
+                                        );
+                                      }
                                     }
                                   } catch (e) {
                                     if (context.mounted) {

@@ -1,13 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:mime/mime.dart';
-import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
-import 'package:shelf_static/shelf_static.dart';
-import 'package:uuid/uuid.dart';
 import 'package:postgres/postgres.dart';
 import 'package:dotenv/dotenv.dart';
 
@@ -340,8 +336,6 @@ bool isPublicPath(String path, String method) {
   if (p == 'api/governance/public-pages' && method == 'GET') return true;
   if (RegExp(r'^api/governance/public-pages/[^/]+$').hasMatch(p) && method == 'GET') return true;
 
-  if (p.startsWith('uploads') && method == 'GET') return true;
-
   return false;
 }
 
@@ -402,6 +396,8 @@ Middleware corsHeaders() {
 }
 
 // ─── AUTH CONTROLLERS ──────────────────────────────────────────────────────
+
+import 'package:http/http.dart' as http;
 
 Future<Response> googleAuthHandler(Request request) async {
   try {
@@ -551,34 +547,16 @@ Future<Response> googleAuthHandler(Request request) async {
       );
     }
 
-    final now = DateTime.now();
-    final accessPayload = {
-      'user_id': userId,
-      'role': finalRole,
-      'email': email,
-      'token_type': 'access',
-      'exp': (now.millisecondsSinceEpoch ~/ 1000) + 365 * 24 * 60 * 60, // 1 year
-    };
-    final refreshPayload = {
-      'user_id': userId,
-      'role': finalRole,
-      'email': email,
-      'token_type': 'refresh',
-      'exp': (now.millisecondsSinceEpoch ~/ 1000) + 7 * 24 * 60 * 60, // 7 days
-    };
-    final accessToken = generateJwt(payload: accessPayload, secret: secretKey);
-    final refreshToken = generateJwt(payload: refreshPayload, secret: secretKey);
-
+    final tokens = generateTokens(userId, email, finalRole);
     return jsonResponse({
-      'access': accessToken,
-      'refresh': refreshToken,
+      'access': tokens['access'],
+      'refresh': tokens['refresh'],
       'role': finalRole,
       'username': email,
       'email': email,
       'first_name': data['given_name']?.toString() ?? userRow?['first_name']?.toString() ?? '',
       'last_name': data['family_name']?.toString() ?? userRow?['last_name']?.toString() ?? '',
       'id': userId,
-      'is_new_user': results.isEmpty,
     });
   } catch (e, st) {
     return errorResponse('Error during Google authentication: \$e');
@@ -938,8 +916,8 @@ Future<Response> registerClientHandler(Request request) async {
   final now = DateTime.now();
 
   final res = await dbPool.execute(
-    Sql.named('INSERT INTO accounts_user (username, password, is_superuser, first_name, last_name, email, is_staff, is_active, date_joined, role, phone, avatar_url, banner_url, is_verified, language_preference, country, address, education_level, expertise_level, created_at, updated_at) '
-              'VALUES (@email, @pwdHash, false, @first, @last, @email, false, true, @now, \'CLIENT\', @phone, \'\', \'\', false, \'en\', \'\', \'\', \'\', \'\', @now, @now) RETURNING id'),
+    Sql.named('INSERT INTO accounts_user (username, password, is_superuser, first_name, last_name, email, is_staff, is_active, date_joined, role, phone, avatar_url, banner_url, is_verified, language_preference, country, created_at, updated_at) '
+              'VALUES (@email, @pwdHash, false, @first, @last, @email, false, true, @now, \'CLIENT\', @phone, \'\', \'\', false, \'en\', \'\', @now, @now) RETURNING id'),
     parameters: {
       'email': email,
       'pwdHash': pwdHash,
@@ -992,8 +970,8 @@ Future<Response> registerTechnicianHandler(Request request) async {
   final now = DateTime.now();
 
   final res = await dbPool.execute(
-    Sql.named('INSERT INTO accounts_user (username, password, is_superuser, first_name, last_name, email, is_staff, is_active, date_joined, role, phone, avatar_url, banner_url, is_verified, language_preference, country, address, education_level, expertise_level, created_at, updated_at) '
-              'VALUES (@email, @pwdHash, false, @first, @last, @email, false, true, @now, \'TECHNICIAN\', @phone, \'\', \'\', false, \'en\', \'\', \'\', \'\', \'\', @now, @now) RETURNING id'),
+    Sql.named('INSERT INTO accounts_user (username, password, is_superuser, first_name, last_name, email, is_staff, is_active, date_joined, role, phone, avatar_url, banner_url, is_verified, language_preference, country, created_at, updated_at) '
+              'VALUES (@email, @pwdHash, false, @first, @last, @email, false, true, @now, \'TECHNICIAN\', @phone, \'\', \'\', false, \'en\', \'\', @now, @now) RETURNING id'),
     parameters: {
       'email': email,
       'pwdHash': pwdHash,
@@ -1032,127 +1010,6 @@ Future<Response> registerTechnicianHandler(Request request) async {
   return Response(201, body: jsonEncode({'message': 'Technician registered successfully. Awaiting verification.'}), headers: {'content-type': 'application/json'});
 }
 
-Future<Response> completeProfileHandler(Request request) async {
-  final userId = request.context['user_id'] as int?;
-  if (userId == null) {
-    return errorResponse('Unauthorized', statusCode: 401);
-  }
-
-  try {
-    final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
-    final role = body['role']?.toString().toUpperCase();
-    
-    if (role != 'CLIENT' && role != 'TECHNICIAN' && role != 'COMPANY') {
-      return errorResponse('Invalid role', statusCode: 400);
-    }
-
-    final now = DateTime.now();
-
-    // 1. Update user role
-    await dbPool.execute(
-      Sql.named('UPDATE accounts_user SET role = @role, updated_at = @now WHERE id = @uid'),
-      parameters: {'role': role, 'now': now, 'uid': userId},
-    );
-
-    // 2. Insert profile data if necessary
-    if (role == 'TECHNICIAN') {
-      final bio = body['bio']?.toString() ?? '';
-      final phone = body['phone']?.toString() ?? '';
-      final rateStr = body['hourly_rate']?.toString() ?? '0';
-      final rate = double.tryParse(rateStr) ?? 0.0;
-      
-      // Update user phone
-      await dbPool.execute(
-        Sql.named('UPDATE accounts_user SET phone = @phone WHERE id = @uid'),
-        parameters: {'phone': phone, 'uid': userId},
-      );
-
-      final existingTech = await dbPool.execute(
-        Sql.named('SELECT id FROM accounts_technician_profile WHERE user_id = @uid'),
-        parameters: {'uid': userId},
-      );
-
-      if (existingTech.isEmpty) {
-        await dbPool.execute(
-          Sql.named('''
-            INSERT INTO accounts_technician_profile (
-              user_id, bio, phone_number, hourly_rate, languages, portfolio,
-              background_check_status, is_verified, availability_status,
-              completed_jobs, average_rating, response_time
-            ) VALUES (
-              @uid, @bio, @phone, @rate, '[]'::jsonb, '[]'::jsonb,
-              'pending', false, 'online', 0, 0.0, 'N/A'
-            )
-          '''),
-          parameters: {
-            'uid': userId,
-            'bio': bio,
-            'phone': phone,
-            'rate': rate,
-          },
-        );
-      } else {
-        await dbPool.execute(
-          Sql.named('UPDATE accounts_technician_profile SET bio = @bio, phone_number = @phone, hourly_rate = @rate WHERE user_id = @uid'),
-          parameters: {'uid': userId, 'bio': bio, 'phone': phone, 'rate': rate},
-        );
-      }
-    } else if (role == 'COMPANY') {
-      final companyName = body['company_name']?.toString() ?? '';
-      final regNumber = body['registration_number']?.toString() ?? '';
-      final industry = body['industry']?.toString() ?? '';
-      final website = body['website']?.toString() ?? '';
-      
-      final existingCompany = await dbPool.execute(
-        Sql.named('SELECT id FROM companies_profile WHERE user_id = @uid'),
-        parameters: {'uid': userId},
-      );
-
-      if (existingCompany.isEmpty) {
-        await dbPool.execute(
-          Sql.named('''
-            INSERT INTO companies_profile (
-              user_id, company_name, registration_number, industry, website,
-              headquarters, country, city, latitude, longitude,
-              services, expertise, operating_hours, logo_url, cover_url,
-              about, is_verified, rating, reviews_count, completed_projects,
-              active_projects, total_revenue, currency, email_notifications,
-              sms_notifications, profile_visibility, two_factor_enabled,
-              created_at, updated_at
-            ) VALUES (
-              @uid, @company_name, @reg, @industry, @website,
-              '', '', '', NULL, NULL,
-              '[]'::jsonb, '[]'::jsonb, '{}'::jsonb, '', '',
-              '', false, 0.0, 0, 0,
-              0, 0.0, 'USD', true,
-              false, 'public', false,
-              @now, @now
-            )
-          '''),
-          parameters: {
-            'uid': userId,
-            'company_name': companyName,
-            'reg': regNumber,
-            'industry': industry,
-            'website': website,
-            'now': now,
-          },
-        );
-      } else {
-         await dbPool.execute(
-          Sql.named('UPDATE companies_profile SET company_name = @company_name, registration_number = @reg, industry = @industry, website = @website WHERE user_id = @uid'),
-          parameters: {'uid': userId, 'company_name': companyName, 'reg': regNumber, 'industry': industry, 'website': website},
-        );
-      }
-    }
-
-    return Response.ok(jsonEncode({'message': 'Profile completed successfully.'}));
-  } catch (e) {
-    print('completeProfileHandler error: \$e');
-    return errorResponse('Failed to complete profile: \$e', statusCode: 500);
-  }
-}
-
 Future<Response> registerCompanyHandler(Request request) async {
   final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
   final email = body['email']?.toString().trim();
@@ -1173,8 +1030,8 @@ Future<Response> registerCompanyHandler(Request request) async {
   final now = DateTime.now();
 
   final res = await dbPool.execute(
-    Sql.named('INSERT INTO accounts_user (username, password, is_superuser, first_name, last_name, email, is_staff, is_active, date_joined, role, phone, avatar_url, banner_url, is_verified, language_preference, country, address, education_level, expertise_level, created_at, updated_at) '
-              'VALUES (@email, @pwdHash, false, @first, \'\', @email, false, true, @now, \'COMPANY\', @phone, \'\', \'\', false, \'en\', \'\', \'\', \'\', \'\', @now, @now) RETURNING id'),
+    Sql.named('INSERT INTO accounts_user (username, password, is_superuser, first_name, last_name, email, is_staff, is_active, date_joined, role, phone, avatar_url, banner_url, is_verified, language_preference, country, created_at, updated_at) '
+              'VALUES (@email, @pwdHash, false, @first, \'\', @email, false, true, @now, \'COMPANY\', @phone, \'\', \'\', false, \'en\', \'\', @now, @now) RETURNING id'),
     parameters: {
       'email': email,
       'pwdHash': pwdHash,
@@ -1254,7 +1111,7 @@ Future<Response> updateMeHandler(Request request) async {
   final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
 
   // Filter keys allowed for User
-  final allowedUserFields = ['first_name', 'last_name', 'phone', 'avatar_url', 'language_preference', 'country', 'address', 'date_of_birth', 'education_level', 'expertise_level'];
+  final allowedUserFields = ['first_name', 'last_name', 'phone', 'avatar_url', 'language_preference', 'country'];
   final userUpdates = <String, dynamic>{};
   for (final f in allowedUserFields) {
     if (body.containsKey(f)) userUpdates[f] = body[f];
@@ -1272,13 +1129,13 @@ Future<Response> updateMeHandler(Request request) async {
   // Filter keys for technician profile
   final role = getUserRole(request);
   if (role == 'TECHNICIAN') {
-    final allowedProfileFields = ['bio', 'hourly_rate', 'availability_status', 'certifications', 'experience', 'daily_rate', 'fixed_price', 'inspection_fee', 'work_preferences', 'tools_and_equipment', 'national_id_front', 'national_id_back', 'selfie_url'];
+    final allowedProfileFields = ['bio', 'hourly_rate', 'availability_status', 'certifications', 'experience'];
     final profileUpdates = <String, dynamic>{};
     for (final f in allowedProfileFields) {
       if (body.containsKey(f)) {
-        if (f == 'hourly_rate' || f == 'daily_rate' || f == 'fixed_price' || f == 'inspection_fee') {
+        if (f == 'hourly_rate') {
           profileUpdates[f] = double.tryParse(body[f].toString()) ?? 0.0;
-        } else if (f == 'certifications' || f == 'work_preferences' || f == 'tools_and_equipment') {
+        } else if (f == 'certifications') {
           profileUpdates[f] = jsonEncode(body[f]);
         } else {
           profileUpdates[f] = body[f];
@@ -1358,16 +1215,8 @@ Future<Response> updateMeHandler(Request request) async {
       final prof = profileQuery[0].toColumnMap();
       data['bio'] = prof['bio'] ?? '';
       data['hourly_rate'] = prof['hourly_rate']?.toString();
-      data['daily_rate'] = prof['daily_rate']?.toString();
-      data['fixed_price'] = prof['fixed_price']?.toString();
-      data['inspection_fee'] = prof['inspection_fee']?.toString();
       data['availability_status'] = prof['availability_status'] ?? 'available';
       data['certifications'] = parseJsonField(prof['certifications']) ?? [];
-      data['work_preferences'] = parseJsonField(prof['work_preferences']) ?? {};
-      data['tools_and_equipment'] = parseJsonField(prof['tools_and_equipment']) ?? {};
-      data['national_id_front'] = prof['national_id_front'] ?? '';
-      data['national_id_back'] = prof['national_id_back'] ?? '';
-      data['selfie_url'] = prof['selfie_url'] ?? '';
       
       final skillsQuery = await dbPool.execute(
         Sql.named('SELECT s.name FROM tasks_skill s JOIN accounts_technician_profile_skills ps ON s.id = ps.skill_id WHERE ps.technicianprofile_id = @profId'),
@@ -3485,10 +3334,6 @@ Future<Response> getCompanyProfileHandler(Request request) async {
     'website': profile['website'] ?? '',
     'headquarters': profile['headquarters'] ?? '',
     'business_hours': parseJsonField(profile['business_hours']) ?? [],
-    'capabilities': parseJsonField(profile['capabilities']) ?? {},
-    'business_registration_url': profile['business_registration_url'] ?? '',
-    'tax_id_url': profile['tax_id_url'] ?? '',
-    'operating_licence_url': profile['operating_licence_url'] ?? '',
     'is_verified': profile['is_verified'] ?? false,
     'average_rating': profile['average_rating']?.toString() ?? '0.00',
     'review_count': profile['review_count'] ?? 0,
@@ -3557,11 +3402,11 @@ Future<Response> updateCompanyProfileHandler(Request request) async {
   final userId = getUserId(request);
   final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
 
-  final allowed = ['company_name', 'registration_number', 'services_offered', 'company_size', 'logo_url', 'cover_url', 'about', 'website', 'headquarters', 'business_hours', 'team_size', 'completed_tasks', 'response_time', 'capabilities', 'business_registration_url', 'tax_id_url', 'operating_licence_url'];
+  final allowed = ['company_name', 'registration_number', 'services_offered', 'company_size', 'logo_url', 'cover_url', 'about', 'website', 'headquarters', 'business_hours', 'team_size', 'completed_tasks', 'response_time'];
   final updates = <String, dynamic>{};
   for (final f in allowed) {
     if (body.containsKey(f)) {
-      if (f == 'services_offered' || f == 'business_hours' || f == 'capabilities') {
+      if (f == 'services_offered' || f == 'business_hours') {
         updates[f] = jsonEncode(body[f]);
       } else {
         updates[f] = body[f];
@@ -3609,10 +3454,6 @@ Future<Response> companyPublicProfileHandler(Request request, String idStr) asyn
     'website': profile['website'] ?? '',
     'headquarters': profile['headquarters'] ?? '',
     'business_hours': parseJsonField(profile['business_hours']) ?? [],
-    'capabilities': parseJsonField(profile['capabilities']) ?? {},
-    'business_registration_url': profile['business_registration_url'] ?? '',
-    'tax_id_url': profile['tax_id_url'] ?? '',
-    'operating_licence_url': profile['operating_licence_url'] ?? '',
     'is_verified': profile['is_verified'] ?? false,
     'average_rating': profile['average_rating']?.toString() ?? '0.00',
     'review_count': profile['review_count'] ?? 0,
@@ -4463,41 +4304,6 @@ Future<Response> platformSettingsHandler(Request request) async {
   return jsonResponse(map);
 }
 
-// ─── UPLOAD HANDLER ────────────────────────────────────────────────────────
-
-Future<Response> uploadFileHandler(Request request) async {
-  final userId = getUserId(request);
-  if (userId == null) return errorResponse('Unauthorized', statusCode: 401);
-  
-  try {
-    final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
-    final base64String = body['base64_file']?.toString();
-    final extension = body['extension']?.toString() ?? 'jpg';
-    
-    if (base64String == null || base64String.isEmpty) {
-      return errorResponse('Missing base64_file in payload');
-    }
-    
-    String cleanBase64 = base64String;
-    if (cleanBase64.contains(',')) {
-      cleanBase64 = cleanBase64.split(',').last;
-    }
-    final bytes = base64Decode(cleanBase64.replaceAll(RegExp(r'\s+'), ''));
-    
-    final uuid = Uuid().v4();
-    final fileName = '$uuid.$extension';
-    final filePath = 'uploads/$fileName';
-    
-    final file = File(filePath);
-    await file.writeAsBytes(bytes);
-    
-    final publicUrl = '/uploads/$fileName';
-    return jsonResponse({'url': publicUrl, 'message': 'Upload successful'});
-  } catch (e) {
-    return errorResponse('Upload failed: $e');
-  }
-}
-
 // ─── MAIN APP ENTRYPOINT ───────────────────────────────────────────────────
 
 void main() async {
@@ -4641,7 +4447,6 @@ void main() async {
 
   final router = Router();
   router.post('/api/auth/google/', googleAuthHandler);
-  router.post('/api/auth/complete-profile/', completeProfileHandler);
   router.post('/api/auth/login/', loginHandler);
   router.post('/api/auth/token/refresh/', tokenRefreshHandler);
   router.post('/api/auth/otp/request/', requestOtpHandler);
@@ -4749,8 +4554,6 @@ void main() async {
   router.post('/api/governance/disputes/<id>/evidence/', disputeEvidenceHandler);
   router.get('/api/governance/audit-logs/', listAuditLogsHandler);
   router.get('/api/governance/platform-settings/', platformSettingsHandler);
-  
-  router.post('/api/upload/', uploadFileHandler);
 
   // Pipeline with middlewares
   final pipeline = const Pipeline()
@@ -4759,19 +4562,8 @@ void main() async {
       .addMiddleware(authMiddleware(secretKey))
       .addHandler(router);
 
-  final staticHandler = createStaticHandler('uploads');
-  Future<Response> handleUploads(Request req) async {
-    if (req.url.pathSegments.isNotEmpty && req.url.pathSegments.first == 'uploads') {
-      final modifiedReq = req.change(path: 'uploads');
-      return await staticHandler(modifiedReq);
-    }
-    return Response.notFound('Not Found');
-  }
-  
-  final cascade = Cascade().add(pipeline).add(handleUploads);
-
   final portStr = Platform.environment['PORT'] ?? '8000';
   final port = int.tryParse(portStr) ?? 8000;
-  final server = await io.serve(cascade.handler, '0.0.0.0', port);
+  final server = await io.serve(pipeline, '0.0.0.0', port);
   print('Dart Shelf server running at http://${server.address.host}:${server.port}');
 }

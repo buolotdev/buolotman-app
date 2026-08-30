@@ -48,6 +48,7 @@ dependencies:
   path_provider: ^2.1.6
   share_plus: ^12.0.2
   google_sign_in: ^6.2.1
+  showcaseview: ^5.1.0
 
 dev_dependencies:
   flutter_test:

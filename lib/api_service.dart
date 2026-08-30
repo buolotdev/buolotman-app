@@ -10,7 +10,7 @@ class ApiService {
 
   static final ApiService instance = ApiService._privateConstructor();
 
-  String? ipOverride;
+  String? ipOverride = '192.168.0.105';
   bool _showingIpDialog = false;
 
   String get baseUrl {
@@ -960,6 +960,14 @@ class ApiService {
     } else {
       Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
       throw Exception(err['error'] ?? 'Failed to update project.');
+    }
+  }
+
+  Future<void> completeProfile(Map<String, dynamic> body) async {
+    final response = await post('/auth/complete-profile/', body);
+    if (response.statusCode != 200) {
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
+      throw Exception(err['error'] ?? 'Failed to complete profile.');
     }
   }
 

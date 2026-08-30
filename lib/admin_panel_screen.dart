@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'app_state.dart';
+import 'applicant_dossier_modal.dart';
 
 class AdminPanelScreen extends StatefulWidget {
   const AdminPanelScreen({super.key});
@@ -89,9 +90,17 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
           margin: const EdgeInsets.only(bottom: 12),
           elevation: 2,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => ApplicantDossierModal(user: user),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
@@ -163,6 +172,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                 ),
               ],
             ),
+          ),
           ),
         );
       },
