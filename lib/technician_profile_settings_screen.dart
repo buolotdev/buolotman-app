@@ -18,8 +18,13 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
   late TextEditingController _countryController;
   late TextEditingController _bioController;
   late TextEditingController _hourlyRateController;
+  late TextEditingController _dailyRateController;
+  late TextEditingController _fixedPriceController;
+  late TextEditingController _inspectionFeeController;
   late TextEditingController _skillsController;
   late TextEditingController _certificationsController;
+  late TextEditingController _toolsController;
+  late TextEditingController _preferencesController;
   late TextEditingController _experienceController;
   
   String _availabilityStatus = 'available';
@@ -36,8 +41,13 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     _countryController = TextEditingController(text: u.country);
     _bioController = TextEditingController(text: u.bio);
     _hourlyRateController = TextEditingController(text: u.hourlyRate.toString());
+    _dailyRateController = TextEditingController(text: u.dailyRate.toString());
+    _fixedPriceController = TextEditingController(text: u.fixedPrice.toString());
+    _inspectionFeeController = TextEditingController(text: u.inspectionFee.toString());
     _skillsController = TextEditingController(text: u.skills.join(', '));
     _certificationsController = TextEditingController(text: u.certifications.join(', '));
+    _toolsController = TextEditingController(text: u.toolsAndEquipment.join(', '));
+    _preferencesController = TextEditingController(text: u.workPreferences.join(', '));
     _experienceController = TextEditingController(text: u.experience);
     _availabilityStatus = u.availabilityStatus.isNotEmpty ? u.availabilityStatus : 'available';
   }
@@ -50,8 +60,13 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     _countryController.dispose();
     _bioController.dispose();
     _hourlyRateController.dispose();
+    _dailyRateController.dispose();
+    _fixedPriceController.dispose();
+    _inspectionFeeController.dispose();
     _skillsController.dispose();
     _certificationsController.dispose();
+    _toolsController.dispose();
+    _preferencesController.dispose();
     _experienceController.dispose();
     super.dispose();
   }
@@ -66,7 +81,12 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
       
       final skillsList = _skillsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
       final certsList = _certificationsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+      final toolsList = _toolsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+      final prefsList = _preferencesController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
       final hr = double.tryParse(_hourlyRateController.text) ?? 0.0;
+      final dr = double.tryParse(_dailyRateController.text) ?? 0.0;
+      final fp = double.tryParse(_fixedPriceController.text) ?? 0.0;
+      final inf = double.tryParse(_inspectionFeeController.text) ?? 0.0;
 
       await appState.updateProfile(
         firstName: _firstNameController.text.trim(),
@@ -75,9 +95,14 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
         country: _countryController.text.trim(),
         bio: _bioController.text.trim(),
         hourlyRate: hr,
+        dailyRate: dr,
+        fixedPrice: fp,
+        inspectionFee: inf,
         availabilityStatus: _availabilityStatus,
         skills: skillsList,
         certifications: certsList,
+        toolsAndEquipment: toolsList,
+        workPreferences: prefsList,
         experience: _experienceController.text.trim(),
       );
       
@@ -158,7 +183,22 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                     const SizedBox(height: 16),
                     _buildTextField('Skills (comma separated)', _skillsController, hint: 'e.g., Plumbing, Electrical, HVAC'),
                     _buildTextField('Certifications (comma separated)', _certificationsController, hint: 'e.g., OSHA 30, Master Plumber'),
-                    _buildTextField('Hourly Rate (\$)', _hourlyRateController, keyboardType: TextInputType.number),
+                    _buildTextField('Tools & Equipment (comma separated)', _toolsController, hint: 'e.g., Power Drill, Ladder'),
+                    _buildTextField('Work Preferences (comma separated)', _preferencesController, hint: 'e.g., Indoors, Weekends'),
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField('Hourly Rate (\$)', _hourlyRateController, keyboardType: TextInputType.number)),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildTextField('Daily Rate (\$)', _dailyRateController, keyboardType: TextInputType.number)),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField('Fixed Price (\$)', _fixedPriceController, keyboardType: TextInputType.number)),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildTextField('Inspection Fee (\$)', _inspectionFeeController, keyboardType: TextInputType.number)),
+                      ],
+                    ),
                     
                     const Padding(
                       padding: EdgeInsets.only(bottom: 8),

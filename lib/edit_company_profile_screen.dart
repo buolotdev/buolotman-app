@@ -17,9 +17,10 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
   late TextEditingController _aboutCtrl;
   late TextEditingController _headquartersCtrl;
   late TextEditingController _websiteCtrl;
-  late TextEditingController _teamSizeCtrl;
+  late TextEditingController _companySizeCtrl;
   late TextEditingController _industryCtrl;
   late TextEditingController _servicesOfferedCtrl; // comma-separated
+  late TextEditingController _capabilitiesCtrl;
 
   @override
   void initState() {
@@ -29,8 +30,12 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
     _aboutCtrl = TextEditingController(text: profile['about']?.toString() ?? '');
     _headquartersCtrl = TextEditingController(text: profile['headquarters']?.toString() ?? '');
     _websiteCtrl = TextEditingController(text: profile['website']?.toString() ?? '');
-    _teamSizeCtrl = TextEditingController(text: profile['team_size']?.toString() ?? '');
+    _companySizeCtrl = TextEditingController(text: profile['company_size']?.toString() ?? '');
     _industryCtrl = TextEditingController(text: profile['industry']?.toString() ?? '');
+
+    final caps = profile['capabilities'];
+    final capsStr = caps is List ? caps.join(', ') : caps?.toString() ?? '';
+    _capabilitiesCtrl = TextEditingController(text: capsStr);
 
     final offered = profile['services_offered'];
     final offeredStr = offered is List
@@ -45,9 +50,10 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
     _aboutCtrl.dispose();
     _headquartersCtrl.dispose();
     _websiteCtrl.dispose();
-    _teamSizeCtrl.dispose();
+    _companySizeCtrl.dispose();
     _industryCtrl.dispose();
     _servicesOfferedCtrl.dispose();
+    _capabilitiesCtrl.dispose();
     super.dispose();
   }
 
@@ -62,6 +68,12 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
           .where((s) => s.isNotEmpty)
           .toList();
 
+      final capsList = _capabilitiesCtrl.text
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+
       final data = <String, dynamic>{
         'company_name': _companyNameCtrl.text.trim(),
         'about': _aboutCtrl.text.trim(),
@@ -69,10 +81,9 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
         'website': _websiteCtrl.text.trim(),
         'industry': _industryCtrl.text.trim(),
         'services_offered': servicesOffered,
+        'company_size': _companySizeCtrl.text.trim(),
+        'capabilities': capsList,
       };
-      if (_teamSizeCtrl.text.trim().isNotEmpty) {
-        data['team_size'] = int.tryParse(_teamSizeCtrl.text.trim()) ?? 0;
-      }
 
       await AppStateScope.of(context).updateCompanyProfile(data);
 
@@ -168,11 +179,10 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
               ),
               const SizedBox(height: 14),
               _field(
-                controller: _teamSizeCtrl,
-                label: 'Team Size',
+                controller: _companySizeCtrl,
+                label: 'Company Size',
                 icon: Icons.group_outlined,
-                hint: 'e.g. 10',
-                keyboardType: TextInputType.number,
+                hint: 'e.g. 1-10 employees',
               ),
               const SizedBox(height: 28),
 
@@ -207,6 +217,26 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
                   label: 'Services',
                   icon: Icons.home_repair_service_outlined,
                   hint: 'e.g. Plumbing, Electrical, HVAC, Painting',
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // ── CAPABILITIES ─────────────────────────────────────────────
+              _sectionLabel('Capabilities & Infrastructure'),
+              const SizedBox(height: 6),
+              const Text(
+                'Enter capabilities separated by commas',
+                style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _capabilitiesCtrl,
+                minLines: 2,
+                maxLines: 4,
+                decoration: _inputDecoration(
+                  label: 'Capabilities',
+                  icon: Icons.precision_manufacturing_outlined,
+                  hint: 'e.g. 24/7 Support, Fleet of 10 vans, Certified team',
                 ),
               ),
               const SizedBox(height: 40),
