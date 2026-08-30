@@ -10,7 +10,7 @@ class ApiService {
 
   static final ApiService instance = ApiService._privateConstructor();
 
-  String? ipOverride = '192.168.0.105';
+  String? ipOverride = null;
   bool _showingIpDialog = false;
 
   String get baseUrl {
