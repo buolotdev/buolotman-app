@@ -30,6 +30,23 @@ class AppUser {
     this.primaryOccupation = '',
     this.licences = const [],
     this.verificationBadge = 'Unverified',
+    this.tagline = '',
+    this.startingPrice = 0.0,
+    this.ownTools = false,
+    this.hasVehicle = false,
+    this.willingToTravel = false,
+    this.serviceRadiusKm = 0,
+    this.availableNow = false,
+    this.acceptsFullTime = false,
+    this.acceptsPartTime = true,
+    this.acceptsEmergency = false,
+    this.acceptsWeekends = false,
+    this.acceptsRemote = false,
+    this.acceptsOnsite = true,
+    this.bmConcierge = false,
+    this.bmBuildTeam = false,
+    this.bmEmergency = false,
+    this.canSupervise = false,
   });
 
   final String name;
@@ -59,6 +76,23 @@ class AppUser {
   final String primaryOccupation;
   final List<String> licences;
   final String verificationBadge; // 'Unverified' | 'Identity Verified' | 'Professional Verified' | 'BM Verified Professional'
+  final String tagline;
+  final double startingPrice;
+  final bool ownTools;
+  final bool hasVehicle;
+  final bool willingToTravel;
+  final int serviceRadiusKm;
+  final bool availableNow;
+  final bool acceptsFullTime;
+  final bool acceptsPartTime;
+  final bool acceptsEmergency;
+  final bool acceptsWeekends;
+  final bool acceptsRemote;
+  final bool acceptsOnsite;
+  final bool bmConcierge;
+  final bool bmBuildTeam;
+  final bool bmEmergency;
+  final bool canSupervise;
 
   AppUser copyWith({
     String? name,
@@ -88,6 +122,23 @@ class AppUser {
     String? primaryOccupation,
     List<String>? licences,
     String? verificationBadge,
+    String? tagline,
+    double? startingPrice,
+    bool? ownTools,
+    bool? hasVehicle,
+    bool? willingToTravel,
+    int? serviceRadiusKm,
+    bool? availableNow,
+    bool? acceptsFullTime,
+    bool? acceptsPartTime,
+    bool? acceptsEmergency,
+    bool? acceptsWeekends,
+    bool? acceptsRemote,
+    bool? acceptsOnsite,
+    bool? bmConcierge,
+    bool? bmBuildTeam,
+    bool? bmEmergency,
+    bool? canSupervise,
   }) {
     return AppUser(
       name: name ?? this.name,
@@ -117,6 +168,23 @@ class AppUser {
       primaryOccupation: primaryOccupation ?? this.primaryOccupation,
       licences: licences ?? this.licences,
       verificationBadge: verificationBadge ?? this.verificationBadge,
+      tagline: tagline ?? this.tagline,
+      startingPrice: startingPrice ?? this.startingPrice,
+      ownTools: ownTools ?? this.ownTools,
+      hasVehicle: hasVehicle ?? this.hasVehicle,
+      willingToTravel: willingToTravel ?? this.willingToTravel,
+      serviceRadiusKm: serviceRadiusKm ?? this.serviceRadiusKm,
+      availableNow: availableNow ?? this.availableNow,
+      acceptsFullTime: acceptsFullTime ?? this.acceptsFullTime,
+      acceptsPartTime: acceptsPartTime ?? this.acceptsPartTime,
+      acceptsEmergency: acceptsEmergency ?? this.acceptsEmergency,
+      acceptsWeekends: acceptsWeekends ?? this.acceptsWeekends,
+      acceptsRemote: acceptsRemote ?? this.acceptsRemote,
+      acceptsOnsite: acceptsOnsite ?? this.acceptsOnsite,
+      bmConcierge: bmConcierge ?? this.bmConcierge,
+      bmBuildTeam: bmBuildTeam ?? this.bmBuildTeam,
+      bmEmergency: bmEmergency ?? this.bmEmergency,
+      canSupervise: canSupervise ?? this.canSupervise,
     );
   }
 }

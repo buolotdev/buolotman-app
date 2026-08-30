@@ -169,12 +169,30 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                      _buildAvailabilityToggle('Available Now (Urgent)', appState.currentUser.availableNow),
+                      _buildAvailabilityToggle('Accepts On-site Work', appState.currentUser.acceptsOnsite),
+                      _buildAvailabilityToggle('Accepts Remote Work', appState.currentUser.acceptsRemote),
+                      _buildAvailabilityToggle('Accepts Weekend Work', appState.currentUser.acceptsWeekends),
+                      _buildAvailabilityToggle('Accepts Emergency Jobs', appState.currentUser.acceptsEmergency),
+                      _buildAvailabilityToggle('Available Full-time', appState.currentUser.acceptsFullTime),
+                      _buildAvailabilityToggle('Available Part-time', appState.currentUser.acceptsPartTime),
+                      const Divider(),
+                      _buildAvailabilityToggle('Willing to Travel', appState.currentUser.willingToTravel),
+                      if (appState.currentUser.willingToTravel)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text('Service Radius: ${appState.currentUser.serviceRadiusKm} km', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   _buildSectionCard(
                     title: 'Pricing',
                     children: [
+                      if (appState.currentUser.startingPrice > 0)
+                        Text('\$${appState.currentUser.startingPrice.toStringAsFixed(2)} starting price', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFFF4500))),
+                      if (appState.currentUser.startingPrice > 0) const SizedBox(height: 4),
                       if (appState.currentUser.hourlyRate > 0)
                         Text('\$${appState.currentUser.hourlyRate.toStringAsFixed(2)} / hour', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFFF4500))),
                       if (appState.currentUser.hourlyRate > 0) const SizedBox(height: 4),
@@ -187,7 +205,7 @@ class ProfileScreen extends StatelessWidget {
                       if (appState.currentUser.inspectionFee > 0)
                         Text('\$${appState.currentUser.inspectionFee.toStringAsFixed(2)} inspection fee', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFFF4500))),
                       
-                      if (appState.currentUser.hourlyRate == 0 && appState.currentUser.dailyRate == 0 && appState.currentUser.fixedPrice == 0 && appState.currentUser.inspectionFee == 0)
+                      if (appState.currentUser.startingPrice == 0 && appState.currentUser.hourlyRate == 0 && appState.currentUser.dailyRate == 0 && appState.currentUser.fixedPrice == 0 && appState.currentUser.inspectionFee == 0)
                         const Text('No pricing added yet.', style: TextStyle(color: Color(0xFF64748B))),
                     ],
                   ),
@@ -215,9 +233,10 @@ class ProfileScreen extends StatelessWidget {
                   _buildSectionCard(
                     title: 'Tools & Equipment',
                     children: [
-                      if (appState.currentUser.toolsAndEquipment.isEmpty)
-                        const Text('No tools and equipment added yet.', style: TextStyle(color: Color(0xFF64748B)))
-                      else
+                      _buildAvailabilityToggle('Has Own Tools', appState.currentUser.ownTools),
+                      _buildAvailabilityToggle('Has Work Vehicle', appState.currentUser.hasVehicle),
+                      if (appState.currentUser.toolsAndEquipment.isNotEmpty) ...[
+                        const Divider(),
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
@@ -229,6 +248,17 @@ class ProfileScreen extends StatelessWidget {
                             );
                           }).toList(),
                         ),
+                      ]
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSectionCard(
+                    title: 'Boulot Man Eligibility',
+                    children: [
+                      _buildAvailabilityToggle('BM Concierge', appState.currentUser.bmConcierge),
+                      _buildAvailabilityToggle('BM Build a Team', appState.currentUser.bmBuildTeam),
+                      _buildAvailabilityToggle('BM Emergency', appState.currentUser.bmEmergency),
+                      _buildAvailabilityToggle('Can Supervise Technicians', appState.currentUser.canSupervise),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -710,6 +740,20 @@ class ProfileScreen extends StatelessWidget {
       },
     );
   }
+
+  Widget _buildAvailabilityToggle(String label, bool value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Icon(value ? Icons.check_circle : Icons.cancel, color: value ? Colors.green : Colors.grey, size: 18),
+          const SizedBox(width: 8),
+          Text(label, style: const TextStyle(color: Color(0xFF001F3F))),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPortfolio(BuildContext context, AppState appState, bool isOwnProfile) {
     return _buildSectionCard(
       title: 'Portfolio & Gallery',

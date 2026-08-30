@@ -77,6 +77,7 @@ Map<String, dynamic> formatUserMe(Map<String, dynamic> u) {
     'is_verified': u['is_verified'] ?? false,
     'language_preference': u['language_preference'] ?? 'en',
     'country': u['country'] ?? '',
+    'tagline': u['tagline'] ?? '',
     'created_at': u['created_at'] != null ? (u['created_at'] as DateTime).toIso8601String() : '',
   };
 }
@@ -125,6 +126,7 @@ Map<String, dynamic> formatUserPublic(Map<String, dynamic> u) {
     'avatar_url': u['avatar_url'] ?? '',
     'is_verified': u['is_verified'] ?? false,
     'country': u['country'] ?? '',
+    'tagline': u['tagline'] ?? '',
     'services': [], // Filled externally
     'is_online': isOnline,
     'last_seen': lastSeen,
@@ -456,12 +458,12 @@ Future<Response> googleAuthHandler(Request request) async {
             password, is_superuser, username, first_name, last_name, 
             email, is_staff, is_active, date_joined, role, phone, 
             avatar_url, banner_url, is_verified, language_preference, 
-            country, address, created_at, updated_at, education_level, expertise_level
+            country, address, created_at, updated_at, education_level, expertise_level, tagline
           ) VALUES (
             '', false, @username, @first_name, @last_name,
             @email, false, true, @now, @role, '',
             @avatarUrl, '', true, 'en',
-            '', '', @now, @now, '', ''
+            '', '', @now, @now, '', '', ''
           ) RETURNING id
         '''),
         parameters: {
@@ -485,10 +487,24 @@ Future<Response> googleAuthHandler(Request request) async {
             INSERT INTO accounts_technician_profile (
               user_id, bio, phone_number, hourly_rate, languages, portfolio,
               background_check_status, is_verified, availability_status,
-              completed_jobs, average_rating, response_time
+              completed_jobs, average_rating, response_time,
+              experience, daily_rate, fixed_price, inspection_fee, starting_price,
+              work_preferences, tools_and_equipment, licences, years_experience,
+              primary_occupation, city, preferred_languages, verification_badge,
+              national_id_number, own_tools, has_vehicle, willing_to_travel, service_radius_km,
+              available_now, accepts_full_time, accepts_part_time, accepts_emergency,
+              accepts_weekends, accepts_remote, accepts_onsite,
+              bm_concierge, bm_build_team, bm_emergency, can_supervise
             ) VALUES (
               @uid, '', '', 0.0, '[]'::jsonb, '[]'::jsonb,
-              'pending', false, 'online', 0, 0.0, 'N/A'
+              'pending', false, 'online', 0, 0.0, 'N/A',
+              '', 0.0, 0.0, 0.0, 0.0,
+              '[]'::jsonb, '[]'::jsonb, '[]'::jsonb, 0,
+              '', '', '[]'::jsonb, 'Unverified',
+              '', false, false, false, 0,
+              false, false, true, false,
+              false, false, true,
+              false, false, false, false
             )
           '''),
           parameters: {'uid': userId},
@@ -939,7 +955,7 @@ Future<Response> registerClientHandler(Request request) async {
 
   final res = await dbPool.execute(
     Sql.named('INSERT INTO accounts_user (username, password, is_superuser, first_name, last_name, email, is_staff, is_active, date_joined, role, phone, avatar_url, banner_url, is_verified, language_preference, country, address, education_level, expertise_level, created_at, updated_at) '
-              'VALUES (@email, @pwdHash, false, @first, @last, @email, false, true, @now, \'CLIENT\', @phone, \'\', \'\', false, \'en\', \'\', \'\', \'\', \'\', @now, @now) RETURNING id'),
+              'VALUES (@email, @pwdHash, false, @first, @last, @email, false, true, @now, \'CLIENT\', @phone, \'\', \'\', false, \'en\', \'\', \'\', \'\', \'\', \'\', @now, @now) RETURNING id'),
     parameters: {
       'email': email,
       'pwdHash': pwdHash,
@@ -993,7 +1009,7 @@ Future<Response> registerTechnicianHandler(Request request) async {
 
   final res = await dbPool.execute(
     Sql.named('INSERT INTO accounts_user (username, password, is_superuser, first_name, last_name, email, is_staff, is_active, date_joined, role, phone, avatar_url, banner_url, is_verified, language_preference, country, address, education_level, expertise_level, created_at, updated_at) '
-              'VALUES (@email, @pwdHash, false, @first, @last, @email, false, true, @now, \'TECHNICIAN\', @phone, \'\', \'\', false, \'en\', \'\', \'\', \'\', \'\', @now, @now) RETURNING id'),
+              'VALUES (@email, @pwdHash, false, @first, @last, @email, false, true, @now, \'TECHNICIAN\', @phone, \'\', \'\', false, \'en\', \'\', \'\', \'\', \'\', \'\', @now, @now) RETURNING id'),
     parameters: {
       'email': email,
       'pwdHash': pwdHash,
@@ -1238,6 +1254,37 @@ Future<Response> getMeHandler(Request request) async {
       data['availability_status'] = prof['availability_status'] ?? 'available';
       data['certifications'] = parseJsonField(prof['certifications']) ?? [];
       
+      // Add all new fields
+      data['experience'] = prof['experience'] ?? '';
+      data['daily_rate'] = prof['daily_rate']?.toString();
+      data['fixed_price'] = prof['fixed_price']?.toString();
+      data['inspection_fee'] = prof['inspection_fee']?.toString();
+      data['starting_price'] = prof['starting_price']?.toString();
+      data['work_preferences'] = parseJsonField(prof['work_preferences']) ?? [];
+      data['tools_and_equipment'] = parseJsonField(prof['tools_and_equipment']) ?? [];
+      data['licences'] = parseJsonField(prof['licences']) ?? [];
+      data['years_experience'] = prof['years_experience'] ?? 0;
+      data['primary_occupation'] = prof['primary_occupation'] ?? '';
+      data['city'] = prof['city'] ?? '';
+      data['preferred_languages'] = parseJsonField(prof['preferred_languages']) ?? [];
+      data['verification_badge'] = prof['verification_badge'] ?? 'Unverified';
+      data['national_id_number'] = prof['national_id_number'] ?? '';
+      data['own_tools'] = prof['own_tools'] ?? false;
+      data['has_vehicle'] = prof['has_vehicle'] ?? false;
+      data['willing_to_travel'] = prof['willing_to_travel'] ?? false;
+      data['service_radius_km'] = prof['service_radius_km'] ?? 0;
+      data['available_now'] = prof['available_now'] ?? false;
+      data['accepts_full_time'] = prof['accepts_full_time'] ?? false;
+      data['accepts_part_time'] = prof['accepts_part_time'] ?? true;
+      data['accepts_emergency'] = prof['accepts_emergency'] ?? false;
+      data['accepts_weekends'] = prof['accepts_weekends'] ?? false;
+      data['accepts_remote'] = prof['accepts_remote'] ?? false;
+      data['accepts_onsite'] = prof['accepts_onsite'] ?? true;
+      data['bm_concierge'] = prof['bm_concierge'] ?? false;
+      data['bm_build_team'] = prof['bm_build_team'] ?? false;
+      data['bm_emergency'] = prof['bm_emergency'] ?? false;
+      data['can_supervise'] = prof['can_supervise'] ?? false;
+      
       final skillsQuery = await dbPool.execute(
         Sql.named('SELECT s.name FROM tasks_skill s JOIN accounts_technician_profile_skills ps ON s.id = ps.skill_id WHERE ps.technicianprofile_id = @profId'),
         parameters: {'profId': prof['id']},
@@ -1254,7 +1301,7 @@ Future<Response> updateMeHandler(Request request) async {
   final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
 
   // Filter keys allowed for User
-  final allowedUserFields = ['first_name', 'last_name', 'phone', 'avatar_url', 'language_preference', 'country', 'address', 'date_of_birth', 'education_level', 'expertise_level'];
+  final allowedUserFields = ['first_name', 'last_name', 'phone', 'avatar_url', 'language_preference', 'country', 'address', 'date_of_birth', 'education_level', 'expertise_level', 'tagline'];
   final userUpdates = <String, dynamic>{};
   for (final f in allowedUserFields) {
     if (body.containsKey(f)) userUpdates[f] = body[f];
@@ -1272,14 +1319,30 @@ Future<Response> updateMeHandler(Request request) async {
   // Filter keys for technician profile
   final role = getUserRole(request);
   if (role == 'TECHNICIAN') {
-    final allowedProfileFields = ['bio', 'hourly_rate', 'availability_status', 'certifications', 'experience', 'daily_rate', 'fixed_price', 'inspection_fee', 'work_preferences', 'tools_and_equipment', 'national_id_front', 'national_id_back', 'selfie_url'];
+    final allowedProfileFields = [
+      'bio', 'hourly_rate', 'availability_status', 'certifications', 'experience', 
+      'daily_rate', 'fixed_price', 'inspection_fee', 'starting_price', 'work_preferences', 
+      'tools_and_equipment', 'licences', 'years_experience', 'primary_occupation', 
+      'city', 'preferred_languages', 'national_id_front', 'national_id_back', 'selfie_url', 'national_id_number',
+      'own_tools', 'has_vehicle', 'willing_to_travel', 'service_radius_km',
+      'available_now', 'accepts_full_time', 'accepts_part_time', 'accepts_emergency',
+      'accepts_weekends', 'accepts_remote', 'accepts_onsite',
+      'bm_concierge', 'bm_build_team', 'bm_emergency', 'can_supervise'
+    ];
     final profileUpdates = <String, dynamic>{};
     for (final f in allowedProfileFields) {
       if (body.containsKey(f)) {
-        if (f == 'hourly_rate' || f == 'daily_rate' || f == 'fixed_price' || f == 'inspection_fee') {
+        if (f == 'hourly_rate' || f == 'daily_rate' || f == 'fixed_price' || f == 'inspection_fee' || f == 'starting_price') {
           profileUpdates[f] = double.tryParse(body[f].toString()) ?? 0.0;
-        } else if (f == 'certifications' || f == 'work_preferences' || f == 'tools_and_equipment') {
+        } else if (f == 'years_experience' || f == 'service_radius_km') {
+          profileUpdates[f] = int.tryParse(body[f].toString()) ?? 0;
+        } else if (f == 'certifications' || f == 'work_preferences' || f == 'tools_and_equipment' || f == 'licences' || f == 'preferred_languages') {
           profileUpdates[f] = jsonEncode(body[f]);
+        } else if (f == 'own_tools' || f == 'has_vehicle' || f == 'willing_to_travel' || f == 'available_now' ||
+                   f == 'accepts_full_time' || f == 'accepts_part_time' || f == 'accepts_emergency' || 
+                   f == 'accepts_weekends' || f == 'accepts_remote' || f == 'accepts_onsite' ||
+                   f == 'bm_concierge' || f == 'bm_build_team' || f == 'bm_emergency' || f == 'can_supervise') {
+          profileUpdates[f] = body[f] == true || body[f] == 'true';
         } else {
           profileUpdates[f] = body[f];
         }
@@ -1363,8 +1426,31 @@ Future<Response> updateMeHandler(Request request) async {
       data['inspection_fee'] = prof['inspection_fee']?.toString();
       data['availability_status'] = prof['availability_status'] ?? 'available';
       data['certifications'] = parseJsonField(prof['certifications']) ?? [];
-      data['work_preferences'] = parseJsonField(prof['work_preferences']) ?? {};
-      data['tools_and_equipment'] = parseJsonField(prof['tools_and_equipment']) ?? {};
+      data['work_preferences'] = parseJsonField(prof['work_preferences']) ?? [];
+      data['tools_and_equipment'] = parseJsonField(prof['tools_and_equipment']) ?? [];
+      data['licences'] = parseJsonField(prof['licences']) ?? [];
+      data['preferred_languages'] = parseJsonField(prof['preferred_languages']) ?? [];
+      data['years_experience'] = prof['years_experience'] ?? 0;
+      data['primary_occupation'] = prof['primary_occupation'] ?? '';
+      data['city'] = prof['city'] ?? '';
+      data['starting_price'] = prof['starting_price']?.toString();
+      data['verification_badge'] = prof['verification_badge'] ?? 'Unverified';
+      data['national_id_number'] = prof['national_id_number'] ?? '';
+      data['own_tools'] = prof['own_tools'] ?? false;
+      data['has_vehicle'] = prof['has_vehicle'] ?? false;
+      data['willing_to_travel'] = prof['willing_to_travel'] ?? false;
+      data['service_radius_km'] = prof['service_radius_km'] ?? 0;
+      data['available_now'] = prof['available_now'] ?? false;
+      data['accepts_full_time'] = prof['accepts_full_time'] ?? false;
+      data['accepts_part_time'] = prof['accepts_part_time'] ?? true;
+      data['accepts_emergency'] = prof['accepts_emergency'] ?? false;
+      data['accepts_weekends'] = prof['accepts_weekends'] ?? false;
+      data['accepts_remote'] = prof['accepts_remote'] ?? false;
+      data['accepts_onsite'] = prof['accepts_onsite'] ?? true;
+      data['bm_concierge'] = prof['bm_concierge'] ?? false;
+      data['bm_build_team'] = prof['bm_build_team'] ?? false;
+      data['bm_emergency'] = prof['bm_emergency'] ?? false;
+      data['can_supervise'] = prof['can_supervise'] ?? false;
       data['national_id_front'] = prof['national_id_front'] ?? '';
       data['national_id_back'] = prof['national_id_back'] ?? '';
       data['selfie_url'] = prof['selfie_url'] ?? '';
@@ -1521,6 +1607,37 @@ Future<Response> userPublicProfileHandler(Request request, String userIdStr) asy
       data['completed_jobs'] = prof['completed_jobs'] ?? 0;
       data['average_rating'] = prof['average_rating']?.toString() ?? '0.00';
       data['availability_status'] = prof['availability_status'] ?? 'available';
+      
+      // New fields
+      data['experience'] = prof['experience'] ?? '';
+      data['daily_rate'] = prof['daily_rate']?.toString();
+      data['fixed_price'] = prof['fixed_price']?.toString();
+      data['inspection_fee'] = prof['inspection_fee']?.toString();
+      data['starting_price'] = prof['starting_price']?.toString();
+      data['work_preferences'] = parseJsonField(prof['work_preferences']) ?? [];
+      data['tools_and_equipment'] = parseJsonField(prof['tools_and_equipment']) ?? [];
+      data['licences'] = parseJsonField(prof['licences']) ?? [];
+      data['years_experience'] = prof['years_experience'] ?? 0;
+      data['primary_occupation'] = prof['primary_occupation'] ?? '';
+      data['city'] = prof['city'] ?? '';
+      data['preferred_languages'] = parseJsonField(prof['preferred_languages']) ?? [];
+      data['verification_badge'] = prof['verification_badge'] ?? 'Unverified';
+      data['own_tools'] = prof['own_tools'] ?? false;
+      data['has_vehicle'] = prof['has_vehicle'] ?? false;
+      data['willing_to_travel'] = prof['willing_to_travel'] ?? false;
+      data['service_radius_km'] = prof['service_radius_km'] ?? 0;
+      data['available_now'] = prof['available_now'] ?? false;
+      data['accepts_full_time'] = prof['accepts_full_time'] ?? false;
+      data['accepts_part_time'] = prof['accepts_part_time'] ?? true;
+      data['accepts_emergency'] = prof['accepts_emergency'] ?? false;
+      data['accepts_weekends'] = prof['accepts_weekends'] ?? false;
+      data['accepts_remote'] = prof['accepts_remote'] ?? false;
+      data['accepts_onsite'] = prof['accepts_onsite'] ?? true;
+      data['bm_concierge'] = prof['bm_concierge'] ?? false;
+      data['bm_build_team'] = prof['bm_build_team'] ?? false;
+      data['bm_emergency'] = prof['bm_emergency'] ?? false;
+      data['can_supervise'] = prof['can_supervise'] ?? false;
+      
       final portfolioQuery = await dbPool.execute(
         Sql.named('SELECT * FROM accounts_portfolio_item WHERE user_id = @id ORDER BY created_at DESC'),
         parameters: {'id': userId},
@@ -1538,7 +1655,6 @@ Future<Response> userPublicProfileHandler(Request request, String userIdStr) asy
         };
       }).toList();
       data['certifications'] = parseJsonField(prof['certifications']) ?? [];
-      data['experience'] = prof['experience'] ?? '';
       data['response_time'] = prof['response_time'] ?? '';
 
       final skillsQuery = await dbPool.execute(

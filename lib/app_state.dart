@@ -502,6 +502,23 @@ class AppState extends GetxController {
         primaryOccupation: profile['primary_occupation'] ?? '',
         licences: (profile['licences'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
         verificationBadge: profile['verification_badge'] ?? 'Unverified',
+        tagline: profile['tagline'] ?? '${_mapRole(profile['role'] ?? 'CLIENT')} Account',
+        startingPrice: double.tryParse(profile['starting_price']?.toString() ?? '0') ?? 0.0,
+        ownTools: profile['own_tools'] == true || profile['own_tools'] == 'true',
+        hasVehicle: profile['has_vehicle'] == true || profile['has_vehicle'] == 'true',
+        willingToTravel: profile['willing_to_travel'] == true || profile['willing_to_travel'] == 'true',
+        serviceRadiusKm: int.tryParse(profile['service_radius_km']?.toString() ?? '0') ?? 0,
+        availableNow: profile['available_now'] == true || profile['available_now'] == 'true',
+        acceptsFullTime: profile['accepts_full_time'] == true || profile['accepts_full_time'] == 'true',
+        acceptsPartTime: profile['accepts_part_time'] != false && profile['accepts_part_time'] != 'false',
+        acceptsEmergency: profile['accepts_emergency'] == true || profile['accepts_emergency'] == 'true',
+        acceptsWeekends: profile['accepts_weekends'] == true || profile['accepts_weekends'] == 'true',
+        acceptsRemote: profile['accepts_remote'] == true || profile['accepts_remote'] == 'true',
+        acceptsOnsite: profile['accepts_onsite'] != false && profile['accepts_onsite'] != 'false',
+        bmConcierge: profile['bm_concierge'] == true || profile['bm_concierge'] == 'true',
+        bmBuildTeam: profile['bm_build_team'] == true || profile['bm_build_team'] == 'true',
+        bmEmergency: profile['bm_emergency'] == true || profile['bm_emergency'] == 'true',
+        canSupervise: profile['can_supervise'] == true || profile['can_supervise'] == 'true',
       );
 
       if (_currentUser.role == 'Technician') {
@@ -1181,6 +1198,23 @@ class AppState extends GetxController {
     int? yearsExperience,
     String? primaryOccupation,
     List<String>? licences,
+    String? tagline,
+    double? startingPrice,
+    bool? ownTools,
+    bool? hasVehicle,
+    bool? willingToTravel,
+    int? serviceRadiusKm,
+    bool? availableNow,
+    bool? acceptsFullTime,
+    bool? acceptsPartTime,
+    bool? acceptsEmergency,
+    bool? acceptsWeekends,
+    bool? acceptsRemote,
+    bool? acceptsOnsite,
+    bool? bmConcierge,
+    bool? bmBuildTeam,
+    bool? bmEmergency,
+    bool? canSupervise,
   }) async {
     final body = <String, dynamic>{};
     if (firstName != null) body['first_name'] = firstName;
@@ -1188,10 +1222,12 @@ class AppState extends GetxController {
     if (phone != null) body['phone'] = phone;
     if (country != null) body['country'] = country;
     if (bio != null) body['bio'] = bio;
+    if (tagline != null) body['tagline'] = tagline;
     if (hourlyRate != null) body['hourly_rate'] = hourlyRate;
     if (dailyRate != null) body['daily_rate'] = dailyRate;
     if (fixedPrice != null) body['fixed_price'] = fixedPrice;
     if (inspectionFee != null) body['inspection_fee'] = inspectionFee;
+    if (startingPrice != null) body['starting_price'] = startingPrice;
     if (availabilityStatus != null) body['availability_status'] = availabilityStatus;
     if (skills != null) body['skills'] = skills;
     if (certifications != null) body['certifications'] = certifications;
@@ -1203,6 +1239,21 @@ class AppState extends GetxController {
     if (yearsExperience != null) body['years_experience'] = yearsExperience;
     if (primaryOccupation != null) body['primary_occupation'] = primaryOccupation;
     if (licences != null) body['licences'] = licences;
+    if (ownTools != null) body['own_tools'] = ownTools;
+    if (hasVehicle != null) body['has_vehicle'] = hasVehicle;
+    if (willingToTravel != null) body['willing_to_travel'] = willingToTravel;
+    if (serviceRadiusKm != null) body['service_radius_km'] = serviceRadiusKm;
+    if (availableNow != null) body['available_now'] = availableNow;
+    if (acceptsFullTime != null) body['accepts_full_time'] = acceptsFullTime;
+    if (acceptsPartTime != null) body['accepts_part_time'] = acceptsPartTime;
+    if (acceptsEmergency != null) body['accepts_emergency'] = acceptsEmergency;
+    if (acceptsWeekends != null) body['accepts_weekends'] = acceptsWeekends;
+    if (acceptsRemote != null) body['accepts_remote'] = acceptsRemote;
+    if (acceptsOnsite != null) body['accepts_onsite'] = acceptsOnsite;
+    if (bmConcierge != null) body['bm_concierge'] = bmConcierge;
+    if (bmBuildTeam != null) body['bm_build_team'] = bmBuildTeam;
+    if (bmEmergency != null) body['bm_emergency'] = bmEmergency;
+    if (canSupervise != null) body['can_supervise'] = canSupervise;
 
     if (currentRole == 'Technician') {
       await ApiService.instance.updateTechnicianProfile(body);

@@ -100,12 +100,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  bool _tourChecked = false;
+  static final Set<int> _toursShownThisSession = {};
 
   Future<void> _checkAndShowTour(BuildContext showcaseContext, int userId) async {
     if (userId == 0) return; // Don't trigger for guest user
-    if (_tourChecked) return; // Already shown this session
-    _tourChecked = true;
+    
+    // Ensure user data is fully loaded before triggering tour
+    final appState = Get.find<AppState>();
+    if (appState.currentUser.name.isEmpty) return; 
+
+    if (_toursShownThisSession.contains(userId)) return; // Already shown this session
+    _toursShownThisSession.add(userId);
+    
     // Always show the tour for every new login session — no cache
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
