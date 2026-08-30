@@ -73,6 +73,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         await AppStateScope.of(context).syncAll();
+        final appState = AppStateScope.of(context);
+        
+        // Auto-navigate to ProfileSetup if not verified
+        if (appState.verificationStatus != 'Verified' && mounted) {
+           Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileSetupScreen()));
+        }
       } finally {
         if (mounted) {
           setState(() {
@@ -252,10 +258,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildProfileCompletionBanner(AppState appState) {
-    // If location is default or empty, we assume profile is incomplete
-    final isLocationEmpty = appState.currentUser.location.isEmpty || appState.currentUser.location == 'Lagos, Nigeria';
-    
-    if (!isLocationEmpty) return const SizedBox.shrink();
+    // If not verified, show the profile completion banner
+    if (appState.verificationStatus == 'Verified') return const SizedBox.shrink();
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
