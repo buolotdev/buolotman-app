@@ -1301,7 +1301,7 @@ Future<Response> updateMeHandler(Request request) async {
   final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
 
   // Filter keys allowed for User
-  final allowedUserFields = ['first_name', 'last_name', 'phone', 'avatar_url', 'language_preference', 'country', 'address', 'date_of_birth', 'education_level', 'expertise_level', 'tagline'];
+  final allowedUserFields = ['first_name', 'last_name', 'phone', 'avatar_url', 'language_preference', 'country', 'address', 'date_of_birth', 'education_level', 'expertise_level'];
   final userUpdates = <String, dynamic>{};
   for (final f in allowedUserFields) {
     if (body.containsKey(f)) userUpdates[f] = body[f];
@@ -1327,7 +1327,7 @@ Future<Response> updateMeHandler(Request request) async {
       'own_tools', 'has_vehicle', 'willing_to_travel', 'service_radius_km',
       'available_now', 'accepts_full_time', 'accepts_part_time', 'accepts_emergency',
       'accepts_weekends', 'accepts_remote', 'accepts_onsite',
-      'bm_concierge', 'bm_build_team', 'bm_emergency', 'can_supervise'
+      'bm_concierge', 'bm_build_team', 'bm_emergency', 'can_supervise', 'tagline'
     ];
     final profileUpdates = <String, dynamic>{};
     for (final f in allowedProfileFields) {
@@ -1434,6 +1434,7 @@ Future<Response> updateMeHandler(Request request) async {
       data['primary_occupation'] = prof['primary_occupation'] ?? '';
       data['city'] = prof['city'] ?? '';
       data['starting_price'] = prof['starting_price']?.toString();
+      data['tagline'] = prof['tagline'] ?? '';
       data['verification_badge'] = prof['verification_badge'] ?? 'Unverified';
       data['national_id_number'] = prof['national_id_number'] ?? '';
       data['own_tools'] = prof['own_tools'] ?? false;
