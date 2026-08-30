@@ -90,6 +90,12 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
     final String ratingText = '$ratingStr ($reviewsVal)';
 
     final double hourlyRateVal = double.tryParse(dataMap['hourly_rate']?.toString() ?? '') ?? 0.0;
+    final double dailyRateVal = double.tryParse(dataMap['daily_rate']?.toString() ?? '') ?? 0.0;
+    final double fixedPriceVal = double.tryParse(dataMap['fixed_price']?.toString() ?? '') ?? 0.0;
+    final double inspectionFeeVal = double.tryParse(dataMap['inspection_fee']?.toString() ?? '') ?? 0.0;
+    final List<dynamic> toolsList = dataMap['tools_and_equipment'] is List ? dataMap['tools_and_equipment'] : [];
+    final List<dynamic> prefsList = dataMap['work_preferences'] is List ? dataMap['work_preferences'] : [];
+
     final String priceText = _isLoading
         ? (hourlyRateVal > 0 ? '\$${hourlyRateVal.toStringAsFixed(0)}/hr' : '...')
         : (hourlyRateVal > 0 ? '\$${hourlyRateVal.toStringAsFixed(0)}/hr' : 'Rate not set');
@@ -183,6 +189,36 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
                       _buildPersonalDetailRow(Icons.email_outlined, "Email", dataMap['email']?.toString() ?? 'N/A'),
                       const SizedBox(height: 8),
                       _buildPersonalDetailRow(Icons.location_on_outlined, "Location", dataMap['country']?.toString() ?? 'N/A'),
+                      const SizedBox(height: 28),
+                      _buildSectionHeader("Rates & Fees"),
+                      const SizedBox(height: 12),
+                      _isLoading
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))))
+                          : Column(
+                              children: [
+                                if (hourlyRateVal > 0) _buildPersonalDetailRow(Icons.payments_outlined, "Hourly Rate", "\$${hourlyRateVal.toStringAsFixed(2)}"),
+                                if (hourlyRateVal > 0) const SizedBox(height: 8),
+                                if (dailyRateVal > 0) _buildPersonalDetailRow(Icons.calendar_today_outlined, "Daily Rate", "\$${dailyRateVal.toStringAsFixed(2)}"),
+                                if (dailyRateVal > 0) const SizedBox(height: 8),
+                                if (fixedPriceVal > 0) _buildPersonalDetailRow(Icons.handshake_outlined, "Fixed Price", "\$${fixedPriceVal.toStringAsFixed(2)}"),
+                                if (fixedPriceVal > 0) const SizedBox(height: 8),
+                                if (inspectionFeeVal > 0) _buildPersonalDetailRow(Icons.search_outlined, "Inspection Fee", "\$${inspectionFeeVal.toStringAsFixed(2)}"),
+                                if (hourlyRateVal == 0 && dailyRateVal == 0 && fixedPriceVal == 0 && inspectionFeeVal == 0)
+                                  const Text("No rates specified.", style: TextStyle(color: Color(0xFF64748B))),
+                              ],
+                            ),
+                      const SizedBox(height: 28),
+                      _buildSectionHeader("Work Preferences"),
+                      const SizedBox(height: 12),
+                      _isLoading
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))))
+                          : _buildSpecialtyTags(prefsList.map((e) => e.toString()).toList()),
+                      const SizedBox(height: 28),
+                      _buildSectionHeader("Tools & Equipment"),
+                      const SizedBox(height: 12),
+                      _isLoading
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))))
+                          : _buildSpecialtyTags(toolsList.map((e) => e.toString()).toList()),
                       const SizedBox(height: 28),
                       _buildSectionHeader("Specialties"),
                       const SizedBox(height: 12),

@@ -414,6 +414,8 @@ class CompanyProfileScreen extends StatelessWidget {
     final String industry = profile['industry']?.toString() ?? '';
     final String regNum = profile['registration_number']?.toString() ?? '';
     final String headquarters = profile['headquarters']?.toString() ?? '';
+    final String companySize = profile['company_size']?.toString() ?? '';
+    final List<dynamic> capabilities = profile['capabilities'] is List ? profile['capabilities'] : [];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -437,6 +439,10 @@ class CompanyProfileScreen extends StatelessWidget {
                 children: [
                   if (industry.isNotEmpty)
                     _buildInfoRow(Icons.business_outlined, 'Industry', industry),
+                  if (companySize.isNotEmpty) ...[
+                    const Divider(height: 16),
+                    _buildInfoRow(Icons.groups_outlined, 'Company Size', companySize),
+                  ],
                   if (regNum.isNotEmpty) ...[
                     const Divider(height: 16),
                     _buildInfoRow(Icons.badge_outlined, 'Registration No.', regNum),
@@ -447,6 +453,32 @@ class CompanyProfileScreen extends StatelessWidget {
                   ],
                 ],
               ),
+            ),
+          ],
+          if (capabilities.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            const Text(
+              "Capabilities & Infrastructure",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF001F3F)),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: capabilities.map((c) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Text(
+                    c.toString(),
+                    style: const TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
+                  ),
+                );
+              }).toList(),
             ),
           ],
         ],
