@@ -37,6 +37,7 @@ jobs:
           echo "CODE_SIGNING_ALLOWED = NO" >> ios/Flutter/Release.xcconfig
           echo "CODE_SIGN_IDENTITY = " >> ios/Flutter/Release.xcconfig
           echo "EXPANDED_CODE_SIGN_IDENTITY = " >> ios/Flutter/Release.xcconfig
+          echo "DEVELOPMENT_TEAM = XXXXXXXXXX" >> ios/Flutter/Release.xcconfig
 
       - name: Build iOS App (No Code Sign)
         run: flutter build ios --release --no-codesign
