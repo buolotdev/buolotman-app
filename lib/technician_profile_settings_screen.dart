@@ -70,6 +70,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
   late TextEditingController _licencesController;
   late TextEditingController _bioController;
   late TextEditingController _experienceController;
+  late TextEditingController _workPreferencesController;
 
   // Tab 3: Work & Availability
   String _availabilityStatus = 'available';
@@ -123,6 +124,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     _licencesController = TextEditingController(text: u.licences.join(', '));
     _bioController = TextEditingController(text: u.bio);
     _experienceController = TextEditingController(text: u.experience);
+    _workPreferencesController = TextEditingController(text: u.workPreferences.join(', '));
 
     // Tab 3
     _availabilityStatus = u.availabilityStatus.isNotEmpty ? u.availabilityStatus : 'available';
@@ -169,6 +171,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     _licencesController.dispose();
     _bioController.dispose();
     _experienceController.dispose();
+    _workPreferencesController.dispose();
     _startingPriceController.dispose();
     _hourlyRateController.dispose();
     _dailyRateController.dispose();
@@ -200,6 +203,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
         skills: _skillsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
         certifications: _certificationsController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
         licences: _licencesController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
+        workPreferences: _workPreferencesController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
         bio: _bioController.text.trim(),
         experience: _experienceController.text.trim(),
 
@@ -366,9 +370,10 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                       _buildTextField('Primary Occupation', _primaryOccupationController, hint: 'e.g., Electrician, Plumber'),
                       _buildTextField('Years of Experience', _yearsExpController, keyboardType: TextInputType.number),
                       _buildTextField('Skills (comma separated)', _skillsController, hint: 'e.g., Plumbing, Electrical, HVAC'),
-                      _buildTextField('Certifications (comma separated)', _certificationsController, hint: 'e.g., OSHA 30, Master Plumber'),
-                      _buildTextField('Licences (comma separated)', _licencesController, hint: 'e.g., Electrical Licence No. 1234'),
-                      _buildTextField('Professional Bio', _bioController, maxLines: 4, hint: 'Tell clients about yourself...'),
+                      _buildTextField('Certifications (Comma separated)', _certificationsController),
+                      _buildTextField('Licences (Comma separated)', _licencesController),
+                      _buildTextField('Work Preferences (Comma separated)', _workPreferencesController, hint: 'e.g. On-site, Remote'),
+                      _buildTextField('Brief Bio', _bioController, maxLines: 4),
                       _buildTextField('Experience Description', _experienceController, maxLines: 3, hint: 'e.g., 5 years of plumbing...'),
                     ],
                   ),
@@ -413,7 +418,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                           value: _serviceRadiusKm.toDouble(),
                           min: 0, max: 100, divisions: 20,
                           activeColor: const Color(0xFFFF4500),
-                          label: '\$_serviceRadiusKm km',
+                          label: '${_serviceRadiusKm} km',
                           onChanged: (v) => setState(() => _serviceRadiusKm = v.toInt()),
                         ),
                       ]

@@ -1266,6 +1266,7 @@ Future<Response> getMeHandler(Request request) async {
       data['years_experience'] = prof['years_experience'] ?? 0;
       data['primary_occupation'] = prof['primary_occupation'] ?? '';
       data['city'] = prof['city'] ?? '';
+      data['tagline'] = prof['tagline'] ?? '';
       data['preferred_languages'] = parseJsonField(prof['preferred_languages']) ?? [];
       data['verification_badge'] = prof['verification_badge'] ?? 'Unverified';
       data['national_id_number'] = prof['national_id_number'] ?? '';
