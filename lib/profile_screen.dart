@@ -72,7 +72,14 @@ class ProfileScreen extends StatelessWidget {
                       _buildDetailRow('Last Name', appState.currentUser.lastName),
                       _buildDetailRow('Phone Number', appState.currentUser.phone),
                       _buildDetailRow('Country', appState.currentUser.country),
+                      if (appState.currentUser.city.isNotEmpty)
+                        _buildDetailRow('City / Town', appState.currentUser.city),
+                      if (appState.currentUser.primaryOccupation.isNotEmpty)
+                        _buildDetailRow('Occupation', appState.currentUser.primaryOccupation),
+                      if (appState.currentUser.preferredLanguages.isNotEmpty)
+                        _buildDetailRow('Languages', appState.currentUser.preferredLanguages.join(', ')),
                       _buildDetailRow('Bio', appState.currentUser.bio),
+                      _buildDetailRow('Verification', appState.currentUser.verificationBadge),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -102,6 +109,12 @@ class ProfileScreen extends StatelessWidget {
                   _buildSectionCard(
                     title: 'Experience',
                     children: [
+                      if (appState.currentUser.yearsExperience > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Text('${appState.currentUser.yearsExperience} years of experience',
+                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFFFF4500))),
+                        ),
                       Text(
                         appState.currentUser.experience.isNotEmpty ? appState.currentUser.experience : 'No experience details added yet.',
                         style: const TextStyle(color: Color(0xFF001F3F)),
@@ -110,25 +123,30 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   _buildSectionCard(
-                    title: 'Certifications',
+                    title: 'Certifications & Licences',
                     children: [
-                      if (appState.currentUser.certifications.isEmpty)
-                        const Text('No certifications added yet.', style: TextStyle(color: Color(0xFF64748B)))
-                      else
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: appState.currentUser.certifications.map((c) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFEAD8),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Text(c, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFFF4500))),
-                            );
-                          }).toList(),
-                        ),
+                      if (appState.currentUser.certifications.isEmpty && appState.currentUser.licences.isEmpty)
+                        const Text('No certifications or licences added yet.', style: TextStyle(color: Color(0xFF64748B)))
+                      else ...[
+                        if (appState.currentUser.certifications.isNotEmpty) ...
+                          appState.currentUser.certifications.map((c) => Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Row(children: [
+                              const Icon(Icons.verified_outlined, size: 16, color: Color(0xFFFF4500)),
+                              const SizedBox(width: 8),
+                              Expanded(child: Text(c, style: const TextStyle(fontSize: 13, color: Color(0xFF001F3F)))),
+                            ]),
+                          )),
+                        if (appState.currentUser.licences.isNotEmpty) ...
+                          appState.currentUser.licences.map((l) => Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Row(children: [
+                              const Icon(Icons.badge_outlined, size: 16, color: Color(0xFF2563EB)),
+                              const SizedBox(width: 8),
+                              Expanded(child: Text(l, style: const TextStyle(fontSize: 13, color: Color(0xFF001F3F)))),
+                            ]),
+                          )),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 16),

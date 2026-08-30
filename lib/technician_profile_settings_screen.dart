@@ -16,6 +16,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
   late TextEditingController _lastNameController;
   late TextEditingController _phoneController;
   late TextEditingController _countryController;
+  late TextEditingController _cityController;
   late TextEditingController _bioController;
   late TextEditingController _hourlyRateController;
   late TextEditingController _dailyRateController;
@@ -26,6 +27,10 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
   late TextEditingController _toolsController;
   late TextEditingController _preferencesController;
   late TextEditingController _experienceController;
+  late TextEditingController _primaryOccupationController;
+  late TextEditingController _licencesController;
+  late TextEditingController _languagesController;
+  late TextEditingController _yearsExpController;
   
   String _availabilityStatus = 'available';
   bool _isLoading = false;
@@ -39,6 +44,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     _lastNameController = TextEditingController(text: u.lastName);
     _phoneController = TextEditingController(text: u.phone);
     _countryController = TextEditingController(text: u.country);
+    _cityController = TextEditingController(text: u.city);
     _bioController = TextEditingController(text: u.bio);
     _hourlyRateController = TextEditingController(text: u.hourlyRate.toString());
     _dailyRateController = TextEditingController(text: u.dailyRate.toString());
@@ -49,6 +55,10 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     _toolsController = TextEditingController(text: u.toolsAndEquipment.join(', '));
     _preferencesController = TextEditingController(text: u.workPreferences.join(', '));
     _experienceController = TextEditingController(text: u.experience);
+    _primaryOccupationController = TextEditingController(text: u.primaryOccupation);
+    _licencesController = TextEditingController(text: u.licences.join(', '));
+    _languagesController = TextEditingController(text: u.preferredLanguages.join(', '));
+    _yearsExpController = TextEditingController(text: u.yearsExperience.toString());
     _availabilityStatus = u.availabilityStatus.isNotEmpty ? u.availabilityStatus : 'available';
   }
 
@@ -58,6 +68,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     _lastNameController.dispose();
     _phoneController.dispose();
     _countryController.dispose();
+    _cityController.dispose();
     _bioController.dispose();
     _hourlyRateController.dispose();
     _dailyRateController.dispose();
@@ -68,6 +79,10 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     _toolsController.dispose();
     _preferencesController.dispose();
     _experienceController.dispose();
+    _primaryOccupationController.dispose();
+    _licencesController.dispose();
+    _languagesController.dispose();
+    _yearsExpController.dispose();
     super.dispose();
   }
 
@@ -93,6 +108,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
         lastName: _lastNameController.text.trim(),
         phone: _phoneController.text.trim(),
         country: _countryController.text.trim(),
+        city: _cityController.text.trim(),
         bio: _bioController.text.trim(),
         hourlyRate: hr,
         dailyRate: dr,
@@ -104,6 +120,10 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
         toolsAndEquipment: toolsList,
         workPreferences: prefsList,
         experience: _experienceController.text.trim(),
+        primaryOccupation: _primaryOccupationController.text.trim(),
+        licences: _licencesController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
+        preferredLanguages: _languagesController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
+        yearsExperience: int.tryParse(_yearsExpController.text.trim()) ?? 0,
       );
       
       if (!mounted) return;
@@ -174,6 +194,9 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                     ),
                     _buildTextField('Phone Number', _phoneController, keyboardType: TextInputType.phone),
                     _buildTextField('Country', _countryController),
+                    _buildTextField('City / Town', _cityController, hint: 'e.g., Lagos, Abuja'),
+                    _buildTextField('Primary Occupation', _primaryOccupationController, hint: 'e.g., Electrician, Plumber'),
+                    _buildTextField('Preferred Languages (comma separated)', _languagesController, hint: 'e.g., English, French'),
                     _buildTextField('Bio / Summary', _bioController, maxLines: 3, hint: 'Briefly describe your experience and skills.'),
                     _buildTextField('Experience Description', _experienceController, maxLines: 3, hint: 'e.g., 5 years of plumbing, worked at local agency.'),
                     
@@ -183,13 +206,14 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                     const SizedBox(height: 16),
                     _buildTextField('Skills (comma separated)', _skillsController, hint: 'e.g., Plumbing, Electrical, HVAC'),
                     _buildTextField('Certifications (comma separated)', _certificationsController, hint: 'e.g., OSHA 30, Master Plumber'),
+                    _buildTextField('Licences (comma separated)', _licencesController, hint: 'e.g., Electrical Licence No. 1234'),
                     _buildTextField('Tools & Equipment (comma separated)', _toolsController, hint: 'e.g., Power Drill, Ladder'),
                     _buildTextField('Work Preferences (comma separated)', _preferencesController, hint: 'e.g., Indoors, Weekends'),
                     Row(
                       children: [
-                        Expanded(child: _buildTextField('Hourly Rate (\$)', _hourlyRateController, keyboardType: TextInputType.number)),
+                        Expanded(child: _buildTextField('Years of Experience', _yearsExpController, keyboardType: TextInputType.number)),
                         const SizedBox(width: 16),
-                        Expanded(child: _buildTextField('Daily Rate (\$)', _dailyRateController, keyboardType: TextInputType.number)),
+                        Expanded(child: _buildTextField('Hourly Rate (\$)', _hourlyRateController, keyboardType: TextInputType.number)),
                       ],
                     ),
                     Row(

@@ -105,15 +105,21 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
         : widget.avatar;
 
     final String availability = (dataMap['availability_status']?.toString() ?? 'available').toLowerCase();
-    Color availColor = const Color(0xFF16A34A); // Green
+    Color availColor = const Color(0xFF16A34A);
     String availText = 'Available';
     if (availability == 'busy') {
-      availColor = const Color(0xFFEF4444); // Red
+      availColor = const Color(0xFFEF4444);
       availText = 'Busy';
     } else if (availability == 'away') {
-      availColor = const Color(0xFFF59E0B); // Orange
+      availColor = const Color(0xFFF59E0B);
       availText = 'Away';
     }
+
+    final String verificationBadge = dataMap['verification_badge']?.toString() ?? 'Unverified';
+    final String city = dataMap['city']?.toString() ?? '';
+    final String primaryOccupation = dataMap['primary_occupation']?.toString() ?? '';
+    final int yearsExp = int.tryParse(dataMap['years_experience']?.toString() ?? '0') ?? 0;
+    final List<dynamic> licencesList = dataMap['licences'] is List ? dataMap['licences'] : [];
 
     return GetBuilder<AppState>(
       builder: (appState) {
@@ -187,8 +193,13 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
                       _buildSectionHeader("Personal Details"),
                       const SizedBox(height: 12),
                       _buildPersonalDetailRow(Icons.email_outlined, "Email", dataMap['email']?.toString() ?? 'N/A'),
-                      const SizedBox(height: 8),
-                      _buildPersonalDetailRow(Icons.location_on_outlined, "Location", dataMap['country']?.toString() ?? 'N/A'),
+                      _buildPersonalDetailRow(Icons.location_on_outlined, "Location",
+                          [if (city.isNotEmpty) city, dataMap['country']?.toString() ?? ''].where((e) => e.isNotEmpty).join(', ')),
+                      if (primaryOccupation.isNotEmpty) ...[const SizedBox(height: 8), _buildPersonalDetailRow(Icons.work_outline, "Occupation", primaryOccupation)],
+                      if (yearsExp > 0) ...[const SizedBox(height: 8), _buildPersonalDetailRow(Icons.access_time_outlined, "Experience", '$yearsExp years')],
+                      const SizedBox(height: 16),
+                      // Verification badges
+                      _buildVerificationBadges(verificationBadge),
                       const SizedBox(height: 28),
                       _buildSectionHeader("Rates & Fees"),
                       const SizedBox(height: 12),
@@ -246,15 +257,11 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
                               style: const TextStyle(fontSize: 14, color: Color(0xFF64748B), height: 1.6),
                             ),
                       const SizedBox(height: 28),
-                      _buildSectionHeader("Certifications"),
+                      _buildSectionHeader("Certifications & Licences"),
                       const SizedBox(height: 12),
                       _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))),
-                            )
-                          : _buildCertificationsSection(certifications),
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))))
+                          : _buildCertificationsAndLicencesSection(certifications, licencesList),
                       const SizedBox(height: 28),
                       _buildSectionHeader("Portfolio"),
                       const SizedBox(height: 12),
@@ -387,45 +394,97 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
     );
   }
 
-  Widget _buildCertificationsSection(List<dynamic> certs) {
-    if (certs.isEmpty) {
-      return const Text(
-        "No certifications listed.",
-        style: TextStyle(fontSize: 14, color: Color(0xFF64748B), fontStyle: FontStyle.italic),
+  Widget _buildVerificationBadges(String badge) {
+    // Map badge string to displayed chips
+    final List<Map<String, dynamic>> badges = [];
+    if (badge == 'Identity Verified' || badge == 'Professional Verified' || badge == 'BM Verified Professional') {
+      badges.add({'label': 'Identity Verified', 'icon': Icons.fingerprint, 'color': const Color(0xFF16A34A)});
+    }
+    if (badge == 'Professional Verified' || badge == 'BM Verified Professional') {
+      badges.add({'label': 'Professional Verified', 'icon': Icons.workspace_premium_outlined, 'color': const Color(0xFF2563EB)});
+    }
+    if (badge == 'BM Verified Professional') {
+      badges.add({'label': 'BM Verified Pro', 'icon': Icons.verified, 'color': const Color(0xFFFF5500)});
+    }
+    if (badges.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(20)),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.hourglass_empty, size: 14, color: Color(0xFF94A3B8)),
+            SizedBox(width: 6),
+            Text('Unverified', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8), fontWeight: FontWeight.w600)),
+          ],
+        ),
       );
     }
-    return Column(
-      children: certs.map((c) {
-        final String name = c is Map ? (c['name'] ?? '').toString() : c.toString();
-        final String authority = c is Map ? (c['authority'] ?? '').toString() : '';
-        return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.verified_user, color: Color(0xFFFF4500), size: 20),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
-                    if (authority.isNotEmpty)
-                      Text(authority, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: badges.map((b) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: (b['color'] as Color).withOpacity(0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: (b['color'] as Color).withOpacity(0.4)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(b['icon'] as IconData, size: 14, color: b['color'] as Color),
+            const SizedBox(width: 5),
+            Text(b['label'] as String, style: TextStyle(fontSize: 12, color: b['color'] as Color, fontWeight: FontWeight.w700)),
+          ],
+        ),
+      )).toList(),
     );
   }
+
+  Widget _buildCertificationsAndLicencesSection(List<dynamic> certs, List<dynamic> licences) {
+    if (certs.isEmpty && licences.isEmpty) {
+      return const Text('No certifications or licences listed.', style: TextStyle(fontSize: 14, color: Color(0xFF64748B), fontStyle: FontStyle.italic));
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...certs.map((c) {
+          final String name = c is Map ? (c['name'] ?? '').toString() : c.toString();
+          final String authority = c is Map ? (c['authority'] ?? '').toString() : '';
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
+            child: Row(children: [
+              const Icon(Icons.verified_user, color: Color(0xFFFF4500), size: 20),
+              const SizedBox(width: 12),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
+                if (authority.isNotEmpty) Text(authority, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+              ])),
+            ]),
+          );
+        }),
+        ...licences.map((l) {
+          final String name = l is Map ? (l['name'] ?? '').toString() : l.toString();
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFBFDBFE))),
+            child: Row(children: [
+              const Icon(Icons.badge_outlined, color: Color(0xFF2563EB), size: 20),
+              const SizedBox(width: 12),
+              Expanded(child: Text(name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E40AF)))),
+            ]),
+          );
+        }),
+      ],
+    );
+  }
+
+
+
 
   Widget _buildActionButtons() {
     return Row(

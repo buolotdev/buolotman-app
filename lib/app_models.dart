@@ -24,6 +24,12 @@ class AppUser {
     this.inspectionFee = 0.0,
     this.toolsAndEquipment = const [],
     this.workPreferences = const [],
+    this.city = '',
+    this.preferredLanguages = const [],
+    this.yearsExperience = 0,
+    this.primaryOccupation = '',
+    this.licences = const [],
+    this.verificationBadge = 'Unverified',
   });
 
   final String name;
@@ -47,6 +53,12 @@ class AppUser {
   final double inspectionFee;
   final List<String> toolsAndEquipment;
   final List<String> workPreferences;
+  final String city;
+  final List<String> preferredLanguages;
+  final int yearsExperience;
+  final String primaryOccupation;
+  final List<String> licences;
+  final String verificationBadge; // 'Unverified' | 'Identity Verified' | 'Professional Verified' | 'BM Verified Professional'
 
   AppUser copyWith({
     String? name,
@@ -70,6 +82,12 @@ class AppUser {
     double? inspectionFee,
     List<String>? toolsAndEquipment,
     List<String>? workPreferences,
+    String? city,
+    List<String>? preferredLanguages,
+    int? yearsExperience,
+    String? primaryOccupation,
+    List<String>? licences,
+    String? verificationBadge,
   }) {
     return AppUser(
       name: name ?? this.name,
@@ -93,6 +111,12 @@ class AppUser {
       inspectionFee: inspectionFee ?? this.inspectionFee,
       toolsAndEquipment: toolsAndEquipment ?? this.toolsAndEquipment,
       workPreferences: workPreferences ?? this.workPreferences,
+      city: city ?? this.city,
+      preferredLanguages: preferredLanguages ?? this.preferredLanguages,
+      yearsExperience: yearsExperience ?? this.yearsExperience,
+      primaryOccupation: primaryOccupation ?? this.primaryOccupation,
+      licences: licences ?? this.licences,
+      verificationBadge: verificationBadge ?? this.verificationBadge,
     );
   }
 }

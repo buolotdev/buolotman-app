@@ -496,6 +496,12 @@ class AppState extends GetxController {
         inspectionFee: double.tryParse(profile['inspection_fee']?.toString() ?? '0') ?? 0.0,
         toolsAndEquipment: (profile['tools_and_equipment'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
         workPreferences: (profile['work_preferences'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+        city: profile['city'] ?? '',
+        preferredLanguages: (profile['preferred_languages'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+        yearsExperience: int.tryParse(profile['years_experience']?.toString() ?? '0') ?? 0,
+        primaryOccupation: profile['primary_occupation'] ?? '',
+        licences: (profile['licences'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+        verificationBadge: profile['verification_badge'] ?? 'Unverified',
       );
 
       if (_currentUser.role == 'Technician') {
@@ -1161,10 +1167,20 @@ class AppState extends GetxController {
     String? country,
     String? bio,
     double? hourlyRate,
+    double? dailyRate,
+    double? fixedPrice,
+    double? inspectionFee,
     String? availabilityStatus,
     List<String>? skills,
     List<String>? certifications,
+    List<String>? toolsAndEquipment,
+    List<String>? workPreferences,
     String? experience,
+    String? city,
+    List<String>? preferredLanguages,
+    int? yearsExperience,
+    String? primaryOccupation,
+    List<String>? licences,
   }) async {
     final body = <String, dynamic>{};
     if (firstName != null) body['first_name'] = firstName;
@@ -1173,10 +1189,20 @@ class AppState extends GetxController {
     if (country != null) body['country'] = country;
     if (bio != null) body['bio'] = bio;
     if (hourlyRate != null) body['hourly_rate'] = hourlyRate;
+    if (dailyRate != null) body['daily_rate'] = dailyRate;
+    if (fixedPrice != null) body['fixed_price'] = fixedPrice;
+    if (inspectionFee != null) body['inspection_fee'] = inspectionFee;
     if (availabilityStatus != null) body['availability_status'] = availabilityStatus;
     if (skills != null) body['skills'] = skills;
     if (certifications != null) body['certifications'] = certifications;
+    if (toolsAndEquipment != null) body['tools_and_equipment'] = toolsAndEquipment;
+    if (workPreferences != null) body['work_preferences'] = workPreferences;
     if (experience != null) body['experience'] = experience;
+    if (city != null) body['city'] = city;
+    if (preferredLanguages != null) body['preferred_languages'] = preferredLanguages;
+    if (yearsExperience != null) body['years_experience'] = yearsExperience;
+    if (primaryOccupation != null) body['primary_occupation'] = primaryOccupation;
+    if (licences != null) body['licences'] = licences;
 
     if (currentRole == 'Technician') {
       await ApiService.instance.updateTechnicianProfile(body);

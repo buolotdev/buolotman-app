@@ -102,29 +102,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   bool _tourChecked = false;
 
-  Future<void> _checkAndShowTour(BuildContext showcaseContext) async {
-    if (_tourChecked) return;
+  Future<void> _checkAndShowTour(BuildContext showcaseContext, int userId) async {
+    if (userId == 0) return; // Don't trigger for guest user
+    if (_tourChecked) return; // Already shown this session
     _tourChecked = true;
-    
-    final prefs = await SharedPreferences.getInstance();
-    final role = widget.role;
-    final hasShownTour = prefs.getBool('has_shown_tour_$role') ?? false;
-    
-    if (!hasShownTour) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Always show the tour for every new login session — no cache
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
         ShowCaseWidget.of(showcaseContext).startShowCase([_tourKey1, _tourKey2, _tourKey3]);
-      });
-      await prefs.setBool('has_shown_tour_$role', true);
-    }
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return ShowCaseWidget(
       builder: (showcaseContext) {
-        _checkAndShowTour(showcaseContext);
         return GetBuilder<AppState>(
             builder: (appState) {
+        _checkAndShowTour(showcaseContext, appState.currentUser.id);
         final greetingName = appState.currentUser.name.split(' ').first;
         final location = appState.currentUser.location;
         final bottomPadding = MediaQuery.of(context).padding.bottom + 120;
