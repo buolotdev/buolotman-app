@@ -397,9 +397,11 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
                 height: 80,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  image: avatarUrl.isNotEmpty
+                  image: avatarUrl.isNotEmpty 
                       ? DecorationImage(
-                          image: getAvatarImageProvider(avatarUrl),
+                          image: avatarUrl.startsWith('data:image') 
+                              ? MemoryImage(base64Decode(avatarUrl.split(',').last))
+                              : getAvatarImageProvider(avatarUrl),
                           fit: BoxFit.cover,
                         )
                       : null,

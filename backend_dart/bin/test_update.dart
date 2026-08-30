@@ -1,0 +1,49 @@
+import 'dart:io';
+import 'package:postgres/postgres.dart';
+import 'package:dotenv/dotenv.dart';
+
+void main() async {
+  var env = DotEnv(includePlatformEnvironment: true)..load();
+  final dbUrl = env['DATABASE_URL']!;
+  final uri = Uri.parse(dbUrl);
+  final connection = await Connection.open(
+    Endpoint(
+      host: uri.host,
+      port: uri.hasPort ? uri.port : 5432,
+      database: uri.path.replaceAll('/', ''),
+      username: uri.userInfo.split(':')[0],
+      password: uri.userInfo.split(':')[1],
+    ),
+    settings: const ConnectionSettings(sslMode: SslMode.require),
+  );
+  
+  try {
+    await connection.execute('''
+      UPDATE accounts_user SET first_name = 'test', last_name = 'test', phone = 'test', country = 'test' WHERE id = 1
+    ''');
+    print('User update OK');
+  } catch (e) {
+    print('User update error: \$e');
+  }
+
+  try {
+    await connection.execute('''
+      UPDATE accounts_technician_profile SET 
+      bio = 'test', tagline = 'test', hourly_rate = 0.0, daily_rate = 0.0, fixed_price = 0.0, 
+      inspection_fee = 0.0, starting_price = 0.0, availability_status = 'test', experience = 'test', 
+      city = 'test', years_experience = 0, primary_occupation = 'test', own_tools = false, 
+      has_vehicle = false, willing_to_travel = false, service_radius_km = 0, available_now = false, 
+      accepts_full_time = false, accepts_part_time = false, accepts_emergency = false, 
+      accepts_weekends = false, accepts_remote = false, accepts_onsite = false, bm_concierge = false, 
+      bm_build_team = false, bm_emergency = false, can_supervise = false, certifications = '[]',
+      work_preferences = '[]', tools_and_equipment = '[]', licences = '[]', preferred_languages = '[]',
+      national_id_front = '', national_id_back = '', selfie_url = '', national_id_number = ''
+      WHERE user_id = 1
+    ''');
+    print('Profile update OK');
+  } catch (e) {
+    print('Profile update error: \$e');
+  }
+
+  await connection.close();
+}

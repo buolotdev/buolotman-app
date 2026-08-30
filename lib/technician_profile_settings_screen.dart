@@ -1,7 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'app_state.dart';
-
 class TechnicianProfileSettingsScreen extends StatefulWidget {
   const TechnicianProfileSettingsScreen({super.key});
 
@@ -13,6 +15,21 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
   final _formKey = GlobalKey<FormState>();
   late TabController _tabController;
   bool _isLoading = false;
+
+  File? _pickedImage;
+  String? _base64Avatar;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    if (pickedFile != null) {
+      setState(() {
+        _pickedImage = File(pickedFile.path);
+      });
+      final bytes = await _pickedImage!.readAsBytes();
+      _base64Avatar = 'data:image/jpeg;base64,' + base64Encode(bytes);
+    }
+  }
 
   // Tab 1: Personal
   late TextEditingController _firstNameController;
@@ -147,6 +164,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
       final appState = Get.find<AppState>();
       
       await appState.updateProfile(
+        avatarUrl: _base64Avatar,
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         tagline: _taglineController.text.trim(),
@@ -271,6 +289,39 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                   ListView(
                     padding: const EdgeInsets.all(20),
                     children: [
+                      Center(
+                        child: GestureDetector(
+                          onTap: _pickImage,
+                          child: Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 50,
+                                backgroundColor: const Color(0xFFF1F5F9),
+                                backgroundImage: _pickedImage != null 
+                                    ? FileImage(_pickedImage!) 
+                                    : (Get.find<AppState>().currentUser.avatar.startsWith('data:image')
+                                        ? MemoryImage(base64Decode(Get.find<AppState>().currentUser.avatar.split(',').last)) as ImageProvider
+                                        : (Get.find<AppState>().currentUser.avatar.isNotEmpty && !Get.find<AppState>().currentUser.avatar.startsWith('assets')
+                                            ? NetworkImage(Get.find<AppState>().currentUser.avatar) as ImageProvider
+                                            : const AssetImage('assets/images/default_avatar.png'))),
+                                child: _pickedImage == null && Get.find<AppState>().currentUser.avatar.isEmpty
+                                    ? const Icon(Icons.person, size: 50, color: Colors.grey)
+                                    : null,
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(color: Color(0xFFFF4500), shape: BoxShape.circle),
+                                  child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
                       Row(
                         children: [
                           Expanded(child: _buildTextField('First Name', _firstNameController)),

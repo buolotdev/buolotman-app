@@ -1179,6 +1179,7 @@ class AppState extends GetxController {
   Future<void> updateProfile({
     String? firstName,
     String? lastName,
+    String? avatarUrl,
     String? phone,
     String? country,
     String? bio,
@@ -1218,6 +1219,7 @@ class AppState extends GetxController {
     final body = <String, dynamic>{};
     if (firstName != null) body['first_name'] = firstName;
     if (lastName != null) body['last_name'] = lastName;
+    if (avatarUrl != null) body['avatar_url'] = avatarUrl;
     if (phone != null) body['phone'] = phone;
     if (country != null) body['country'] = country;
     if (bio != null) body['bio'] = bio;
