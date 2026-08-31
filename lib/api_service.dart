@@ -680,6 +680,66 @@ class ApiService {
     }
   }
 
+  Future<void> deleteTechnicianService(int serviceId) async {
+    final response = await delete('/auth/technician-services/$serviceId/');
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to delete technician service.');
+    }
+  }
+
+  Future<List<dynamic>> fetchReferences() async {
+    final response = await get('/auth/references/');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch references.');
+    }
+  }
+
+  Future<Map<String, dynamic>> addReference(Map<String, dynamic> data) async {
+    final response = await post('/auth/references/', data);
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
+      throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+    }
+  }
+
+  Future<void> deleteReference(int id) async {
+    final response = await delete('/auth/references/$id/');
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to delete reference.');
+    }
+  }
+
+  Future<List<dynamic>> fetchCategories() async {
+    final response = await get('/tasks-categories/');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch categories.');
+    }
+  }
+
+  Future<List<dynamic>> fetchSubcategories(int categoryId) async {
+    final response = await get('/tasks-categories/$categoryId/subcategories/');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch subcategories.');
+    }
+  }
+
+  Future<List<dynamic>> fetchServices(int subcategoryId) async {
+    final response = await get('/tasks-subcategories/$subcategoryId/services/');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch services.');
+    }
+  }
+
   Future<Map<String, dynamic>> publishCompanyService(Map<String, dynamic> serviceData) async {
     final response = await post('/company/services/', serviceData);
     if (response.statusCode == 201) {

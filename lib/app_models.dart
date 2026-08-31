@@ -57,6 +57,28 @@ class AppUser {
     this.nationalIdBack = '',
     this.selfieUrl = '',
     this.address = '',
+    this.preferredPayoutMethod = '',
+    this.bankAccountName = '',
+    this.bankAccountNumber = '',
+    this.bankName = '',
+    this.mobileMoneyNumber = '',
+    this.payoutCurrency = '',
+    this.paymentVerificationStatus = 'Unverified',
+    this.preferredWorkingDays = const [],
+    this.preferredWorkingHours = '',
+    this.businessType = '',
+    this.acceptsIndividualJobs = true,
+    this.acceptsTeamProjects = true,
+    this.acceptsLongTermContracts = true,
+    this.acceptsShortTermJobs = true,
+    this.canTransportEquipment = false,
+    this.hasPpe = false,
+    this.hasSpecialistMachinery = false,
+    this.hasDrivingLicence = false,
+    this.bmContractorProjects = false,
+    this.interestedInLongTermPlacement = false,
+    this.teamLeaderExperience = false,
+    this.projectManagementExperience = false,
   });
 
   final String name;
@@ -113,6 +135,28 @@ class AppUser {
   final String nationalIdBack;
   final String selfieUrl;
   final String address;
+  final String preferredPayoutMethod;
+  final String bankAccountName;
+  final String bankAccountNumber;
+  final String bankName;
+  final String mobileMoneyNumber;
+  final String payoutCurrency;
+  final String paymentVerificationStatus;
+  final List<String> preferredWorkingDays;
+  final String preferredWorkingHours;
+  final String businessType;
+  final bool acceptsIndividualJobs;
+  final bool acceptsTeamProjects;
+  final bool acceptsLongTermContracts;
+  final bool acceptsShortTermJobs;
+  final bool canTransportEquipment;
+  final bool hasPpe;
+  final bool hasSpecialistMachinery;
+  final bool hasDrivingLicence;
+  final bool bmContractorProjects;
+  final bool interestedInLongTermPlacement;
+  final bool teamLeaderExperience;
+  final bool projectManagementExperience;
 
   AppUser copyWith({
     String? name,
@@ -169,6 +213,28 @@ class AppUser {
     String? nationalIdBack,
     String? selfieUrl,
     String? address,
+    String? preferredPayoutMethod,
+    String? bankAccountName,
+    String? bankAccountNumber,
+    String? bankName,
+    String? mobileMoneyNumber,
+    String? payoutCurrency,
+    String? paymentVerificationStatus,
+    List<String>? preferredWorkingDays,
+    String? preferredWorkingHours,
+    String? businessType,
+    bool? acceptsIndividualJobs,
+    bool? acceptsTeamProjects,
+    bool? acceptsLongTermContracts,
+    bool? acceptsShortTermJobs,
+    bool? canTransportEquipment,
+    bool? hasPpe,
+    bool? hasSpecialistMachinery,
+    bool? hasDrivingLicence,
+    bool? bmContractorProjects,
+    bool? interestedInLongTermPlacement,
+    bool? teamLeaderExperience,
+    bool? projectManagementExperience,
   }) {
     return AppUser(
       name: name ?? this.name,
@@ -225,6 +291,28 @@ class AppUser {
       nationalIdBack: nationalIdBack ?? this.nationalIdBack,
       selfieUrl: selfieUrl ?? this.selfieUrl,
       address: address ?? this.address,
+      preferredPayoutMethod: preferredPayoutMethod ?? this.preferredPayoutMethod,
+      bankAccountName: bankAccountName ?? this.bankAccountName,
+      bankAccountNumber: bankAccountNumber ?? this.bankAccountNumber,
+      bankName: bankName ?? this.bankName,
+      mobileMoneyNumber: mobileMoneyNumber ?? this.mobileMoneyNumber,
+      payoutCurrency: payoutCurrency ?? this.payoutCurrency,
+      paymentVerificationStatus: paymentVerificationStatus ?? this.paymentVerificationStatus,
+      preferredWorkingDays: preferredWorkingDays ?? this.preferredWorkingDays,
+      preferredWorkingHours: preferredWorkingHours ?? this.preferredWorkingHours,
+      businessType: businessType ?? this.businessType,
+      acceptsIndividualJobs: acceptsIndividualJobs ?? this.acceptsIndividualJobs,
+      acceptsTeamProjects: acceptsTeamProjects ?? this.acceptsTeamProjects,
+      acceptsLongTermContracts: acceptsLongTermContracts ?? this.acceptsLongTermContracts,
+      acceptsShortTermJobs: acceptsShortTermJobs ?? this.acceptsShortTermJobs,
+      canTransportEquipment: canTransportEquipment ?? this.canTransportEquipment,
+      hasPpe: hasPpe ?? this.hasPpe,
+      hasSpecialistMachinery: hasSpecialistMachinery ?? this.hasSpecialistMachinery,
+      hasDrivingLicence: hasDrivingLicence ?? this.hasDrivingLicence,
+      bmContractorProjects: bmContractorProjects ?? this.bmContractorProjects,
+      interestedInLongTermPlacement: interestedInLongTermPlacement ?? this.interestedInLongTermPlacement,
+      teamLeaderExperience: teamLeaderExperience ?? this.teamLeaderExperience,
+      projectManagementExperience: projectManagementExperience ?? this.projectManagementExperience,
     );
   }
 }

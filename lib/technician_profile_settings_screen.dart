@@ -92,6 +92,15 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
   bool _acceptsPartTime = true;
   bool _willingToTravel = false;
   int _serviceRadiusKm = 0;
+  List<String> _preferredWorkingDays = [];
+  late TextEditingController _preferredWorkingHoursController;
+  
+  String _businessType = 'Individual technician';
+  bool _acceptsIndividualJobs = true;
+  bool _acceptsTeamProjects = true;
+  bool _acceptsLongTermContracts = true;
+  bool _acceptsShortTermJobs = true;
+  bool _interestedInLongTermPlacement = false;
 
   // Tab 4: Pricing
   late TextEditingController _startingPriceController;
@@ -108,6 +117,14 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
   bool _bmEmergency = false;
   bool _canSupervise = false;
   late TextEditingController _toolsAndEquipmentController;
+  
+  bool _canTransportEquipment = false;
+  bool _hasPpe = false;
+  bool _hasSpecialistMachinery = false;
+  bool _hasDrivingLicence = false;
+  bool _bmContractorProjects = false;
+  bool _teamLeaderExperience = false;
+  bool _projectManagementExperience = false;
 
   // Tab 6: Verification Docs
   File? _pickedNationalIdFront;
@@ -119,10 +136,18 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
   File? _pickedCv;
   String? _base64Cv;
 
+  // Tab 7: Payout Settings
+  String _preferredPayoutMethod = 'Bank Transfer';
+  late TextEditingController _bankAccountNameController;
+  late TextEditingController _bankAccountNumberController;
+  late TextEditingController _bankNameController;
+  late TextEditingController _mobileMoneyNumberController;
+  late TextEditingController _payoutCurrencyController;
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this);
+    _tabController = TabController(length: 8, vsync: this);
     
     final appState = Get.find<AppState>();
     final u = appState.currentUser;
@@ -164,6 +189,14 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     _acceptsPartTime = u.acceptsPartTime;
     _willingToTravel = u.willingToTravel;
     _serviceRadiusKm = u.serviceRadiusKm;
+    _preferredWorkingDays = List.from(u.preferredWorkingDays);
+    _preferredWorkingHoursController = TextEditingController(text: u.preferredWorkingHours);
+    _businessType = u.businessType.isNotEmpty ? u.businessType : 'Individual technician';
+    _acceptsIndividualJobs = u.acceptsIndividualJobs;
+    _acceptsTeamProjects = u.acceptsTeamProjects;
+    _acceptsLongTermContracts = u.acceptsLongTermContracts;
+    _acceptsShortTermJobs = u.acceptsShortTermJobs;
+    _interestedInLongTermPlacement = u.interestedInLongTermPlacement;
 
     // Tab 4
     _startingPriceController = TextEditingController(text: u.startingPrice.toString());
@@ -180,12 +213,27 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     _bmEmergency = u.bmEmergency;
     _canSupervise = u.canSupervise;
     _toolsAndEquipmentController = TextEditingController(text: u.toolsAndEquipment.join(', '));
+    _canTransportEquipment = u.canTransportEquipment;
+    _hasPpe = u.hasPpe;
+    _hasSpecialistMachinery = u.hasSpecialistMachinery;
+    _hasDrivingLicence = u.hasDrivingLicence;
+    _bmContractorProjects = u.bmContractorProjects;
+    _teamLeaderExperience = u.teamLeaderExperience;
+    _projectManagementExperience = u.projectManagementExperience;
 
     // Tab 6 (Files already mapped if we want to show previews, but typically Base64 URLs)
     _base64NationalIdFront = u.nationalIdFront;
     _base64NationalIdBack = u.nationalIdBack;
     _base64Selfie = u.selfieUrl;
     _base64Cv = u.cvResumeUrl;
+
+    // Tab 7
+    _preferredPayoutMethod = u.preferredPayoutMethod.isNotEmpty ? u.preferredPayoutMethod : 'Bank Transfer';
+    _bankAccountNameController = TextEditingController(text: u.bankAccountName);
+    _bankAccountNumberController = TextEditingController(text: u.bankAccountNumber);
+    _bankNameController = TextEditingController(text: u.bankName);
+    _mobileMoneyNumberController = TextEditingController(text: u.mobileMoneyNumber);
+    _payoutCurrencyController = TextEditingController(text: u.payoutCurrency.isNotEmpty ? u.payoutCurrency : 'XOF');
   }
 
   @override
@@ -218,6 +266,12 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     _fixedPriceController.dispose();
     _inspectionFeeController.dispose();
     _toolsAndEquipmentController.dispose();
+    _preferredWorkingHoursController.dispose();
+    _bankAccountNameController.dispose();
+    _bankAccountNumberController.dispose();
+    _bankNameController.dispose();
+    _mobileMoneyNumberController.dispose();
+    _payoutCurrencyController.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -266,6 +320,12 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
         acceptsPartTime: _acceptsPartTime,
         willingToTravel: _willingToTravel,
         serviceRadiusKm: _serviceRadiusKm,
+        businessType: _businessType,
+        acceptsIndividualJobs: _acceptsIndividualJobs,
+        acceptsTeamProjects: _acceptsTeamProjects,
+        acceptsLongTermContracts: _acceptsLongTermContracts,
+        acceptsShortTermJobs: _acceptsShortTermJobs,
+        interestedInLongTermPlacement: _interestedInLongTermPlacement,
 
         startingPrice: double.tryParse(_startingPriceController.text) ?? 0.0,
         hourlyRate: double.tryParse(_hourlyRateController.text) ?? 0.0,
@@ -280,7 +340,23 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
         bmEmergency: _bmEmergency,
         canSupervise: _canSupervise,
         toolsAndEquipment: _toolsAndEquipmentController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
+        canTransportEquipment: _canTransportEquipment,
+        hasPpe: _hasPpe,
+        hasSpecialistMachinery: _hasSpecialistMachinery,
+        hasDrivingLicence: _hasDrivingLicence,
+        bmContractorProjects: _bmContractorProjects,
+        teamLeaderExperience: _teamLeaderExperience,
+        projectManagementExperience: _projectManagementExperience,
         
+        preferredWorkingDays: _preferredWorkingDays,
+        preferredWorkingHours: _preferredWorkingHoursController.text.trim(),
+        preferredPayoutMethod: _preferredPayoutMethod,
+        bankAccountName: _bankAccountNameController.text.trim(),
+        bankAccountNumber: _bankAccountNumberController.text.trim(),
+        bankName: _bankNameController.text.trim(),
+        mobileMoneyNumber: _mobileMoneyNumberController.text.trim(),
+        payoutCurrency: _payoutCurrencyController.text.trim(),
+
         nationalIdFront: _base64NationalIdFront,
         nationalIdBack: _base64NationalIdBack,
         selfieUrl: _base64Selfie,
@@ -414,6 +490,8 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
             Tab(text: 'Pricing'),
             Tab(text: 'Tools & BM'),
             Tab(text: 'Verification'),
+            Tab(text: 'Payout Settings'),
+            Tab(text: 'References'),
           ],
         ),
       ),
@@ -495,6 +573,25 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                       _buildTextField('Certifications (Comma separated)', _certificationsController),
                       _buildTextField('Licences (Comma separated)', _licencesController),
                       _buildTextField('Work Preferences (Comma separated)', _workPreferencesController, hint: 'e.g. On-site, Remote'),
+                      const SizedBox(height: 8),
+                      const Text('Business Type', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: _businessType,
+                        items: const [
+                          DropdownMenuItem(value: 'Individual technician', child: Text('Individual technician')),
+                          DropdownMenuItem(value: 'Registered business/sole proprietor', child: Text('Registered business/sole proprietor')),
+                        ],
+                        onChanged: (v) {
+                          if (v != null) setState(() => _businessType = v);
+                        },
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: const Color(0xFFF1F5F9),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
                       _buildTextField('Brief Bio', _bioController, maxLines: 4),
                       _buildTextField('Experience Description', _experienceController, maxLines: 3, hint: 'e.g., 5 years of plumbing...'),
                     ],
@@ -525,6 +622,12 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                       const SizedBox(height: 16),
                       _buildSwitch('Available Now (Urgent)', _availableNow, (v) => setState(() => _availableNow = v)),
                       const Divider(),
+                      _buildSwitch('Accepts Individual Jobs', _acceptsIndividualJobs, (v) => setState(() => _acceptsIndividualJobs = v)),
+                      _buildSwitch('Accepts Team Projects', _acceptsTeamProjects, (v) => setState(() => _acceptsTeamProjects = v)),
+                      _buildSwitch('Accepts Long Term Contracts', _acceptsLongTermContracts, (v) => setState(() => _acceptsLongTermContracts = v)),
+                      _buildSwitch('Accepts Short Term Jobs', _acceptsShortTermJobs, (v) => setState(() => _acceptsShortTermJobs = v)),
+                      _buildSwitch('Interested in Long Term Placement', _interestedInLongTermPlacement, (v) => setState(() => _interestedInLongTermPlacement = v)),
+                      const Divider(),
                       _buildSwitch('Accepts On-site Work', _acceptsOnsite, (v) => setState(() => _acceptsOnsite = v)),
                       _buildSwitch('Accepts Remote Work', _acceptsRemote, (v) => setState(() => _acceptsRemote = v)),
                       _buildSwitch('Accepts Weekend Work', _acceptsWeekends, (v) => setState(() => _acceptsWeekends = v)),
@@ -543,7 +646,34 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                           label: '${_serviceRadiusKm} km',
                           onChanged: (v) => setState(() => _serviceRadiusKm = v.toInt()),
                         ),
-                      ]
+                      ],
+                      const Divider(height: 32),
+                      const Text('Preferred Working Days', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) {
+                          final isSelected = _preferredWorkingDays.contains(day);
+                          return FilterChip(
+                            label: Text(day),
+                            selected: isSelected,
+                            selectedColor: const Color(0xFFFF4500).withOpacity(0.2),
+                            checkmarkColor: const Color(0xFFFF4500),
+                            onSelected: (selected) {
+                              setState(() {
+                                if (selected) {
+                                  _preferredWorkingDays.add(day);
+                                } else {
+                                  _preferredWorkingDays.remove(day);
+                                }
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField('Preferred Working Hours', _preferredWorkingHoursController, hint: 'e.g., 9AM - 5PM'),
                     ],
                   ),
                   
@@ -568,13 +698,20 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                       _buildTextField('Tools (comma separated)', _toolsAndEquipmentController),
                       _buildSwitch('I have my own tools', _ownTools, (v) => setState(() => _ownTools = v)),
                       _buildSwitch('I have a vehicle/motorcycle', _hasVehicle, (v) => setState(() => _hasVehicle = v)),
+                      _buildSwitch('I can transport equipment', _canTransportEquipment, (v) => setState(() => _canTransportEquipment = v)),
+                      _buildSwitch('I have PPE (Safety Gear)', _hasPpe, (v) => setState(() => _hasPpe = v)),
+                      _buildSwitch('I have specialist machinery', _hasSpecialistMachinery, (v) => setState(() => _hasSpecialistMachinery = v)),
+                      _buildSwitch('I have a valid driving licence', _hasDrivingLicence, (v) => setState(() => _hasDrivingLicence = v)),
                       const Divider(height: 32),
                       const Text('Boulot Man Eligibility', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
                       const SizedBox(height: 16),
                       _buildSwitch('Available for Concierge assignments', _bmConcierge, (v) => setState(() => _bmConcierge = v)),
                       _buildSwitch('Available for Build a Team', _bmBuildTeam, (v) => setState(() => _bmBuildTeam = v)),
                       _buildSwitch('Available for Emergency Projects', _bmEmergency, (v) => setState(() => _bmEmergency = v)),
+                      _buildSwitch('Open to BM Contractor Projects', _bmContractorProjects, (v) => setState(() => _bmContractorProjects = v)),
                       _buildSwitch('Can supervise other technicians', _canSupervise, (v) => setState(() => _canSupervise = v)),
+                      _buildSwitch('Has Team Leader Experience', _teamLeaderExperience, (v) => setState(() => _teamLeaderExperience = v)),
+                      _buildSwitch('Has Project Management Experience', _projectManagementExperience, (v) => setState(() => _projectManagementExperience = v)),
                     ],
                   ),
 
@@ -617,6 +754,12 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                       }),
                     ],
                   ),
+
+                  // Tab 7: Payout Settings
+                  _buildPayoutSettingsTab(),
+
+                  // Tab 8: References
+                  _buildReferencesTab(),
                 ],
               ),
             ),
@@ -635,6 +778,213 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPayoutSettingsTab() {
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        const Text('Payout Settings', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+        const SizedBox(height: 8),
+        const Text('Configure how you receive your earnings. These details remain private and are only used for processing payments.', style: TextStyle(color: Colors.grey)),
+        const SizedBox(height: 24),
+        const Text('Preferred Payout Method', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: _preferredPayoutMethod,
+          items: const [
+            DropdownMenuItem(value: 'Bank Transfer', child: Text('Bank Transfer')),
+            DropdownMenuItem(value: 'Mobile Money', child: Text('Mobile Money')),
+          ],
+          onChanged: (v) {
+            if (v != null) setState(() => _preferredPayoutMethod = v);
+          },
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: const Color(0xFFF1F5F9),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (_preferredPayoutMethod == 'Bank Transfer') ...[
+          _buildTextField('Bank Name', _bankNameController),
+          _buildTextField('Account Name', _bankAccountNameController),
+          _buildTextField('Account Number', _bankAccountNumberController, keyboardType: TextInputType.number),
+        ] else ...[
+          _buildTextField('Mobile Money Provider', _bankNameController, hint: 'e.g. MTN, Orange, Wave'),
+          _buildTextField('Registered Name', _bankAccountNameController),
+          _buildTextField('Mobile Money Number', _mobileMoneyNumberController, keyboardType: TextInputType.phone),
+        ],
+        _buildTextField('Preferred Currency', _payoutCurrencyController, hint: 'e.g. XOF, USD, NGN'),
+      ],
+    );
+  }
+
+  Widget _buildReferencesTab() {
+    return GetBuilder<AppState>(
+      builder: (appState) {
+        final refs = appState.technicianReferences;
+        return ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Professional References', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+                ElevatedButton.icon(
+                  onPressed: () => _showAddReferenceModal(context),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF001F3F),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text('Add references or recommendations from past employers or clients. This builds trust and helps verification.', style: TextStyle(color: Colors.grey)),
+            const SizedBox(height: 24),
+            if (refs.isEmpty)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(32.0),
+                  child: Text('No references added yet. Click Add to create one.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+                ),
+              )
+            else
+              ...refs.map((r) => Card(
+                elevation: 0,
+                color: const Color(0xFFF8FAFC),
+                margin: const EdgeInsets.only(bottom: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.grey.shade200)),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(16),
+                  title: Text(r['reference_name'] ?? 'Unknown Reference', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 4),
+                      Text('Relationship: \${r['relationship'] ?? ''}'),
+                      Text('Contact: \${r['contact_info'] ?? ''}'),
+                      if (r['employer_name'] != null && r['employer_name'].toString().isNotEmpty)
+                        Text('Employer: \${r['employer_name']}'),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: r['status'] == 'Verified' ? Colors.green.shade100 : Colors.orange.shade100,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          r['status'] ?? 'Pending',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: r['status'] == 'Verified' ? Colors.green.shade800 : Colors.orange.shade800,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    onPressed: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (c) => AlertDialog(
+                          title: const Text('Delete Reference?'),
+                          content: const Text('Are you sure you want to remove this reference?'),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+                            TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
+                          ],
+                        ),
+                      );
+                      if (confirm == true) {
+                        try {
+                          await appState.removeReference(r['id']);
+                          Get.snackbar('Success', 'Reference removed.');
+                        } catch (e) {
+                          Get.snackbar('Error', 'Failed to remove reference.');
+                        }
+                      }
+                    },
+                  ),
+                ),
+              )).toList(),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showAddReferenceModal(BuildContext context) {
+    final nameCtrl = TextEditingController();
+    final relCtrl = TextEditingController();
+    final contactCtrl = TextEditingController();
+    final empCtrl = TextEditingController();
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Add Reference', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+              const SizedBox(height: 16),
+              TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Reference Name')),
+              const SizedBox(height: 12),
+              TextField(controller: relCtrl, decoration: const InputDecoration(labelText: 'Relationship (e.g. Manager)')),
+              const SizedBox(height: 12),
+              TextField(controller: contactCtrl, decoration: const InputDecoration(labelText: 'Contact Info (Phone/Email)')),
+              const SizedBox(height: 12),
+              TextField(controller: empCtrl, decoration: const InputDecoration(labelText: 'Employer/Company (Optional)')),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF4500),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: () async {
+                    if (nameCtrl.text.isEmpty || contactCtrl.text.isEmpty) {
+                      Get.snackbar('Error', 'Name and Contact Info are required');
+                      return;
+                    }
+                    try {
+                      await Get.find<AppState>().addReference({
+                        'reference_name': nameCtrl.text.trim(),
+                        'relationship': relCtrl.text.trim(),
+                        'contact_info': contactCtrl.text.trim(),
+                        'employer_name': empCtrl.text.trim(),
+                        'recommendation_document_url': '',
+                      });
+                      Navigator.pop(ctx);
+                      Get.snackbar('Success', 'Reference added successfully.');
+                    } catch (e) {
+                      Get.snackbar('Error', 'Failed to add reference.');
+                    }
+                  },
+                  child: const Text('Add Reference', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
     );
   }
 }

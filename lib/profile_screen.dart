@@ -16,8 +16,11 @@ import 'technician_profile_settings_screen.dart';
 import 'verification_screen.dart';
 import 'wallet_screen.dart';
 import 'messages_screen.dart';
-import 'portfolio_management_screen.dart';
 import 'messages_screen.dart';
+import 'portfolio_management_screen.dart';
+import 'technician_services_management_screen.dart';
+import 'references_management_screen.dart';
+import 'technician_payout_settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
@@ -359,10 +362,10 @@ class ProfileScreen extends StatelessWidget {
         if (role == 'Technician')
           _buildTile(
             icon: Icons.add_business_outlined,
-            title: 'Post a Service',
-            subtitle: 'Publish a new service listing',
+            title: 'Manage Services',
+            subtitle: 'Link or unlink your verified skills',
             onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PostServiceScreen()));
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const TechnicianServicesManagementScreen()));
             },
           ),
         if (role == 'Technician')
@@ -381,6 +384,24 @@ class ProfileScreen extends StatelessWidget {
             subtitle: 'Add or edit your past projects',
             onTap: () {
               Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PortfolioManagementScreen()));
+            },
+          ),
+        if (role == 'Technician')
+          _buildTile(
+            icon: Icons.assignment_ind_outlined,
+            title: 'Professional References',
+            subtitle: 'Provide private verification references',
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ReferencesManagementScreen()));
+            },
+          ),
+        if (role == 'Technician')
+          _buildTile(
+            icon: Icons.payments_outlined,
+            title: 'Payout Settings',
+            subtitle: 'Manage preferred payment methods securely',
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const TechnicianPayoutSettingsScreen()));
             },
           ),
         if (role == 'Company')

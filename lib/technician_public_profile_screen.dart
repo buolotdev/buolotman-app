@@ -87,6 +87,8 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
         ? dbSkills.map((s) => s.toString().trim()).where((s) => s.isNotEmpty).toList()
         : [widget.skill];
 
+    final List<dynamic> hierarchicalServices = dataMap['services'] is List ? dataMap['services'] : [];
+
     final List<dynamic> dbPortfolio = dataMap['portfolio'] is List ? dataMap['portfolio'] : [];
     final List<dynamic> dbReviews = dataMap['reviews'] is List ? dataMap['reviews'] : [];
     final List<dynamic> certifications = dataMap['certifications'] is List ? dataMap['certifications'] : [];
@@ -214,6 +216,7 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
                         _buildPersonalDetailRow(Icons.email_outlined, "Email", dataMap['email']?.toString() ?? 'N/A'),
                         _buildPersonalDetailRow(Icons.location_on_outlined, "Location", [if (city.isNotEmpty) city, dataMap['country']?.toString() ?? ''].where((e) => e.isNotEmpty).join(', ')),
                         if (primaryOccupation.isNotEmpty) ...[const SizedBox(height: 8), _buildPersonalDetailRow(Icons.work_outline, "Occupation", primaryOccupation)],
+                        if (dataMap['business_type'] != null && dataMap['business_type'].toString().isNotEmpty) ...[const SizedBox(height: 8), _buildPersonalDetailRow(Icons.business_outlined, "Business Type", dataMap['business_type'].toString())],
                         if (yearsExp > 0) ...[const SizedBox(height: 8), _buildPersonalDetailRow(Icons.access_time_outlined, "Experience", '\$yearsExp years')],
                         if (languages.isNotEmpty) ...[const SizedBox(height: 8), _buildPersonalDetailRow(Icons.language_outlined, "Languages", languages.join(', ')),],
                         const SizedBox(height: 28),
@@ -231,9 +234,13 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
                     ListView(
                       padding: const EdgeInsets.all(20.0),
                       children: [
-                        _buildSectionHeader("Specialties"),
+                        _buildSectionHeader("Specialties & Skills"),
                         const SizedBox(height: 12),
-                        _isLoading ? _buildLoading() : _buildSpecialtyTags(specialties),
+                        _isLoading 
+                            ? _buildLoading() 
+                            : hierarchicalServices.isNotEmpty 
+                                ? _buildHierarchicalServices(hierarchicalServices)
+                                : _buildSpecialtyTags(specialties),
                         const SizedBox(height: 28),
                         _buildSectionHeader("Certifications & Licences"),
                         const SizedBox(height: 12),
@@ -265,18 +272,19 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
                         const SizedBox(height: 12),
                         _isLoading ? _buildLoading() : _buildSpecialtyTags(toolsList.map((e) => e.toString()).toList()),
                         const SizedBox(height: 28),
+                        const SizedBox(height: 24),
                         _buildSectionHeader("Boulot Man Eligibility"),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         if (_isLoading) _buildLoading()
-                        else Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                        else ...[
                             _buildToggleRow('BM Concierge', dataMap['bm_concierge'] == true || dataMap['bm_concierge'] == 'true'),
                             _buildToggleRow('BM Build a Team', dataMap['bm_build_team'] == true || dataMap['bm_build_team'] == 'true'),
                             _buildToggleRow('BM Emergency', dataMap['bm_emergency'] == true || dataMap['bm_emergency'] == 'true'),
+                            _buildToggleRow('Open to BM Contractor Projects', dataMap['bm_contractor_projects'] == true || dataMap['bm_contractor_projects'] == 'true'),
                             _buildToggleRow('Can Supervise Technicians', dataMap['can_supervise'] == true || dataMap['can_supervise'] == 'true'),
-                          ]
-                        )
+                            _buildToggleRow('Has Team Leader Experience', dataMap['team_leader_experience'] == true || dataMap['team_leader_experience'] == 'true'),
+                            _buildToggleRow('Has Project Management Experience', dataMap['project_management_experience'] == true || dataMap['project_management_experience'] == 'true'),
+                        ],
                       ],
                     ),
                     
@@ -303,10 +311,13 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
                         _buildSectionHeader("Availability"),
                         const SizedBox(height: 12),
                         if (_isLoading) _buildLoading()
-                        else Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                        else ...[
                             _buildToggleRow('Available Now (Urgent)', dataMap['available_now'] == true || dataMap['available_now'] == 'true'),
+                            _buildToggleRow('Accepts Individual Jobs', dataMap['accepts_individual_jobs'] == true || dataMap['accepts_individual_jobs'] == 'true'),
+                            _buildToggleRow('Accepts Team Projects', dataMap['accepts_team_projects'] == true || dataMap['accepts_team_projects'] == 'true'),
+                            _buildToggleRow('Accepts Long Term Contracts', dataMap['accepts_long_term_contracts'] == true || dataMap['accepts_long_term_contracts'] == 'true'),
+                            _buildToggleRow('Accepts Short Term Jobs', dataMap['accepts_short_term_jobs'] == true || dataMap['accepts_short_term_jobs'] == 'true'),
+                            _buildToggleRow('Interested in Long Term Placement', dataMap['interested_in_long_term_placement'] == true || dataMap['interested_in_long_term_placement'] == 'true'),
                             _buildToggleRow('Accepts On-site Work', dataMap['accepts_onsite'] != false && dataMap['accepts_onsite'] != 'false'),
                             _buildToggleRow('Accepts Remote Work', dataMap['accepts_remote'] == true || dataMap['accepts_remote'] == 'true'),
                             _buildToggleRow('Accepts Weekend Work', dataMap['accepts_weekends'] == true || dataMap['accepts_weekends'] == 'true'),
@@ -320,8 +331,7 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
                                 padding: const EdgeInsets.only(top: 8, bottom: 8),
                                 child: Text('Service Radius: ${dataMap["service_radius_km"] ?? 0} km', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
                               ),
-                          ]
-                        ),
+                        ],
                         const SizedBox(height: 28),
                         _buildSectionHeader("Work Preferences"),
                         const SizedBox(height: 12),
@@ -618,22 +628,47 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader("Verification"),
+        _buildSectionHeader("Verification Status"),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(12),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              )
+            ],
           ),
           child: Column(
             children: [
-              _buildVerifItem("Identity Verified", verificationBadge != 'Unverified'),
-              const Divider(height: 24, color: Color(0xFFE2E8F0)),
-              _buildVerifItem("Professional Qualifications Verified", verificationBadge == 'Professional Verified' || verificationBadge == 'BM Verified Professional'),
-              const Divider(height: 24, color: Color(0xFFE2E8F0)),
-              _buildVerifItem("Background Check Passed", verificationBadge == 'BM Verified Professional'),
+              _buildVerifItem(
+                title: "Identity Verified",
+                subtitle: "Government ID & facial recognition passed",
+                icon: Icons.fingerprint,
+                isVerified: verificationBadge != 'Unverified',
+                color: const Color(0xFF3B82F6),
+              ),
+              const Divider(height: 24, color: Color(0xFFF1F5F9), thickness: 1.5),
+              _buildVerifItem(
+                title: "Professional Verified",
+                subtitle: "Certifications and references validated",
+                icon: Icons.workspace_premium,
+                isVerified: verificationBadge == 'Professional Verified' || verificationBadge == 'BM Verified Professional',
+                color: const Color(0xFF8B5CF6),
+              ),
+              const Divider(height: 24, color: Color(0xFFF1F5F9), thickness: 1.5),
+              _buildVerifItem(
+                title: "BM Verified Professional",
+                subtitle: "Top-tier background & quality check passed",
+                icon: Icons.shield,
+                isVerified: verificationBadge == 'BM Verified Professional',
+                color: const Color(0xFF10B981),
+              ),
             ],
           ),
         ),
@@ -641,25 +676,49 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
     );
   }
 
-  Widget _buildVerifItem(String label, bool isVerified) {
+  Widget _buildVerifItem({required String title, required String subtitle, required IconData icon, required bool isVerified, required Color color}) {
     return Row(
       children: [
-        Icon(
-          isVerified ? Icons.check_circle : Icons.radio_button_unchecked,
-          color: isVerified ? const Color(0xFF16A34A) : const Color(0xFF94A3B8),
-          size: 20,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: isVerified ? FontWeight.w600 : FontWeight.w400,
-              color: isVerified ? const Color(0xFF001F3F) : const Color(0xFF64748B),
-            ),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: isVerified ? color.withOpacity(0.1) : const Color(0xFFF1F5F9),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            icon,
+            color: isVerified ? color : const Color(0xFF94A3B8),
+            size: 24,
           ),
         ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: isVerified ? FontWeight.bold : FontWeight.w500,
+                  color: isVerified ? const Color(0xFF001F3F) : const Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isVerified ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (isVerified)
+          Icon(Icons.check_circle, color: color, size: 22)
+        else
+          const Icon(Icons.pending, color: Color(0xFFCBD5E1), size: 22),
       ],
     );
   }
@@ -682,6 +741,62 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
           child: Text(
             tag,
             style: const TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildHierarchicalServices(List<dynamic> services) {
+    if (services.isEmpty) {
+      return const Text("No verified skills listed.", style: TextStyle(color: Color(0xFF64748B)));
+    }
+    return Column(
+      children: services.map((s) {
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      s['service_name'] ?? 'Unknown',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0F172A)),
+                    ),
+                  ),
+                  if (s['is_verified_skill'] == true)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.check_circle, size: 12, color: Colors.green),
+                          SizedBox(width: 4),
+                          Text('Verified', style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '\${s['category_name']} > \${s['subcategory_name']}',
+                style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+              ),
+            ],
           ),
         );
       }).toList(),

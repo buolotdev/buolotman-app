@@ -40,6 +40,7 @@ class AppState extends GetxController {
   List<Map<String, dynamic>> _faqPages = [];
   List<dynamic> _searchResults = [];
   List<dynamic> _portfolioItems = [];
+  List<Map<String, dynamic>> _technicianReferences = [];
   List<Map<String, dynamic>> _apiCategories = [];
   List<Map<String, dynamic>> _companyProjects = [];
   List<Map<String, dynamic>> _clientContracts = [];
@@ -65,6 +66,7 @@ class AppState extends GetxController {
   List<Map<String, dynamic>> get faqPages => List.unmodifiable(_faqPages);
   List<dynamic> get searchResults => List.unmodifiable(_searchResults);
   List<dynamic> get portfolioItems => List.unmodifiable(_portfolioItems);
+  List<Map<String, dynamic>> get technicianReferences => List.unmodifiable(_technicianReferences);
   List<Map<String, dynamic>> get companyProjects => List.unmodifiable(_companyProjects);
   List<Map<String, dynamic>> get clientContracts => List.unmodifiable(_clientContracts);
   String? get companyRegistrationStatus => _companyRegistrationStatus;
@@ -246,8 +248,42 @@ class AppState extends GetxController {
     _savedServices.clear();
     _companyProjects.clear();
     _clientContracts.clear();
+    _portfolioItems = [];
     update();
   }
+
+  Future<void> syncReferences() async {
+    try {
+      final response = await ApiService.instance.get('/auth/references/');
+      if (response.statusCode == 200) {
+        final List data = jsonDecode(response.body);
+        _technicianReferences = data.cast<Map<String, dynamic>>();
+        update();
+      }
+    } catch (e) {
+      debugPrint('Error syncing references: $e');
+    }
+  }
+
+  Future<void> addReference(Map<String, dynamic> refData) async {
+    final response = await ApiService.instance.post('/auth/references/', refData);
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      await syncReferences();
+    } else {
+      throw Exception('Failed to add reference');
+    }
+  }
+
+  Future<void> removeReference(int id) async {
+    final response = await ApiService.instance.delete('/auth/references/$id/');
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      _technicianReferences.removeWhere((item) => item['id'] == id);
+      update();
+    } else {
+      throw Exception('Failed to delete reference');
+    }
+  }
+
 
   Future<void> deleteAccount() async {
     final response = await ApiService.instance.delete('/auth/user/delete/');
@@ -529,10 +565,33 @@ class AppState extends GetxController {
         nationalIdBack: profile['national_id_back'] ?? '',
         selfieUrl: profile['selfie_url'] ?? '',
         address: profile['address'] ?? '',
+        preferredPayoutMethod: profile['preferred_payout_method'] ?? '',
+        bankAccountName: profile['bank_account_name'] ?? '',
+        bankAccountNumber: profile['bank_account_number'] ?? '',
+        bankName: profile['bank_name'] ?? '',
+        mobileMoneyNumber: profile['mobile_money_number'] ?? '',
+        payoutCurrency: profile['payout_currency'] ?? '',
+        paymentVerificationStatus: profile['payment_verification_status'] ?? 'Unverified',
+        preferredWorkingDays: (profile['preferred_working_days'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+        preferredWorkingHours: profile['preferred_working_hours'] ?? '',
+        businessType: profile['business_type'] ?? '',
+        acceptsIndividualJobs: profile['accepts_individual_jobs'] == true || profile['accepts_individual_jobs'] == 'true',
+        acceptsTeamProjects: profile['accepts_team_projects'] == true || profile['accepts_team_projects'] == 'true',
+        acceptsLongTermContracts: profile['accepts_long_term_contracts'] == true || profile['accepts_long_term_contracts'] == 'true',
+        acceptsShortTermJobs: profile['accepts_short_term_jobs'] == true || profile['accepts_short_term_jobs'] == 'true',
+        canTransportEquipment: profile['can_transport_equipment'] == true || profile['can_transport_equipment'] == 'true',
+        hasPpe: profile['has_ppe'] == true || profile['has_ppe'] == 'true',
+        hasSpecialistMachinery: profile['has_specialist_machinery'] == true || profile['has_specialist_machinery'] == 'true',
+        hasDrivingLicence: profile['has_driving_licence'] == true || profile['has_driving_licence'] == 'true',
+        bmContractorProjects: profile['bm_contractor_projects'] == true || profile['bm_contractor_projects'] == 'true',
+        interestedInLongTermPlacement: profile['interested_in_long_term_placement'] == true || profile['interested_in_long_term_placement'] == 'true',
+        teamLeaderExperience: profile['team_leader_experience'] == true || profile['team_leader_experience'] == 'true',
+        projectManagementExperience: profile['project_management_experience'] == true || profile['project_management_experience'] == 'true',
       );
 
       if (_currentUser.role == 'Technician') {
         syncPortfolio();
+        syncReferences();
       }
       
       SharedPreferences.getInstance().then((prefs) {

@@ -1292,6 +1292,29 @@ Future<Response> getMeHandler(Request request) async {
       data['bm_emergency'] = prof['bm_emergency'] ?? false;
       data['can_supervise'] = prof['can_supervise'] ?? false;
       
+      data['preferred_payout_method'] = prof['preferred_payout_method'] ?? '';
+      data['bank_account_name'] = prof['bank_account_name'] ?? '';
+      data['bank_account_number'] = prof['bank_account_number'] ?? '';
+      data['bank_name'] = prof['bank_name'] ?? '';
+      data['mobile_money_number'] = prof['mobile_money_number'] ?? '';
+      data['payout_currency'] = prof['payout_currency'] ?? '';
+      data['business_type'] = prof['business_type'] ?? '';
+      data['accepts_individual_jobs'] = prof['accepts_individual_jobs'] ?? true;
+      data['accepts_team_projects'] = prof['accepts_team_projects'] ?? true;
+      data['accepts_long_term_contracts'] = prof['accepts_long_term_contracts'] ?? true;
+      data['accepts_short_term_jobs'] = prof['accepts_short_term_jobs'] ?? true;
+      data['can_transport_equipment'] = prof['can_transport_equipment'] ?? false;
+      data['has_ppe'] = prof['has_ppe'] ?? false;
+      data['has_specialist_machinery'] = prof['has_specialist_machinery'] ?? false;
+      data['has_driving_licence'] = prof['has_driving_licence'] ?? false;
+      data['bm_contractor_projects'] = prof['bm_contractor_projects'] ?? false;
+      data['interested_in_long_term_placement'] = prof['interested_in_long_term_placement'] ?? false;
+      data['team_leader_experience'] = prof['team_leader_experience'] ?? false;
+      data['project_management_experience'] = prof['project_management_experience'] ?? false;
+      data['payment_verification_status'] = prof['payment_verification_status'] ?? 'Unverified';
+      data['preferred_working_days'] = parseJsonField(prof['preferred_working_days']) ?? [];
+      data['preferred_working_hours'] = prof['preferred_working_hours'] ?? '';
+      
       final skillsQuery = await dbPool.execute(
         Sql.named('SELECT s.name FROM tasks_skill s JOIN accounts_technician_profile_skills ps ON s.id = ps.skill_id WHERE ps.technicianprofile_id = @profId'),
         parameters: {'profId': prof['id']},
@@ -1335,7 +1358,14 @@ Future<Response> updateMeHandler(Request request) async {
       'available_now', 'accepts_full_time', 'accepts_part_time', 'accepts_emergency',
       'accepts_weekends', 'accepts_remote', 'accepts_onsite',
       'bm_concierge', 'bm_build_team', 'bm_emergency', 'can_supervise', 'tagline',
-      'cv_resume_url', 'emergency_contact_name', 'emergency_contact_phone'
+      'cv_resume_url', 'emergency_contact_name', 'emergency_contact_phone',
+      'preferred_payout_method', 'bank_account_name', 'bank_account_number',
+      'bank_name', 'mobile_money_number', 'payout_currency',
+      'preferred_working_days', 'preferred_working_hours',
+      'business_type', 'accepts_individual_jobs', 'accepts_team_projects',
+      'accepts_long_term_contracts', 'accepts_short_term_jobs', 'can_transport_equipment',
+      'has_ppe', 'has_specialist_machinery', 'has_driving_licence', 'bm_contractor_projects',
+      'interested_in_long_term_placement', 'team_leader_experience', 'project_management_experience'
     ];
     final profileUpdates = <String, dynamic>{};
     for (final f in allowedProfileFields) {
@@ -1344,12 +1374,16 @@ Future<Response> updateMeHandler(Request request) async {
           profileUpdates[f] = double.tryParse(body[f].toString()) ?? 0.0;
         } else if (f == 'years_experience' || f == 'service_radius_km') {
           profileUpdates[f] = int.tryParse(body[f].toString()) ?? 0;
-        } else if (f == 'certifications' || f == 'work_preferences' || f == 'tools_and_equipment' || f == 'licences' || f == 'preferred_languages') {
+        } else if (f == 'certifications' || f == 'work_preferences' || f == 'tools_and_equipment' || f == 'licences' || f == 'preferred_languages' || f == 'preferred_working_days') {
           profileUpdates[f] = jsonEncode(body[f]);
         } else if (f == 'own_tools' || f == 'has_vehicle' || f == 'willing_to_travel' || f == 'available_now' ||
                    f == 'accepts_full_time' || f == 'accepts_part_time' || f == 'accepts_emergency' || 
                    f == 'accepts_weekends' || f == 'accepts_remote' || f == 'accepts_onsite' ||
-                   f == 'bm_concierge' || f == 'bm_build_team' || f == 'bm_emergency' || f == 'can_supervise') {
+                   f == 'bm_concierge' || f == 'bm_build_team' || f == 'bm_emergency' || f == 'can_supervise' ||
+                   f == 'accepts_individual_jobs' || f == 'accepts_team_projects' || f == 'accepts_long_term_contracts' || 
+                   f == 'accepts_short_term_jobs' || f == 'can_transport_equipment' || f == 'has_ppe' || 
+                   f == 'has_specialist_machinery' || f == 'has_driving_licence' || f == 'bm_contractor_projects' || 
+                   f == 'interested_in_long_term_placement' || f == 'team_leader_experience' || f == 'project_management_experience') {
           profileUpdates[f] = body[f] == true || body[f] == 'true';
         } else {
           profileUpdates[f] = body[f];
@@ -1469,6 +1503,20 @@ Future<Response> updateMeHandler(Request request) async {
       data['national_id_front'] = prof['national_id_front'] ?? '';
       data['national_id_back'] = prof['national_id_back'] ?? '';
       data['selfie_url'] = prof['selfie_url'] ?? '';
+      
+      data['business_type'] = prof['business_type'] ?? '';
+      data['accepts_individual_jobs'] = prof['accepts_individual_jobs'] ?? true;
+      data['accepts_team_projects'] = prof['accepts_team_projects'] ?? true;
+      data['accepts_long_term_contracts'] = prof['accepts_long_term_contracts'] ?? true;
+      data['accepts_short_term_jobs'] = prof['accepts_short_term_jobs'] ?? true;
+      data['can_transport_equipment'] = prof['can_transport_equipment'] ?? false;
+      data['has_ppe'] = prof['has_ppe'] ?? false;
+      data['has_specialist_machinery'] = prof['has_specialist_machinery'] ?? false;
+      data['has_driving_licence'] = prof['has_driving_licence'] ?? false;
+      data['bm_contractor_projects'] = prof['bm_contractor_projects'] ?? false;
+      data['interested_in_long_term_placement'] = prof['interested_in_long_term_placement'] ?? false;
+      data['team_leader_experience'] = prof['team_leader_experience'] ?? false;
+      data['project_management_experience'] = prof['project_management_experience'] ?? false;
       
       final skillsQuery = await dbPool.execute(
         Sql.named('SELECT s.name FROM tasks_skill s JOIN accounts_technician_profile_skills ps ON s.id = ps.skill_id WHERE ps.technicianprofile_id = @profId'),
@@ -1653,6 +1701,20 @@ Future<Response> userPublicProfileHandler(Request request, String userIdStr) asy
       data['bm_emergency'] = prof['bm_emergency'] ?? false;
       data['can_supervise'] = prof['can_supervise'] ?? false;
       
+      data['business_type'] = prof['business_type'] ?? '';
+      data['accepts_individual_jobs'] = prof['accepts_individual_jobs'] ?? true;
+      data['accepts_team_projects'] = prof['accepts_team_projects'] ?? true;
+      data['accepts_long_term_contracts'] = prof['accepts_long_term_contracts'] ?? true;
+      data['accepts_short_term_jobs'] = prof['accepts_short_term_jobs'] ?? true;
+      data['can_transport_equipment'] = prof['can_transport_equipment'] ?? false;
+      data['has_ppe'] = prof['has_ppe'] ?? false;
+      data['has_specialist_machinery'] = prof['has_specialist_machinery'] ?? false;
+      data['has_driving_licence'] = prof['has_driving_licence'] ?? false;
+      data['bm_contractor_projects'] = prof['bm_contractor_projects'] ?? false;
+      data['interested_in_long_term_placement'] = prof['interested_in_long_term_placement'] ?? false;
+      data['team_leader_experience'] = prof['team_leader_experience'] ?? false;
+      data['project_management_experience'] = prof['project_management_experience'] ?? false;
+      
       final portfolioQuery = await dbPool.execute(
         Sql.named('SELECT * FROM accounts_portfolio_item WHERE user_id = @id ORDER BY created_at DESC'),
         parameters: {'id': userId},
@@ -1667,6 +1729,11 @@ Future<Response> userPublicProfileHandler(Request request, String userIdStr) asy
           'image_url': row['image_url'] ?? '',
           'completed_date': row['completed_date']?.toString(),
           'project_value': row['project_value']?.toString(),
+          'service_performed': row['service_performed'] ?? '',
+          'video_url': row['video_url'] ?? '',
+          'project_location': row['project_location'] ?? '',
+          'client_company': row['client_company'] ?? '',
+          'before_image_url': row['before_image_url'] ?? '',
         };
       }).toList();
       data['certifications'] = parseJsonField(prof['certifications']) ?? [];
@@ -1677,6 +1744,27 @@ Future<Response> userPublicProfileHandler(Request request, String userIdStr) asy
         parameters: {'profId': prof['id']},
       );
       data['skills'] = skillsQuery.map((r) => r[0]?.toString() ?? '').toList();
+
+      final servicesQuery = await dbPool.execute(
+        Sql.named('''
+          SELECT s.name as service_name, sub.name as subcategory_name, c.name as category_name, ts.is_verified_skill
+          FROM accounts_technician_service ts
+          JOIN tasks_service s ON ts.service_id = s.id
+          JOIN tasks_subcategory sub ON s.subcategory_id = sub.id
+          JOIN tasks_category c ON sub.category_id = c.id
+          WHERE ts.technician_id = @userId
+        '''),
+        parameters: {'userId': userId},
+      );
+      data['services'] = servicesQuery.map((r) {
+        final row = r.toColumnMap();
+        return {
+          'service_name': row['service_name'],
+          'subcategory_name': row['subcategory_name'],
+          'category_name': row['category_name'],
+          'is_verified_skill': row['is_verified_skill'] ?? false,
+        };
+      }).toList();
     }
   } else if (u['role'] == 'COMPANY') {
     final companyQuery = await dbPool.execute(
@@ -1992,7 +2080,24 @@ Future<Response> listTechnicianServicesHandler(Request request) async {
   }
 
   final results = await dbPool.execute(
-    Sql.named('SELECT ts.*, c.name as category_name FROM accounts_technician_service ts LEFT JOIN tasks_category c ON ts.category_id = c.id WHERE ts.technician_id = @techId ORDER BY ts.created_at DESC'),
+    Sql.named('''
+      SELECT 
+        ts.id as id,
+        ts.is_verified_skill,
+        ts.created_at,
+        s.id as service_id,
+        s.name as service_name,
+        sub.id as subcategory_id,
+        sub.name as subcategory_name,
+        c.id as category_id,
+        c.name as category_name
+      FROM accounts_technician_service ts
+      JOIN tasks_service s ON ts.service_id = s.id
+      JOIN tasks_subcategory sub ON s.subcategory_id = sub.id
+      JOIN tasks_category c ON sub.category_id = c.id
+      WHERE ts.technician_id = @techId
+      ORDER BY ts.created_at DESC
+    '''),
     parameters: {'techId': userId},
   );
 
@@ -2000,18 +2105,14 @@ Future<Response> listTechnicianServicesHandler(Request request) async {
     final row = r.toColumnMap();
     return {
       'id': row['id'],
-      'title': row['title'] ?? '',
-      'category': row['category_id'],
-      'category_name': row['category_name'] ?? '',
-      'description': row['description'] ?? '',
-      'service_type': row['service_type'] ?? 'onsite',
-      'coverage_area': row['coverage_area'] ?? '',
-      'pricing_model': row['pricing_model'] ?? 'fixed',
-      'pricing_min': row['pricing_min']?.toString(),
-      'pricing_max': row['pricing_max']?.toString(),
-      'is_active': row['is_active'] ?? true,
+      'is_verified_skill': row['is_verified_skill'] ?? false,
       'created_at': row['created_at'] != null ? (row['created_at'] as DateTime).toIso8601String() : '',
-      'updated_at': row['updated_at'] != null ? (row['updated_at'] as DateTime).toIso8601String() : '',
+      'service_id': row['service_id'],
+      'service_name': row['service_name'],
+      'subcategory_id': row['subcategory_id'],
+      'subcategory_name': row['subcategory_name'],
+      'category_id': row['category_id'],
+      'category_name': row['category_name'],
     };
   }).toList());
 }
@@ -2025,33 +2126,23 @@ Future<Response> createTechnicianServiceHandler(Request request) async {
   }
 
   final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
-  final title = body['title']?.toString() ?? '';
-  final categoryId = int.tryParse(body['category']?.toString() ?? '') ?? 0;
-  final description = body['description']?.toString() ?? '';
-  final serviceType = body['service_type']?.toString() ?? 'onsite';
-  final coverageArea = body['coverage_area']?.toString() ?? '';
-  final pricingModel = body['pricing_model']?.toString() ?? 'fixed';
-  final pricingMin = double.tryParse(body['pricing_min']?.toString() ?? '');
-  final pricingMax = double.tryParse(body['pricing_max']?.toString() ?? '');
-  final isActive = body['is_active'] as bool? ?? true;
+  final serviceId = int.tryParse(body['service_id']?.toString() ?? '') ?? 0;
+  
+  if (serviceId == 0) return errorResponse('service_id is required', statusCode: 400);
 
   final res = await dbPool.execute(
-    Sql.named('INSERT INTO accounts_technician_service (title, description, service_type, coverage_area, pricing_model, pricing_min, pricing_max, is_active, created_at, updated_at, category_id, technician_id) '
-              'VALUES (@title, @desc, @type, @area, @model, @min, @max, @active, @now, @now, @catId, @techId) RETURNING id'),
+    Sql.named('INSERT INTO accounts_technician_service (service_id, technician_id, is_verified_skill, created_at) '
+              'VALUES (@sId, @techId, false, NOW()) ON CONFLICT (technician_id, service_id) DO NOTHING RETURNING id'),
     parameters: {
-      'title': title,
-      'desc': description,
-      'type': serviceType,
-      'area': coverageArea,
-      'model': pricingModel,
-      'min': pricingMin,
-      'max': pricingMax,
-      'active': isActive,
-      'now': DateTime.now(),
-      'catId': categoryId > 0 ? categoryId : null,
+      'sId': serviceId,
       'techId': userId,
     },
   );
+  
+  if (res.isEmpty) {
+     return errorResponse('Service already added', statusCode: 400);
+  }
+  
   final newId = res[0][0] as int;
 
   await createAuditLog(
@@ -2059,22 +2150,15 @@ Future<Response> createTechnicianServiceHandler(Request request) async {
     action: 'technician_service_created',
     entityType: 'technician_service',
     entityId: newId.toString(),
-    summary: title,
-    metadata: {'service_type': serviceType, 'pricing_model': pricingModel},
+    summary: 'Linked to service \$serviceId',
+    metadata: {},
     ipAddress: null,
   );
 
   return Response(201, body: jsonEncode({
     'id': newId,
-    'title': title,
-    'category': categoryId,
-    'description': description,
-    'service_type': serviceType,
-    'coverage_area': coverageArea,
-    'pricing_model': pricingModel,
-    'pricing_min': pricingMin?.toString(),
-    'pricing_max': pricingMax?.toString(),
-    'is_active': isActive,
+    'service_id': serviceId,
+    'is_verified_skill': false,
   }), headers: {'content-type': 'application/json'});
 }
 
@@ -2082,89 +2166,36 @@ Future<Response> technicianServiceDetailHandler(Request request, String serviceI
   final userId = getUserId(request);
   final serviceId = int.tryParse(serviceIdStr) ?? 0;
 
-  final results = await dbPool.execute(
-    Sql.named('SELECT ts.*, c.name as category_name FROM accounts_technician_service ts LEFT JOIN tasks_category c ON ts.category_id = c.id WHERE ts.id = @id AND ts.technician_id = @techId'),
-    parameters: {'id': serviceId, 'techId': userId},
-  );
-
-  if (results.isEmpty) {
-    return errorResponse('Service not found', statusCode: 404);
-  }
-
-  final row = results[0].toColumnMap();
-
-  if (request.method == 'GET') {
-    return jsonResponse({
-      'id': row['id'],
-      'title': row['title'] ?? '',
-      'category': row['category_id'],
-      'category_name': row['category_name'] ?? '',
-      'description': row['description'] ?? '',
-      'service_type': row['service_type'] ?? 'onsite',
-      'coverage_area': row['coverage_area'] ?? '',
-      'pricing_model': row['pricing_model'] ?? 'fixed',
-      'pricing_min': row['pricing_min']?.toString(),
-      'pricing_max': row['pricing_max']?.toString(),
-      'is_active': row['is_active'] ?? true,
-      'created_at': row['created_at']?.toString(),
-    });
-  } else if (request.method == 'DELETE') {
-    await dbPool.execute(Sql.named('DELETE FROM accounts_technician_service WHERE id = @id'), parameters: {'id': serviceId});
+  if (request.method == 'DELETE') {
+    await dbPool.execute(Sql.named('DELETE FROM accounts_technician_service WHERE id = @id AND technician_id = @techId'), parameters: {'id': serviceId, 'techId': userId});
     return Response(204);
-  } else if (request.method == 'PATCH') {
-    final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
-
-    final allowed = ['title', 'category_id', 'description', 'service_type', 'coverage_area', 'pricing_model', 'pricing_min', 'pricing_max', 'is_active'];
-    final updates = <String, dynamic>{};
-    for (final f in allowed) {
-      if (body.containsKey(f)) updates[f] = body[f];
-      // Special handle category naming differences
-      if (f == 'category_id' && body.containsKey('category')) {
-        updates['category_id'] = int.tryParse(body['category']?.toString() ?? '');
-      }
-    }
-
-    if (updates.isNotEmpty) {
-      final queryParts = updates.keys.map((k) => '$k = @$k').join(', ');
-      final params = Map<String, dynamic>.from(updates)..['id'] = serviceId;
-      await dbPool.execute(
-        Sql.named('UPDATE accounts_technician_service SET $queryParts, updated_at = NOW() WHERE id = @id'),
-        parameters: params,
-      );
-    }
-
-    await createAuditLog(
-      actorId: userId,
-      action: 'technician_service_updated',
-      entityType: 'technician_service',
-      entityId: serviceId.toString(),
-      summary: row['title'] ?? '',
-      metadata: {'service_type': row['service_type'], 'pricing_model': row['pricing_model']},
-      ipAddress: null,
-    );
-
-    final updated = await dbPool.execute(
-      Sql.named('SELECT ts.*, c.name as category_name FROM accounts_technician_service ts LEFT JOIN tasks_category c ON ts.category_id = c.id WHERE ts.id = @id'),
-      parameters: {'id': serviceId},
-    );
-    final row2 = updated[0].toColumnMap();
-
-    return jsonResponse({
-      'id': row2['id'],
-      'title': row2['title'] ?? '',
-      'category': row2['category_id'],
-      'category_name': row2['category_name'] ?? '',
-      'description': row2['description'] ?? '',
-      'service_type': row2['service_type'] ?? 'onsite',
-      'coverage_area': row2['coverage_area'] ?? '',
-      'pricing_model': row2['pricing_model'] ?? 'fixed',
-      'pricing_min': row2['pricing_min']?.toString(),
-      'pricing_max': row2['pricing_max']?.toString(),
-      'is_active': row2['is_active'] ?? true,
-    });
   }
-
   return errorResponse('Method not allowed', statusCode: 405);
+}
+
+// ─── TAXONOMY HANDLERS ──────────────────────────────────────────────────────
+
+Future<Response> listCategoriesHandler(Request request) async {
+  final results = await dbPool.execute('SELECT * FROM tasks_category ORDER BY name ASC');
+  return jsonResponse(results.map((r) => r.toColumnMap()).toList());
+}
+
+Future<Response> listSubcategoriesHandler(Request request, String categoryIdStr) async {
+  final catId = int.tryParse(categoryIdStr) ?? 0;
+  final results = await dbPool.execute(
+    Sql.named('SELECT * FROM tasks_subcategory WHERE category_id = @id ORDER BY name ASC'),
+    parameters: {'id': catId},
+  );
+  return jsonResponse(results.map((r) => r.toColumnMap()).toList());
+}
+
+Future<Response> listServicesHandler(Request request, String subcategoryIdStr) async {
+  final subId = int.tryParse(subcategoryIdStr) ?? 0;
+  final results = await dbPool.execute(
+    Sql.named('SELECT * FROM tasks_service WHERE subcategory_id = @id ORDER BY name ASC'),
+    parameters: {'id': subId},
+  );
+  return jsonResponse(results.map((r) => r.toColumnMap()).toList());
 }
 
 // ─── ADMIN USERS HANDLERS ─────────────────────────────────────────────────
@@ -4615,6 +4646,77 @@ Future<Response> platformSettingsHandler(Request request) async {
   return jsonResponse(map);
 }
 
+// ─── REFERENCES HANDLERS ─────────────────────────────────────────────────────
+
+Future<Response> listReferencesHandler(Request request) async {
+  final userId = getUserId(request);
+  final results = await dbPool.execute(
+    Sql.named('SELECT * FROM accounts_technician_reference WHERE user_id = @userId ORDER BY created_at DESC'),
+    parameters: {'userId': userId},
+  );
+  
+  final list = results.map((r) {
+    final row = r.toColumnMap();
+    return {
+      'id': row['id'],
+      'employer_name': row['employer_name'] ?? '',
+      'reference_name': row['reference_name'] ?? '',
+      'relationship': row['relationship'] ?? '',
+      'contact_info': row['contact_info'] ?? '',
+      'recommendation_document_url': row['recommendation_document_url'] ?? '',
+      'status': row['status'] ?? 'Pending',
+      'created_at': row['created_at'] != null ? (row['created_at'] as DateTime).toIso8601String() : '',
+    };
+  }).toList();
+  return jsonResponse(list);
+}
+
+Future<Response> createReferenceHandler(Request request) async {
+  final userId = getUserId(request);
+  final body = jsonDecode(await request.readAsString()) as Map<String, dynamic>;
+  
+  final employerName = body['employer_name']?.toString() ?? '';
+  final referenceName = body['reference_name']?.toString() ?? '';
+  final relationship = body['relationship']?.toString() ?? '';
+  final contactInfo = body['contact_info']?.toString() ?? '';
+  final docUrl = body['recommendation_document_url']?.toString() ?? '';
+
+  final res = await dbPool.execute(
+    Sql.named('''
+      INSERT INTO accounts_technician_reference (user_id, employer_name, reference_name, relationship, contact_info, recommendation_document_url, status)
+      VALUES (@userId, @employer, @refName, @rel, @contact, @docUrl, 'Pending')
+      RETURNING id, status, created_at
+    '''),
+    parameters: {
+      'userId': userId,
+      'employer': employerName,
+      'refName': referenceName,
+      'rel': relationship,
+      'contact': contactInfo,
+      'docUrl': docUrl,
+    },
+  );
+  
+  final row = res[0].toColumnMap();
+  return jsonResponse({
+    'message': 'Reference added successfully',
+    'id': row['id'],
+    'status': row['status'],
+    'created_at': row['created_at'] != null ? (row['created_at'] as DateTime).toIso8601String() : '',
+  });
+}
+
+Future<Response> deleteReferenceHandler(Request request, String idStr) async {
+  final userId = getUserId(request);
+  final id = int.tryParse(idStr) ?? 0;
+  
+  await dbPool.execute(
+    Sql.named('DELETE FROM accounts_technician_reference WHERE id = @id AND user_id = @userId'),
+    parameters: {'id': id, 'userId': userId},
+  );
+  return jsonResponse({'message': 'Reference deleted successfully'});
+}
+
 // ─── UPLOAD HANDLER ────────────────────────────────────────────────────────
 
 Future<Response> uploadFileHandler(Request request) async {
@@ -4813,6 +4915,11 @@ void main() async {
   router.post('/api/auth/portfolio/', createPortfolioItemHandler);
   router.delete('/api/auth/portfolio/<itemId>/', deletePortfolioItemHandler);
 
+  // References
+  router.get('/api/auth/references/', listReferencesHandler);
+  router.post('/api/auth/references/', createReferenceHandler);
+  router.delete('/api/auth/references/<id>/', deleteReferenceHandler);
+
   // Saved Pros
   router.get('/api/auth/saved-pros/', listSavedProfessionalsHandler);
   router.post('/api/auth/saved-pros/', createSavedProfessionalHandler);
@@ -4822,6 +4929,10 @@ void main() async {
   router.get('/api/auth/saved-services/', listSavedServicesHandler);
   router.post('/api/auth/saved-services/', createSavedServiceHandler);
   router.delete('/api/auth/saved-services/<serviceId>/', deleteSavedServiceHandler);
+
+  router.get('/api/tasks-categories/', listCategoriesHandler);
+  router.get('/api/tasks-categories/<categoryId>/subcategories/', listSubcategoriesHandler);
+  router.get('/api/tasks-subcategories/<subcategoryId>/services/', listServicesHandler);
 
   // Technician Services
   router.get('/api/auth/technician-services/', listTechnicianServicesHandler);
