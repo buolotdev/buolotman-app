@@ -23,9 +23,16 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
   String? _base64Avatar;
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
-    if (pickedFile != null) {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 60,
+        maxWidth: 800,
+        maxHeight: 800,
+      );
+      if (pickedFile == null) return;
+
       final croppedFile = await ImageCropper().cropImage(
         sourcePath: pickedFile.path,
         uiSettings: [
@@ -34,23 +41,24 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
             toolbarColor: const Color(0xFF001F3F),
             toolbarWidgetColor: Colors.white,
             initAspectRatio: CropAspectRatioPreset.square,
-            lockAspectRatio: false,
-          ),
-          IOSUiSettings(
-            title: 'Crop Profile Picture',
-            aspectRatioLockEnabled: false,
-            resetAspectRatioEnabled: true,
-            aspectRatioPickerButtonHidden: false,
+            lockAspectRatio: true,
           ),
         ],
       );
-      
+
       if (croppedFile != null) {
+        final file = File(croppedFile.path);
+        final bytes = await file.readAsBytes();
         setState(() {
-          _pickedImage = File(croppedFile.path);
+          _pickedImage = file;
+          _base64Avatar = 'data:image/jpeg;base64,${base64Encode(bytes)}';
         });
-        final bytes = await _pickedImage!.readAsBytes();
-        _base64Avatar = 'data:image/jpeg;base64,' + base64Encode(bytes);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not pick image: $e')),
+        );
       }
     }
   }
@@ -363,6 +371,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
         cvResumeUrl: _base64Cv,
       );
       
+      await appState.syncAll(); // wait for all fields to reload from server
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated successfully')));
       Navigator.pop(context);
@@ -391,6 +400,44 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
               hintStyle: const TextStyle(color: Colors.grey),
               filled: true,
               fillColor: const Color(0xFFF1F5F9),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            ),
+            validator: (v) => v!.trim().isEmpty ? 'Required' : null,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDatePickerField(String label, TextEditingController controller, {String? hint}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: controller,
+            readOnly: true,
+            onTap: () async {
+              final date = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now().subtract(const Duration(days: 365 * 18)),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now(),
+              );
+              if (date != null) {
+                controller.text = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+              }
+            },
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(color: Colors.grey),
+              filled: true,
+              fillColor: const Color(0xFFF1F5F9),
+              suffixIcon: const Icon(Icons.calendar_today, color: Color(0xFF001F3F)),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),
@@ -552,7 +599,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                       _buildTextField('City / Town', _cityController, hint: 'e.g., Lagos, Abuja'),
                       _buildTextField('Residential Area / Address', _addressController, hint: 'Not publicly displayed'),
                       _buildTextField('Preferred Languages (comma separated)', _languagesController, hint: 'e.g., English, French'),
-                      _buildTextField('Date of Birth', _dateOfBirthController, hint: 'YYYY-MM-DD'),
+                      _buildDatePickerField('Date of Birth', _dateOfBirthController, hint: 'YYYY-MM-DD'),
                       const Divider(height: 32),
                       const Text('Emergency Contact', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
                       const SizedBox(height: 16),

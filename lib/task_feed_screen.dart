@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:showcaseview/showcaseview.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_state.dart';
 import 'browse_tasks_screen.dart';
@@ -20,6 +22,32 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   bool _isLoading = false;
+
+  final GlobalKey _tourKey1 = GlobalKey();
+  final GlobalKey _tourKey2 = GlobalKey();
+  final GlobalKey _tourKey3 = GlobalKey();
+
+  static final Set<int> _toursShownThisSession = {};
+
+  Future<void> _checkAndShowTour(BuildContext showcaseContext) async {
+    final appState = Get.find<AppState>();
+    final userId = appState.currentUser.id;
+    if (userId == 0) return;
+    if (_toursShownThisSession.contains(userId)) return;
+    _toursShownThisSession.add(userId);
+
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'tech_tour_shown_$userId';
+    final alreadyShown = prefs.getBool(key) ?? false;
+    if (alreadyShown) return;
+    await prefs.setBool(key, true);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ShowCaseWidget.of(showcaseContext).startShowCase([_tourKey1, _tourKey2, _tourKey3]);
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -119,73 +147,83 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<AppState>(
-      builder: (appState) {
-        if (_isLoading) {
-          return const Scaffold(
-            backgroundColor: Color(0xFFF4F6F8),
-            body: Center(
-              child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))),
-            ),
-          );
-        }
+    return ShowCaseWidget(
+      builder: (showcaseContext) {
+        return GetBuilder<AppState>(
+          builder: (appState) {
+            _checkAndShowTour(showcaseContext);
 
-        final bottomPadding = MediaQuery.of(context).padding.bottom + 120;
-        final tasks = appState.openMarketplaceTasks.where((task) {
-          // Category filter
-          if (_activeCategory != 'All Tasks' && task.category != _activeCategory) return false;
-
-          // Search filter
-          if (_searchQuery.isNotEmpty) {
-            final q = _searchQuery.toLowerCase();
-            if (!task.title.toLowerCase().contains(q) &&
-                !task.category.toLowerCase().contains(q) &&
-                !task.location.toLowerCase().contains(q)) {
-              return false;
-            }
-          }
-
-          // Budget filter
-          if (_budgetFilter != 'Any') {
-            final b = task.budget;
-            if (_budgetFilter == 'Under \$50' && b >= 50) return false;
-            if (_budgetFilter == '\$50–\$200' && (b < 50 || b > 200)) return false;
-            if (_budgetFilter == '\$200–\$500' && (b < 200 || b > 500)) return false;
-            if (_budgetFilter == '\$500+' && b < 500) return false;
-          }
-
-          return true;
-        }).toList();
-
-        return Scaffold(
-          backgroundColor: const Color(0xFFF4F6F8),
-          body: SafeArea(
-            child: Column(
-              children: [
-                _buildHeader(context),
-                _buildSearchAndFilters(),
-                Expanded(
-                  child: tasks.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.search_off, size: 64, color: Colors.grey[300]),
-                              const SizedBox(height: 12),
-                              const Text('No tasks match your filters', style: TextStyle(fontSize: 16, color: Color(0xFF64748B))),
-                            ],
-                          ),
-                        )
-                      : ListView.builder(
-                          physics: const BouncingScrollPhysics(),
-                          padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
-                          itemCount: tasks.length,
-                          itemBuilder: (context, index) => _buildTaskCard(tasks[index].id),
-                        ),
+            if (_isLoading) {
+              return const Scaffold(
+                backgroundColor: Color(0xFFF4F6F8),
+                body: Center(
+                  child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF5500))),
                 ),
-              ],
-            ),
-          ),
+              );
+            }
+
+            final bottomPadding = MediaQuery.of(context).padding.bottom + 120;
+            final tasks = appState.openMarketplaceTasks.where((task) {
+              if (_activeCategory != 'All Tasks' && task.category != _activeCategory) return false;
+              if (_searchQuery.isNotEmpty) {
+                final q = _searchQuery.toLowerCase();
+                if (!task.title.toLowerCase().contains(q) &&
+                    !task.category.toLowerCase().contains(q) &&
+                    !task.location.toLowerCase().contains(q)) {
+                  return false;
+                }
+              }
+              if (_budgetFilter != 'Any') {
+                final b = task.budget;
+                if (_budgetFilter == 'Under \$50' && b >= 50) return false;
+                if (_budgetFilter == '\$50–\$200' && (b < 50 || b > 200)) return false;
+                if (_budgetFilter == '\$200–\$500' && (b < 200 || b > 500)) return false;
+                if (_budgetFilter == '\$500+' && b < 500) return false;
+              }
+              return true;
+            }).toList();
+
+            return Scaffold(
+              backgroundColor: const Color(0xFFF4F6F8),
+              body: SafeArea(
+                child: Column(
+                  children: [
+                    _buildHeader(context),
+                    Showcase(
+                      key: _tourKey1,
+                      description: 'Search for jobs by title, category, or location.',
+                      child: _buildSearchAndFilters(),
+                    ),
+                    Expanded(
+                      child: tasks.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.search_off, size: 64, color: Colors.grey[300]),
+                                  const SizedBox(height: 12),
+                                  const Text('No tasks found. Make sure your backend is running and tasks have been posted by a client.', textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: Color(0xFF64748B))),
+                                  const SizedBox(height: 8),
+                                  const Text('Pull down to refresh or tap the refresh icon above.', style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8))),
+                                ],
+                              ),
+                            )
+                          : Showcase(
+                              key: _tourKey2,
+                              description: 'These are live tasks posted by clients. Tap one to read the full details and place a bid.',
+                              child: ListView.builder(
+                                physics: const BouncingScrollPhysics(),
+                                padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
+                                itemCount: tasks.length,
+                                itemBuilder: (context, index) => _buildTaskCard(tasks[index].id),
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );

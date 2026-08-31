@@ -553,7 +553,7 @@ class AppState extends GetxController {
         bmConcierge: profile['bm_concierge'] == true || profile['bm_concierge'] == 'true',
         bmBuildTeam: profile['bm_build_team'] == true || profile['bm_build_team'] == 'true',
         bmEmergency: profile['bm_emergency'] == true || profile['bm_emergency'] == 'true',
-        canSupervise: profile['canSupervise'] == true || profile['canSupervise'] == 'true',
+        canSupervise: profile['can_supervise'] == true || profile['can_supervise'] == 'true',
         dateOfBirth: profile['date_of_birth'] ?? '',
         educationLevel: profile['education_level'] ?? '',
         expertiseLevel: profile['expertise_level'] ?? '',
