@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'app_state.dart';
+import 'package:buolot_man_app/app_state.dart';
+
 class TechnicianProfileSettingsScreen extends StatefulWidget {
-  const TechnicianProfileSettingsScreen({super.key});
+  const TechnicianProfileSettingsScreen({Key? key}) : super(key: key);
 
   @override
   State<TechnicianProfileSettingsScreen> createState() => _TechnicianProfileSettingsScreenState();
@@ -24,11 +25,36 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
     if (pickedFile != null) {
-      setState(() {
-        _pickedImage = File(pickedFile.path);
-      });
-      final bytes = await _pickedImage!.readAsBytes();
-      _base64Avatar = 'data:image/jpeg;base64,' + base64Encode(bytes);
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: pickedFile.path,
+        aspectRatioPresets: [
+          CropAspectRatioPreset.square,
+          CropAspectRatioPreset.original,
+        ],
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Profile Picture',
+            toolbarColor: const Color(0xFF001F3F),
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.square,
+            lockAspectRatio: false,
+          ),
+          IOSUiSettings(
+            title: 'Crop Profile Picture',
+            aspectRatioLockEnabled: false,
+            resetAspectRatioEnabled: true,
+            aspectRatioPickerButtonHidden: false,
+          ),
+        ],
+      );
+      
+      if (croppedFile != null) {
+        setState(() {
+          _pickedImage = File(croppedFile.path);
+        });
+        final bytes = await _pickedImage!.readAsBytes();
+        _base64Avatar = 'data:image/jpeg;base64,' + base64Encode(bytes);
+      }
     }
   }
 
