@@ -24,32 +24,11 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
     if (pickedFile != null) {
-      final croppedFile = await ImageCropper().cropImage(
-        sourcePath: pickedFile.path,
-        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-        uiSettings: [
-          AndroidUiSettings(
-              toolbarTitle: 'Crop Avatar',
-              toolbarColor: const Color(0xFF001F3F),
-              toolbarWidgetColor: Colors.white,
-              initAspectRatio: CropAspectRatioPreset.square,
-              lockAspectRatio: true),
-          IOSUiSettings(
-            title: 'Crop Avatar',
-            aspectRatioLockEnabled: true,
-            resetAspectRatioEnabled: false,
-            aspectRatioPickerButtonHidden: true,
-          ),
-        ],
-      );
-      
-      if (croppedFile != null) {
-        setState(() {
-          _pickedImage = File(croppedFile.path);
-        });
-        final bytes = await _pickedImage!.readAsBytes();
-        _base64Avatar = 'data:image/jpeg;base64,' + base64Encode(bytes);
-      }
+      setState(() {
+        _pickedImage = File(pickedFile.path);
+      });
+      final bytes = await _pickedImage!.readAsBytes();
+      _base64Avatar = 'data:image/jpeg;base64,' + base64Encode(bytes);
     }
   }
 
