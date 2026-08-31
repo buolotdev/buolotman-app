@@ -314,7 +314,7 @@ class ApiService {
       queryParams = '?' + params.join('&');
     }
 
-    final response = await get('/tasks/$queryParams', requireAuth: false);
+    final response = await get('/tasks/$queryParams', requireAuth: true);
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return data['results'] ?? [];

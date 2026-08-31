@@ -22,32 +22,12 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   bool _isLoading = false;
+  bool _tourTriggered = false;
 
   final GlobalKey _tourKey1 = GlobalKey();
   final GlobalKey _tourKey2 = GlobalKey();
   final GlobalKey _tourKey3 = GlobalKey();
-
-  static final Set<int> _toursShownThisSession = {};
-
-  Future<void> _checkAndShowTour(BuildContext showcaseContext) async {
-    final appState = Get.find<AppState>();
-    final userId = appState.currentUser.id;
-    if (userId == 0) return;
-    if (_toursShownThisSession.contains(userId)) return;
-    _toursShownThisSession.add(userId);
-
-    final prefs = await SharedPreferences.getInstance();
-    final key = 'tech_tour_shown_$userId';
-    final alreadyShown = prefs.getBool(key) ?? false;
-    if (alreadyShown) return;
-    await prefs.setBool(key, true);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        ShowCaseWidget.of(showcaseContext).startShowCase([_tourKey1, _tourKey2, _tourKey3]);
-      }
-    });
-  }
+  final GlobalKey<ShowCaseWidgetState> _showcaseKey = GlobalKey<ShowCaseWidgetState>();
 
   @override
   void initState() {
@@ -64,7 +44,26 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }
+      // Trigger tutorial after data loads
+      if (mounted) _maybeShowTour();
     });
+  }
+
+  Future<void> _maybeShowTour() async {
+    if (_tourTriggered) return;
+    final appState = Get.find<AppState>();
+    final userId = appState.currentUser.id;
+    if (userId == 0) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'tech_tour_shown_$userId';
+    final alreadyShown = prefs.getBool(key) ?? false;
+    if (alreadyShown) return;
+    await prefs.setBool(key, true);
+
+    if (!mounted) return;
+    _tourTriggered = true;
+    _showcaseKey.currentState?.startShowCase([_tourKey1, _tourKey2, _tourKey3]);
   }
 
   @override
@@ -148,10 +147,10 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
   @override
   Widget build(BuildContext context) {
     return ShowCaseWidget(
+      key: _showcaseKey,
       builder: (showcaseContext) {
         return GetBuilder<AppState>(
           builder: (appState) {
-            _checkAndShowTour(showcaseContext);
 
             if (_isLoading) {
               return const Scaffold(
@@ -200,11 +199,11 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.search_off, size: 64, color: Colors.grey[300]),
+                                  Icon(Icons.work_off_outlined, size: 64, color: Colors.grey[300]),
                                   const SizedBox(height: 12),
-                                  const Text('No tasks found. Make sure your backend is running and tasks have been posted by a client.', textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: Color(0xFF64748B))),
-                                  const SizedBox(height: 8),
-                                  const Text('Pull down to refresh or tap the refresh icon above.', style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8))),
+                                  const Text('No open tasks right now.', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
+                                  const SizedBox(height: 4),
+                                  const Text('Pull down to refresh.', style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8))),
                                 ],
                               ),
                             )
