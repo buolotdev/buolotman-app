@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'app_state.dart';
+import 'api_service.dart';
 
 class TechnicianPayoutSettingsScreen extends StatefulWidget {
   const TechnicianPayoutSettingsScreen({super.key});
@@ -25,18 +26,18 @@ class _TechnicianPayoutSettingsScreenState extends State<TechnicianPayoutSetting
   void initState() {
     super.initState();
     final appState = Get.find<AppState>();
-    final prof = appState.currentUser?['technician_profile'] ?? {};
-    _preferredPayoutMethod = prof['preferred_payout_method'] ?? 'Bank Account';
+    final prof = appState.currentUser;
+    _preferredPayoutMethod = prof?.preferredPayoutMethod ?? 'Bank Account';
     if (_preferredPayoutMethod.isEmpty) _preferredPayoutMethod = 'Bank Account';
     
-    _bankAccountName = prof['bank_account_name'] ?? '';
-    _bankAccountNumber = prof['bank_account_number'] ?? '';
-    _bankName = prof['bank_name'] ?? '';
-    _mobileMoneyNumber = prof['mobile_money_number'] ?? '';
-    _payoutCurrency = prof['payout_currency'] ?? 'USD';
+    _bankAccountName = prof?.bankAccountName ?? '';
+    _bankAccountNumber = prof?.bankAccountNumber ?? '';
+    _bankName = prof?.bankName ?? '';
+    _mobileMoneyNumber = prof?.mobileMoneyNumber ?? '';
+    _payoutCurrency = prof?.payoutCurrency ?? 'USD';
     if (_payoutCurrency.isEmpty) _payoutCurrency = 'USD';
     
-    _verificationStatus = prof['payment_verification_status'] ?? 'Unverified';
+    _verificationStatus = prof?.paymentVerificationStatus ?? 'Unverified';
   }
 
   Future<void> _saveSettings() async {
@@ -46,7 +47,7 @@ class _TechnicianPayoutSettingsScreenState extends State<TechnicianPayoutSetting
     setState(() => _isLoading = true);
     try {
       final appState = Get.find<AppState>();
-      await appState.api.updateTechnicianProfile({
+      await ApiService.instance.updateTechnicianProfile({
         'preferred_payout_method': _preferredPayoutMethod,
         'bank_account_name': _bankAccountName,
         'bank_account_number': _bankAccountNumber,
@@ -54,7 +55,7 @@ class _TechnicianPayoutSettingsScreenState extends State<TechnicianPayoutSetting
         'mobile_money_number': _mobileMoneyNumber,
         'payout_currency': _payoutCurrency,
       });
-      await appState.fetchCurrentUser(); // refresh
+      await appState.syncProfile(); // refresh
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payout settings saved securely.')));
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: \$e')));

@@ -793,7 +793,7 @@ class _TechnicianPublicProfileScreenState extends State<TechnicianPublicProfileS
               ),
               const SizedBox(height: 4),
               Text(
-                '\${s['category_name']} > \${s['subcategory_name']}',
+                '\${s["category_name"]} > \${s["subcategory_name"]}',
                 style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
               ),
             ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'app_state.dart';
+import 'api_service.dart';
 
 class TechnicianServicesManagementScreen extends StatefulWidget {
   const TechnicianServicesManagementScreen({Key? key}) : super(key: key);
@@ -32,11 +33,10 @@ class _TechnicianServicesManagementScreenState extends State<TechnicianServicesM
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
-      final appState = Get.find<AppState>();
-      _myServices = await appState.api.fetchTechnicianServices();
-      _categories = await appState.api.fetchCategories();
+      _myServices = await ApiService.instance.fetchTechnicianServices();
+      _categories = await ApiService.instance.fetchCategories();
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading data: \$e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -52,10 +52,9 @@ class _TechnicianServicesManagementScreenState extends State<TechnicianServicesM
       _isLoading = true;
     });
     try {
-      final appState = Get.find<AppState>();
-      _subcategories = await appState.api.fetchSubcategories(categoryId);
+      _subcategories = await ApiService.instance.fetchSubcategories(categoryId);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading subcategories: \$e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading subcategories: $e')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -69,10 +68,9 @@ class _TechnicianServicesManagementScreenState extends State<TechnicianServicesM
       _isLoading = true;
     });
     try {
-      final appState = Get.find<AppState>();
-      _services = await appState.api.fetchServices(subcategoryId);
+      _services = await ApiService.instance.fetchServices(subcategoryId);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading services: \$e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading services: $e')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -82,8 +80,7 @@ class _TechnicianServicesManagementScreenState extends State<TechnicianServicesM
     if (_selectedService == null) return;
     setState(() => _isAdding = true);
     try {
-      final appState = Get.find<AppState>();
-      await appState.api.publishTechnicianService({'service_id': _selectedService});
+      await ApiService.instance.publishTechnicianService({'service_id': _selectedService});
       await _loadData();
       setState(() {
         _selectedCategory = null;
@@ -94,7 +91,7 @@ class _TechnicianServicesManagementScreenState extends State<TechnicianServicesM
       });
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service added successfully!')));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error adding service: \$e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error adding service: $e')));
     } finally {
       if (mounted) setState(() => _isAdding = false);
     }
@@ -102,12 +99,11 @@ class _TechnicianServicesManagementScreenState extends State<TechnicianServicesM
 
   Future<void> _removeService(int id) async {
     try {
-      final appState = Get.find<AppState>();
-      await appState.api.deleteTechnicianService(id);
+      await ApiService.instance.deleteTechnicianService(id);
       await _loadData();
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service removed')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service removed.')));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error removing service: \$e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error removing service: $e')));
     }
   }
 
@@ -197,7 +193,7 @@ class _TechnicianServicesManagementScreenState extends State<TechnicianServicesM
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 4),
-                          Text('\${s['category_name']} > \${s['subcategory_name']}'),
+                          Text('${s["category_name"]} > ${s["subcategory_name"]}'),
                           const SizedBox(height: 4),
                           if (s['is_verified_skill'] == true)
                             Container(

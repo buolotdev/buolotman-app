@@ -867,10 +867,10 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 4),
-                      Text('Relationship: \${r['relationship'] ?? ''}'),
-                      Text('Contact: \${r['contact_info'] ?? ''}'),
+                      Text('Relationship: ${r["relationship"] ?? ""}'),
+                      Text('Contact: ${r["contact_info"] ?? ""}'),
                       if (r['employer_name'] != null && r['employer_name'].toString().isNotEmpty)
-                        Text('Employer: \${r['employer_name']}'),
+                        Text('Employer: ${r["employer_name"]}'),
                       const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

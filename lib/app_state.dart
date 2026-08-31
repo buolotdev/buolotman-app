@@ -1296,6 +1296,29 @@ class AppState extends GetxController {
     String? nationalIdBack,
     String? selfieUrl,
     String? address,
+    
+    // Additional parameters
+    String? businessType,
+    bool? acceptsIndividualJobs,
+    bool? acceptsTeamProjects,
+    bool? acceptsLongTermContracts,
+    bool? acceptsShortTermJobs,
+    bool? interestedInLongTermPlacement,
+    bool? canTransportEquipment,
+    bool? hasPpe,
+    bool? hasSpecialistMachinery,
+    bool? hasDrivingLicence,
+    bool? bmContractorProjects,
+    bool? teamLeaderExperience,
+    bool? projectManagementExperience,
+    List<String>? preferredWorkingDays,
+    String? preferredWorkingHours,
+    String? preferredPayoutMethod,
+    String? bankAccountName,
+    String? bankAccountNumber,
+    String? bankName,
+    String? mobileMoneyNumber,
+    String? payoutCurrency,
   }) async {
     final body = <String, dynamic>{};
     if (firstName != null) body['first_name'] = firstName;
@@ -1347,6 +1370,27 @@ class AppState extends GetxController {
     if (nationalIdBack != null) body['national_id_back'] = nationalIdBack;
     if (selfieUrl != null) body['selfie_url'] = selfieUrl;
     if (address != null) body['address'] = address;
+    if (businessType != null) body['business_type'] = businessType;
+    if (acceptsIndividualJobs != null) body['accepts_individual_jobs'] = acceptsIndividualJobs;
+    if (acceptsTeamProjects != null) body['accepts_team_projects'] = acceptsTeamProjects;
+    if (acceptsLongTermContracts != null) body['accepts_long_term_contracts'] = acceptsLongTermContracts;
+    if (acceptsShortTermJobs != null) body['accepts_short_term_jobs'] = acceptsShortTermJobs;
+    if (interestedInLongTermPlacement != null) body['interested_in_long_term_placement'] = interestedInLongTermPlacement;
+    if (canTransportEquipment != null) body['can_transport_equipment'] = canTransportEquipment;
+    if (hasPpe != null) body['has_ppe'] = hasPpe;
+    if (hasSpecialistMachinery != null) body['has_specialist_machinery'] = hasSpecialistMachinery;
+    if (hasDrivingLicence != null) body['has_driving_licence'] = hasDrivingLicence;
+    if (bmContractorProjects != null) body['bm_contractor_projects'] = bmContractorProjects;
+    if (teamLeaderExperience != null) body['team_leader_experience'] = teamLeaderExperience;
+    if (projectManagementExperience != null) body['project_management_experience'] = projectManagementExperience;
+    if (preferredWorkingDays != null) body['preferred_working_days'] = preferredWorkingDays;
+    if (preferredWorkingHours != null) body['preferred_working_hours'] = preferredWorkingHours;
+    if (preferredPayoutMethod != null) body['preferred_payout_method'] = preferredPayoutMethod;
+    if (bankAccountName != null) body['bank_account_name'] = bankAccountName;
+    if (bankAccountNumber != null) body['bank_account_number'] = bankAccountNumber;
+    if (bankName != null) body['bank_name'] = bankName;
+    if (mobileMoneyNumber != null) body['mobile_money_number'] = mobileMoneyNumber;
+    if (payoutCurrency != null) body['payout_currency'] = payoutCurrency;
 
     if (currentRole == 'Technician') {
       await ApiService.instance.updateTechnicianProfile(body);

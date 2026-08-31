@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'app_state.dart';
+import 'api_service.dart';
 
 class ReferencesManagementScreen extends StatefulWidget {
   const ReferencesManagementScreen({Key? key}) : super(key: key);
@@ -30,8 +31,7 @@ class _ReferencesManagementScreenState extends State<ReferencesManagementScreen>
   Future<void> _loadReferences() async {
     setState(() => _isLoading = true);
     try {
-      final appState = Get.find<AppState>();
-      _references = await appState.api.fetchReferences();
+      _references = await ApiService.instance.fetchReferences();
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading references: \$e')));
     } finally {
@@ -45,8 +45,7 @@ class _ReferencesManagementScreenState extends State<ReferencesManagementScreen>
     
     setState(() => _isAdding = true);
     try {
-      final appState = Get.find<AppState>();
-      await appState.api.addReference({
+      await ApiService.instance.addReference({
         'employer_name': _employerName,
         'reference_name': _referenceName,
         'relationship': _relationship,
@@ -70,8 +69,7 @@ class _ReferencesManagementScreenState extends State<ReferencesManagementScreen>
 
   Future<void> _deleteReference(int id) async {
     try {
-      final appState = Get.find<AppState>();
-      await appState.api.deleteReference(id);
+      await ApiService.instance.deleteReference(id);
       await _loadReferences();
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reference deleted.')));
     } catch (e) {
@@ -170,13 +168,13 @@ class _ReferencesManagementScreenState extends State<ReferencesManagementScreen>
                         margin: const EdgeInsets.only(bottom: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         child: ListTile(
-                          title: Text('\${r['reference_name']} (\${r['employer_name']})', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+                          title: Text('\${r["reference_name"]} (\${r["employer_name"]})', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const SizedBox(height: 4),
-                              Text('Relationship: \${r['relationship']}'),
-                              Text('Contact: \${r['contact_info']}'),
+                              Text('Relationship: \${r["relationship"]}'),
+                              Text('Contact: \${r["contact_info"]}'),
                               const SizedBox(height: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
