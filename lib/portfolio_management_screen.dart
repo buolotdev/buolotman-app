@@ -52,7 +52,7 @@ class _PortfolioManagementScreenState extends State<PortfolioManagementScreen> {
   }
 
   Future<void> _pickImage({required bool isBeforeImage}) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.image,
     );
     if (result != null && result.files.single.path != null) {
@@ -341,12 +341,12 @@ class _PortfolioManagementScreenState extends State<PortfolioManagementScreen> {
                               if (item['service_performed'] != null && item['service_performed'].toString().isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 4),
-                                  child: Text('Service: \${item['service_performed']}', style: const TextStyle(fontSize: 14)),
+                                  child: Text("Service: \${item['service_performed']}", style: const TextStyle(fontSize: 14)),
                                 ),
                               if (item['client_company'] != null && item['client_company'].toString().isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 4),
-                                  child: Text('Client: \${item['client_company']}', style: const TextStyle(fontSize: 14)),
+                                  child: Text("Client: \${item['client_company']}", style: const TextStyle(fontSize: 14)),
                                 ),
                               const SizedBox(height: 8),
                               Text(item['description'] ?? '', style: const TextStyle(color: Colors.black87)),

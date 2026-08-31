@@ -28,10 +28,6 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     if (pickedFile != null) {
       final croppedFile = await ImageCropper().cropImage(
         sourcePath: pickedFile.path,
-        aspectRatioPresets: [
-          CropAspectRatioPreset.square,
-          CropAspectRatioPreset.original,
-        ],
         uiSettings: [
           AndroidUiSettings(
             toolbarTitle: 'Crop Profile Picture',
@@ -349,7 +345,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
           const SizedBox(height: 8),
           InkWell(
             onTap: () async {
-              FilePickerResult? result = await FilePicker.platform.pickFiles(
+              FilePickerResult? result = await FilePicker.pickFiles(
                 type: FileType.custom,
                 allowedExtensions: ['jpg', 'png', 'jpeg', 'pdf'],
               );
