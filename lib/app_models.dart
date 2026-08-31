@@ -46,6 +46,17 @@ class AppUser {
     this.bmBuildTeam = false,
     this.bmEmergency = false,
     this.canSupervise = false,
+    this.dateOfBirth = '',
+    this.educationLevel = '',
+    this.expertiseLevel = '',
+    this.nationalIdNumber = '',
+    this.cvResumeUrl = '',
+    this.emergencyContactName = '',
+    this.emergencyContactPhone = '',
+    this.nationalIdFront = '',
+    this.nationalIdBack = '',
+    this.selfieUrl = '',
+    this.address = '',
   });
 
   final String name;
@@ -91,6 +102,17 @@ class AppUser {
   final bool bmBuildTeam;
   final bool bmEmergency;
   final bool canSupervise;
+  final String dateOfBirth;
+  final String educationLevel;
+  final String expertiseLevel;
+  final String nationalIdNumber;
+  final String cvResumeUrl;
+  final String emergencyContactName;
+  final String emergencyContactPhone;
+  final String nationalIdFront;
+  final String nationalIdBack;
+  final String selfieUrl;
+  final String address;
 
   AppUser copyWith({
     String? name,
@@ -136,6 +158,17 @@ class AppUser {
     bool? bmBuildTeam,
     bool? bmEmergency,
     bool? canSupervise,
+    String? dateOfBirth,
+    String? educationLevel,
+    String? expertiseLevel,
+    String? nationalIdNumber,
+    String? cvResumeUrl,
+    String? emergencyContactName,
+    String? emergencyContactPhone,
+    String? nationalIdFront,
+    String? nationalIdBack,
+    String? selfieUrl,
+    String? address,
   }) {
     return AppUser(
       name: name ?? this.name,
@@ -181,6 +214,17 @@ class AppUser {
       bmBuildTeam: bmBuildTeam ?? this.bmBuildTeam,
       bmEmergency: bmEmergency ?? this.bmEmergency,
       canSupervise: canSupervise ?? this.canSupervise,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      educationLevel: educationLevel ?? this.educationLevel,
+      expertiseLevel: expertiseLevel ?? this.expertiseLevel,
+      nationalIdNumber: nationalIdNumber ?? this.nationalIdNumber,
+      cvResumeUrl: cvResumeUrl ?? this.cvResumeUrl,
+      emergencyContactName: emergencyContactName ?? this.emergencyContactName,
+      emergencyContactPhone: emergencyContactPhone ?? this.emergencyContactPhone,
+      nationalIdFront: nationalIdFront ?? this.nationalIdFront,
+      nationalIdBack: nationalIdBack ?? this.nationalIdBack,
+      selfieUrl: selfieUrl ?? this.selfieUrl,
+      address: address ?? this.address,
     );
   }
 }

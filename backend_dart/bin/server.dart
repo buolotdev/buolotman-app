@@ -1263,6 +1263,12 @@ Future<Response> getMeHandler(Request request) async {
       data['work_preferences'] = parseJsonField(prof['work_preferences']) ?? [];
       data['tools_and_equipment'] = parseJsonField(prof['tools_and_equipment']) ?? [];
       data['licences'] = parseJsonField(prof['licences']) ?? [];
+      data['cv_resume_url'] = prof['cv_resume_url'] ?? '';
+      data['emergency_contact_name'] = prof['emergency_contact_name'] ?? '';
+      data['emergency_contact_phone'] = prof['emergency_contact_phone'] ?? '';
+      data['national_id_front'] = prof['national_id_front'] ?? '';
+      data['national_id_back'] = prof['national_id_back'] ?? '';
+      data['selfie_url'] = prof['selfie_url'] ?? '';
       data['years_experience'] = prof['years_experience'] ?? 0;
       data['primary_occupation'] = prof['primary_occupation'] ?? '';
       data['city'] = prof['city'] ?? '';
@@ -1328,7 +1334,8 @@ Future<Response> updateMeHandler(Request request) async {
       'own_tools', 'has_vehicle', 'willing_to_travel', 'service_radius_km',
       'available_now', 'accepts_full_time', 'accepts_part_time', 'accepts_emergency',
       'accepts_weekends', 'accepts_remote', 'accepts_onsite',
-      'bm_concierge', 'bm_build_team', 'bm_emergency', 'can_supervise', 'tagline'
+      'bm_concierge', 'bm_build_team', 'bm_emergency', 'can_supervise', 'tagline',
+      'cv_resume_url', 'emergency_contact_name', 'emergency_contact_phone'
     ];
     final profileUpdates = <String, dynamic>{};
     for (final f in allowedProfileFields) {
@@ -1431,6 +1438,12 @@ Future<Response> updateMeHandler(Request request) async {
       data['tools_and_equipment'] = parseJsonField(prof['tools_and_equipment']) ?? [];
       data['licences'] = parseJsonField(prof['licences']) ?? [];
       data['preferred_languages'] = parseJsonField(prof['preferred_languages']) ?? [];
+      data['cv_resume_url'] = prof['cv_resume_url'] ?? '';
+      data['emergency_contact_name'] = prof['emergency_contact_name'] ?? '';
+      data['emergency_contact_phone'] = prof['emergency_contact_phone'] ?? '';
+      data['national_id_front'] = prof['national_id_front'] ?? '';
+      data['national_id_back'] = prof['national_id_back'] ?? '';
+      data['selfie_url'] = prof['selfie_url'] ?? '';
       data['years_experience'] = prof['years_experience'] ?? 0;
       data['primary_occupation'] = prof['primary_occupation'] ?? '';
       data['city'] = prof['city'] ?? '';
@@ -1712,6 +1725,11 @@ Future<Response> listPortfolioItemsHandler(Request request) async {
       'image_url': row['image_url'] ?? '',
       'completed_date': row['completed_date']?.toString(),
       'project_value': row['project_value']?.toString(),
+      'service_performed': row['service_performed'] ?? '',
+      'video_url': row['video_url'] ?? '',
+      'project_location': row['project_location'] ?? '',
+      'client_company': row['client_company'] ?? '',
+      'before_image_url': row['before_image_url'] ?? '',
       'created_at': row['created_at'] != null ? (row['created_at'] as DateTime).toIso8601String() : '',
     };
   }).toList());
@@ -1727,6 +1745,12 @@ Future<Response> createPortfolioItemHandler(Request request) async {
   final imageUrl = body['image_url']?.toString() ?? '';
   final completedDateStr = body['completed_date']?.toString();
   final projectValueStr = body['project_value']?.toString();
+  
+  final servicePerformed = body['service_performed']?.toString() ?? '';
+  final videoUrl = body['video_url']?.toString() ?? '';
+  final projectLocation = body['project_location']?.toString() ?? '';
+  final clientCompany = body['client_company']?.toString() ?? '';
+  final beforeImageUrl = body['before_image_url']?.toString() ?? '';
 
   DateTime? completedDate;
   if (completedDateStr != null && completedDateStr.isNotEmpty) {
@@ -1738,8 +1762,8 @@ Future<Response> createPortfolioItemHandler(Request request) async {
   }
 
   final res = await dbPool.execute(
-    Sql.named('INSERT INTO accounts_portfolio_item (title, description, category, image_url, completed_date, project_value, created_at, user_id) '
-              'VALUES (@title, @description, @category, @imageUrl, @completedDate, @projectValue, @now, @userId) RETURNING id'),
+    Sql.named('INSERT INTO accounts_portfolio_item (title, description, category, image_url, completed_date, project_value, service_performed, video_url, project_location, client_company, before_image_url, created_at, user_id) '
+              'VALUES (@title, @description, @category, @imageUrl, @completedDate, @projectValue, @servicePerformed, @videoUrl, @projectLocation, @clientCompany, @beforeImageUrl, @now, @userId) RETURNING id'),
     parameters: {
       'title': title,
       'description': description,
@@ -1747,6 +1771,11 @@ Future<Response> createPortfolioItemHandler(Request request) async {
       'imageUrl': imageUrl,
       'completedDate': completedDate,
       'projectValue': projectValue,
+      'servicePerformed': servicePerformed,
+      'videoUrl': videoUrl,
+      'projectLocation': projectLocation,
+      'clientCompany': clientCompany,
+      'beforeImageUrl': beforeImageUrl,
       'now': DateTime.now(),
       'userId': userId,
     },
@@ -1760,6 +1789,11 @@ Future<Response> createPortfolioItemHandler(Request request) async {
     'image_url': imageUrl,
     'completed_date': completedDateStr,
     'project_value': projectValueStr,
+    'service_performed': servicePerformed,
+    'video_url': videoUrl,
+    'project_location': projectLocation,
+    'client_company': clientCompany,
+    'before_image_url': beforeImageUrl,
   }), headers: {'content-type': 'application/json'});
 }
 

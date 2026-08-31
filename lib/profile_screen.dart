@@ -16,6 +16,8 @@ import 'technician_profile_settings_screen.dart';
 import 'verification_screen.dart';
 import 'wallet_screen.dart';
 import 'messages_screen.dart';
+import 'portfolio_management_screen.dart';
+import 'messages_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
@@ -370,6 +372,15 @@ class ProfileScreen extends StatelessWidget {
             subtitle: 'Chat with clients and manage tasks',
             onTap: () {
               Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MessagesScreen()));
+            },
+          ),
+        if (role == 'Technician')
+          _buildTile(
+            icon: Icons.collections_bookmark_outlined,
+            title: 'Manage Portfolio',
+            subtitle: 'Add or edit your past projects',
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PortfolioManagementScreen()));
             },
           ),
         if (role == 'Company')

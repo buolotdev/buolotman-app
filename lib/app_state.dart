@@ -517,7 +517,18 @@ class AppState extends GetxController {
         bmConcierge: profile['bm_concierge'] == true || profile['bm_concierge'] == 'true',
         bmBuildTeam: profile['bm_build_team'] == true || profile['bm_build_team'] == 'true',
         bmEmergency: profile['bm_emergency'] == true || profile['bm_emergency'] == 'true',
-        canSupervise: profile['can_supervise'] == true || profile['can_supervise'] == 'true',
+        canSupervise: profile['canSupervise'] == true || profile['canSupervise'] == 'true',
+        dateOfBirth: profile['date_of_birth'] ?? '',
+        educationLevel: profile['education_level'] ?? '',
+        expertiseLevel: profile['expertise_level'] ?? '',
+        nationalIdNumber: profile['national_id_number'] ?? '',
+        cvResumeUrl: profile['cv_resume_url'] ?? '',
+        emergencyContactName: profile['emergency_contact_name'] ?? '',
+        emergencyContactPhone: profile['emergency_contact_phone'] ?? '',
+        nationalIdFront: profile['national_id_front'] ?? '',
+        nationalIdBack: profile['national_id_back'] ?? '',
+        selfieUrl: profile['selfie_url'] ?? '',
+        address: profile['address'] ?? '',
       );
 
       if (_currentUser.role == 'Technician') {
@@ -1215,6 +1226,17 @@ class AppState extends GetxController {
     bool? bmBuildTeam,
     bool? bmEmergency,
     bool? canSupervise,
+    String? dateOfBirth,
+    String? educationLevel,
+    String? expertiseLevel,
+    String? nationalIdNumber,
+    String? cvResumeUrl,
+    String? emergencyContactName,
+    String? emergencyContactPhone,
+    String? nationalIdFront,
+    String? nationalIdBack,
+    String? selfieUrl,
+    String? address,
   }) async {
     final body = <String, dynamic>{};
     if (firstName != null) body['first_name'] = firstName;
@@ -1255,6 +1277,17 @@ class AppState extends GetxController {
     if (bmBuildTeam != null) body['bm_build_team'] = bmBuildTeam;
     if (bmEmergency != null) body['bm_emergency'] = bmEmergency;
     if (canSupervise != null) body['can_supervise'] = canSupervise;
+    if (dateOfBirth != null) body['date_of_birth'] = dateOfBirth;
+    if (educationLevel != null) body['education_level'] = educationLevel;
+    if (expertiseLevel != null) body['expertise_level'] = expertiseLevel;
+    if (nationalIdNumber != null) body['national_id_number'] = nationalIdNumber;
+    if (cvResumeUrl != null) body['cv_resume_url'] = cvResumeUrl;
+    if (emergencyContactName != null) body['emergency_contact_name'] = emergencyContactName;
+    if (emergencyContactPhone != null) body['emergency_contact_phone'] = emergencyContactPhone;
+    if (nationalIdFront != null) body['national_id_front'] = nationalIdFront;
+    if (nationalIdBack != null) body['national_id_back'] = nationalIdBack;
+    if (selfieUrl != null) body['selfie_url'] = selfieUrl;
+    if (address != null) body['address'] = address;
 
     if (currentRole == 'Technician') {
       await ApiService.instance.updateTechnicianProfile(body);
@@ -1280,12 +1313,26 @@ class AppState extends GetxController {
     required String description,
     required String category,
     required String imageUrl,
+    String? servicePerformed,
+    String? videoUrl,
+    String? projectLocation,
+    String? clientCompany,
+    String? beforeImageUrl,
+    String? completedDate,
+    String? projectValue,
   }) async {
     await ApiService.instance.addPortfolioItem({
       'title': title,
       'description': description,
       'category': category,
       'image_url': imageUrl,
+      'service_performed': servicePerformed ?? '',
+      'video_url': videoUrl ?? '',
+      'project_location': projectLocation ?? '',
+      'client_company': clientCompany ?? '',
+      'before_image_url': beforeImageUrl ?? '',
+      'completed_date': completedDate ?? '',
+      'project_value': projectValue ?? '',
     });
     await syncPortfolio();
   }
