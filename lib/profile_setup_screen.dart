@@ -59,7 +59,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appState = Get.find<AppState>();
-      _addressController.text = appState.currentUser.location;
+      _addressController.text = (appState.currentUser.address.isNotEmpty) ? appState.currentUser.address : appState.currentUser.location;
+      _dobController.text = appState.currentUser.dateOfBirth;
+      _educationLevel = appState.currentUser.educationLevel.isNotEmpty ? appState.currentUser.educationLevel : null;
+      _expertiseLevel = appState.currentUser.expertiseLevel.isNotEmpty ? appState.currentUser.expertiseLevel : null;
+      _bioController.text = appState.currentUser.tagline;
+      _hourlyRateController.text = (appState.currentUser.startingPrice).toString();
+      _companyNameController.text = appState.currentUser.name;
     });
   }
 
