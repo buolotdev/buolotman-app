@@ -10,14 +10,19 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='technicianprofile',
-            name='address',
-            field=models.CharField(blank=True, max_length=255),
-        ),
-        migrations.AddField(
-            model_name='technicianprofile',
-            name='date_of_birth',
-            field=models.DateField(blank=True, null=True),
-        ),
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.AddField(
+                    model_name='technicianprofile',
+                    name='address',
+                    field=models.CharField(blank=True, max_length=255),
+                ),
+                migrations.AddField(
+                    model_name='technicianprofile',
+                    name='date_of_birth',
+                    field=models.DateField(blank=True, null=True),
+                ),
+            ],
+            database_operations=[]
+        )
     ]
