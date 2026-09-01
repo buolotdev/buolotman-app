@@ -55,6 +55,8 @@ class TechnicianProfile(models.Model):
     completed_jobs = models.PositiveIntegerField(default=0)
     average_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0)
     response_time = models.CharField(max_length=50, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    address = models.CharField(max_length=255, blank=True)
 
     class Meta:
         db_table = 'accounts_technician_profile'
