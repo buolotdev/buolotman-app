@@ -193,13 +193,127 @@ def register_company(request):
 def me(request):
     if request.method == 'GET':
         serializer = UserMeSerializer(request.user)
-        return Response(serializer.data)
+        data = serializer.data
+        from apps.accounts.models import TechnicianProfile
+        tech_profile, _ = TechnicianProfile.objects.get_or_create(user=request.user)
+        data['bio'] = tech_profile.bio
+        data['about'] = tech_profile.bio
+        if request.user.role == 'TECHNICIAN':
+            data['skills'] = [s.name for s in tech_profile.skills.all()]
+            data['tools'] = tech_profile.languages if isinstance(tech_profile.languages, list) else []
+            data['hourly_rate'] = str(tech_profile.hourly_rate) if tech_profile.hourly_rate else None
+            data['response_time'] = tech_profile.response_time
+            data['completed_jobs'] = tech_profile.completed_jobs
+            data['average_rating'] = str(tech_profile.average_rating)
+            data['availability_status'] = tech_profile.availability_status
+            data['address'] = tech_profile.address
+            data['date_of_birth'] = str(tech_profile.date_of_birth) if tech_profile.date_of_birth else None
+            
+            if tech_profile.portfolio and len(tech_profile.portfolio) > 0:
+                data['portfolio'] = tech_profile.portfolio
+            else:
+                from apps.accounts.models import PortfolioItem
+                items = PortfolioItem.objects.filter(user=request.user)
+                if items.exists():
+                    from .serializers import PortfolioItemSerializer
+                    data['portfolio'] = PortfolioItemSerializer(items, many=True).data
+                else:
+                    data['portfolio'] = []
+        return Response(data)
     elif request.method == 'PATCH':
-        serializer = UserMeSerializer(request.user, data=request.data, partial=True)
+        role_to_set = request.data.get('role')
+        if role_to_set and str(role_to_set).upper() in ['CLIENT', 'TECHNICIAN', 'COMPANY']:
+            new_role = str(role_to_set).upper()
+            request.user.role = new_role
+            request.user.save(update_fields=['role'])
+            
+        user_update_data = {}
+        for k in ['first_name', 'last_name', 'phone', 'avatar_url', 'banner_url', 'language_preference', 'country', 'address', 'education_level', 'expertise_level']:
+            if k in request.data:
+                user_update_data[k] = request.data[k]
+        
+        # Flattened payload support
+        if 'city' in request.data and 'address' not in request.data:
+            user_update_data['address'] = request.data['city']
+
+        if 'date_of_birth' in request.data:
+            dob = request.data.get('date_of_birth')
+            user_update_data['date_of_birth'] = dob if dob else None
+
+        serializer = UserMeSerializer(request.user, data=user_update_data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Update TechnicianProfile bio/about for all users, plus technician-specific fields
+        from apps.accounts.models import TechnicianProfile
+        tech_profile, _ = TechnicianProfile.objects.get_or_create(user=request.user)
+        
+        tech_data = request.data.get('technician_profile') or {}
+        bio = request.data.get('bio') or request.data.get('about') or tech_data.get('bio') or tech_data.get('about')
+        if bio is not None:
+            tech_profile.bio = str(bio)
+
+        if 'hourly_rate' in request.data or 'hourly_rate' in tech_data:
+            hr_val = request.data.get('hourly_rate') or tech_data.get('hourly_rate')
+            if hr_val:
+                clean_hr = ''.join(c for c in str(hr_val) if c.isdigit() or c == '.')
+                tech_profile.hourly_rate = float(clean_hr) if clean_hr else None
+            else:
+                tech_profile.hourly_rate = None
+                
+        if 'response_time' in request.data or 'response_time' in tech_data:
+            tech_profile.response_time = str(request.data.get('response_time') or tech_data.get('response_time') or '')
+            
+        if 'tools' in request.data or 'tools' in tech_data:
+            tools_val = request.data.get('tools') or tech_data.get('tools') or []
+            tech_profile.languages = tools_val if isinstance(tools_val, list) else []
+        elif 'languages' in request.data:
+            tech_profile.languages = request.data.get('languages') or []
+            
+        if 'portfolio' in request.data or 'portfolio' in tech_data:
+            port_val = request.data.get('portfolio') or tech_data.get('portfolio') or []
+            tech_profile.portfolio = port_val if isinstance(port_val, list) else []
+            
+        if 'skills' in request.data or 'skills' in tech_data:
+            skill_items = request.data.get('skills') or tech_data.get('skills') or []
+            if isinstance(skill_items, list):
+                from apps.tasks.models import Skill
+                tech_profile.skills.clear()
+                for item in skill_items:
+                    s_name = item.get('name') if isinstance(item, dict) else (str(item) if item else "")
+                    if s_name and s_name.strip():
+                        skill_obj, _ = Skill.objects.get_or_create(name=s_name.strip())
+                        tech_profile.skills.add(skill_obj)
+                        
+        # ALL PREMIUM FIELDS
+        premium_fields = ['address', 'date_of_birth', 'years_experience', 'primary_occupation', 'certifications', 'licences', 'education_level', 'expertise_level', 'business_type', 'daily_rate', 'fixed_price', 'inspection_fee', 'starting_price', 'own_tools', 'has_vehicle', 'has_ppe', 'has_specialist_machinery', 'has_driving_licence', 'can_transport_equipment', 'willing_to_travel', 'service_radius_km', 'available_now', 'accepts_full_time', 'accepts_part_time', 'accepts_emergency', 'accepts_weekends', 'accepts_remote', 'accepts_onsite', 'bm_concierge', 'bm_build_team', 'bm_emergency', 'bm_contractor_projects', 'can_supervise', 'team_leader_experience', 'project_management_experience', 'interested_in_long_term_placement', 'national_id_number', 'national_id_front', 'national_id_back', 'selfie_url', 'emergency_contact_name', 'emergency_contact_phone', 'preferred_payout_method', 'bank_account_name', 'bank_account_number', 'bank_name', 'mobile_money_number', 'payout_currency', 'payment_verification_status', 'tools_and_equipment', 'work_preferences', 'preferred_working_days', 'preferred_working_hours']
+        
+        for field in premium_fields:
+            if field in request.data:
+                val = request.data.get(field)
+                if val == "":
+                    val = None if field in ['date_of_birth', 'daily_rate', 'fixed_price', 'inspection_fee', 'starting_price'] else ""
+                setattr(tech_profile, field, val)
+
+        if 'city' in request.data and 'address' not in request.data:
+            tech_profile.address = request.data.get('city') or ''
+
+        tech_profile.save()
+
+        res_serializer = UserMeSerializer(request.user)
+        res_data = res_serializer.data
+        res_data['bio'] = tech_profile.bio
+        res_data['about'] = tech_profile.bio
+        if request.user.role == 'TECHNICIAN':
+            res_data['skills'] = [s.name for s in tech_profile.skills.all()]
+            res_data['tools'] = tech_profile.languages if isinstance(tech_profile.languages, list) else []
+            res_data['portfolio'] = tech_profile.portfolio
+            res_data['hourly_rate'] = str(tech_profile.hourly_rate) if tech_profile.hourly_rate else None
+            res_data['response_time'] = tech_profile.response_time
+            res_data['address'] = tech_profile.address
+            res_data['date_of_birth'] = str(tech_profile.date_of_birth) if tech_profile.date_of_birth else None
+            
+        return Response(res_data)
 
 
 @api_view(['GET'])
