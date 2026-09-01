@@ -16,8 +16,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _formKey = GlobalKey<FormState>();
   
   // Shared fields
-  final _addressController = TextEditingController();
-  final _dobController = TextEditingController();
+  
+  
   
   // Technician fields
   String? _educationLevel;
@@ -59,8 +59,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appState = Get.find<AppState>();
-      _addressController.text = (appState.currentUser.address.isNotEmpty) ? appState.currentUser.address : appState.currentUser.location;
-      _dobController.text = appState.currentUser.dateOfBirth;
+      
+      
       _educationLevel = appState.currentUser.educationLevel.isNotEmpty ? appState.currentUser.educationLevel : null;
       _expertiseLevel = appState.currentUser.expertiseLevel.isNotEmpty ? appState.currentUser.expertiseLevel : null;
       _bioController.text = appState.currentUser.tagline;
@@ -108,8 +108,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       
       // Update accounts_user fields
       final Map<String, dynamic> userUpdates = {
-        'address': _addressController.text.trim(),
-        'date_of_birth': _dobController.text.trim(),
+        
+        
       };
       
       if (role == 'Technician') {
@@ -205,9 +205,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       const SizedBox(height: 32),
                       
                       // Client & Shared fields
-                      _buildTextField(_addressController, 'Address / Location', Icons.location_on),
+                      
                       const SizedBox(height: 16),
-                      _buildTextField(_dobController, 'Date of Birth (YYYY-MM-DD)', Icons.calendar_today),
+                      
                       
                       // Technician fields
                       if (role == 'Technician') ...[

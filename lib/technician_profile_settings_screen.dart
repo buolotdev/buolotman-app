@@ -57,8 +57,8 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
   late TextEditingController _countryController;
   late TextEditingController _cityController;
   late TextEditingController _languagesController;
-  late TextEditingController _dateOfBirthController;
-  late TextEditingController _addressController;
+  
+  
   late TextEditingController _emergencyContactNameController;
   late TextEditingController _emergencyContactPhoneController;
 
@@ -154,8 +154,8 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     _countryController = TextEditingController(text: u.country);
     _cityController = TextEditingController(text: u.city);
     _languagesController = TextEditingController(text: u.preferredLanguages.join(', '));
-    _dateOfBirthController = TextEditingController(text: u.dateOfBirth);
-    _addressController = TextEditingController(text: u.address);
+    
+    
     _emergencyContactNameController = TextEditingController(text: u.emergencyContactName);
     _emergencyContactPhoneController = TextEditingController(text: u.emergencyContactPhone);
     
@@ -239,8 +239,8 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     _countryController.dispose();
     _cityController.dispose();
     _languagesController.dispose();
-    _dateOfBirthController.dispose();
-    _addressController.dispose();
+    
+    
     _emergencyContactNameController.dispose();
     _emergencyContactPhoneController.dispose();
     _primaryOccupationController.dispose();
@@ -287,8 +287,8 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
         country: _countryController.text.trim(),
         city: _cityController.text.trim(),
         preferredLanguages: _languagesController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
-        dateOfBirth: _dateOfBirthController.text.trim(),
-        address: _addressController.text.trim(),
+        
+        
         emergencyContactName: _emergencyContactNameController.text.trim(),
         emergencyContactPhone: _emergencyContactPhoneController.text.trim(),
         
@@ -613,9 +613,9 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                       _buildTextField('Phone Number', _phoneController, keyboardType: TextInputType.phone),
                       _buildTextField('Country', _countryController),
                       _buildTextField('City / Town', _cityController, hint: 'e.g., Lagos, Abuja'),
-                      _buildTextField('Residential Area / Address', _addressController, hint: 'Not publicly displayed'),
+                      
                       _buildTextField('Preferred Languages (comma separated)', _languagesController, hint: 'e.g., English, French'),
-                      _buildDatePickerField('Date of Birth', _dateOfBirthController, hint: 'YYYY-MM-DD'),
+                      
                       const Divider(height: 32),
                       const Text('Emergency Contact', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
                       const SizedBox(height: 16),
