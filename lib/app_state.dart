@@ -436,51 +436,65 @@ class AppState extends GetxController {
     }
   }
 
-  TaskItem _mapTaskItem(dynamic t) {
-    final double budgetMin = double.tryParse(t['budget_min']?.toString() ?? '0') ?? 0.0;
-    final double budgetMax = double.tryParse(t['budget_max']?.toString() ?? '0') ?? 0.0;
-    
-    final assignedMap = t['assigned_to'] as Map<String, dynamic>?;
-    final String? assignedId = assignedMap?['id']?.toString();
-    final String? assignedName = assignedMap != null
-        ? '${assignedMap['first_name'] ?? ''} ${assignedMap['last_name'] ?? ''}'.trim()
-        : null;
-    final String? assignedAvatar = assignedMap?['avatar_url']?.toString();
+  TaskItem? _mapTaskItem(dynamic t) {
+    try {
+      final double budgetMin = double.tryParse(t['budget_min']?.toString() ?? '0') ?? 0.0;
+      final double budgetMax = double.tryParse(t['budget_max']?.toString() ?? '0') ?? 0.0;
+      
+      final assignedMap = t['assigned_to'] is Map ? t['assigned_to'] as Map<String, dynamic> : null;
+      final String? assignedId = assignedMap?['id']?.toString();
+      final String? assignedName = assignedMap != null
+          ? '${assignedMap['first_name'] ?? ''} ${assignedMap['last_name'] ?? ''}'.trim()
+          : null;
+      final String? assignedAvatar = assignedMap?['avatar_url']?.toString();
 
-    return TaskItem(
-      id: t['id']?.toString() ?? '',
-      title: t['title'] ?? '',
-      description: t['description'] ?? '',
-      category: t['category_name'] ?? 'General',
-      location: t['location'] ?? 'Lagos, Nigeria',
-      clientName: t['client'] != null ? '${t['client']['first_name'] ?? ''} ${t['client']['last_name'] ?? ''}'.trim() : (t['client_name'] ?? 'Client'),
-      clientAvatar: (t['client'] != null && t['client']['avatar_url'] != null && t['client']['avatar_url'].toString().isNotEmpty) ? t['client']['avatar_url'] : 'assets/images/onboard3.jpg',
-      clientRating: t['client'] != null ? (double.tryParse(t['client']['rating']?.toString() ?? '') ?? 4.9) : 4.9,
-      budget: budgetMax > 0 ? budgetMax : budgetMin,
-      status: _mapStatus(t['status'] ?? 'open'),
-      createdLabel: t['created_at']?.toString().substring(0, 10) ?? 'Just now',
-      schedule: t['schedule'] ?? 'Immediate',
-      urgency: t['urgency']?.toString().toUpperCase() == 'URGENT' ? 'Urgent' : 'Flexible',
-      paymentMethod: 'Escrow / Wallet',
-      tags: [
-        t['service_type'] ?? 'On-site',
-        t['urgency'] ?? 'Flexible',
-      ],
-      bidsCount: t['bids_count'] ?? 0,
-      acceptedBidId: assignedId,
-      assignedToId: assignedId,
-      assignedToName: assignedName,
-      assignedToAvatar: assignedAvatar,
-      deadline: t['deadline']?.toString(),
-      imageUrl: t['image_url']?.toString(),
-      clientReviews: t['client'] != null ? (int.tryParse(t['client']['tasks_count']?.toString() ?? '') ?? 0) : 0,
-      milestones: t['milestones'],
-    );
+      final clientMap = t['client'] is Map ? t['client'] as Map<String, dynamic> : null;
+
+      return TaskItem(
+        id: t['id']?.toString() ?? '',
+        title: t['title'] ?? '',
+        description: t['description'] ?? '',
+        category: t['category_name'] ?? 'General',
+        location: t['location'] ?? 'Lagos, Nigeria',
+        clientName: clientMap != null ? '${clientMap['first_name'] ?? ''} ${clientMap['last_name'] ?? ''}'.trim() : (t['client_name'] ?? 'Client'),
+        clientAvatar: (clientMap != null && clientMap['avatar_url'] != null && clientMap['avatar_url'].toString().isNotEmpty) ? clientMap['avatar_url'] : 'assets/images/onboard3.jpg',
+        clientRating: clientMap != null ? (double.tryParse(clientMap['rating']?.toString() ?? '') ?? 4.9) : 4.9,
+        budget: budgetMax > 0 ? budgetMax : budgetMin,
+        status: _mapStatus(t['status'] ?? 'open'),
+        createdLabel: (t['created_at'] != null && t['created_at'].toString().length >= 10) ? t['created_at'].toString().substring(0, 10) : 'Just now',
+        schedule: t['schedule'] ?? 'Immediate',
+        urgency: t['urgency']?.toString().toUpperCase() == 'URGENT' ? 'Urgent' : 'Flexible',
+        paymentMethod: 'Escrow / Wallet',
+        tags: [
+          t['service_type'] ?? 'On-site',
+          t['urgency'] ?? 'Flexible',
+        ],
+        bidsCount: int.tryParse(t['bids_count']?.toString() ?? '0') ?? 0,
+        acceptedBidId: assignedId,
+        assignedToId: assignedId,
+        assignedToName: assignedName,
+        assignedToAvatar: assignedAvatar,
+        deadline: t['deadline']?.toString(),
+        imageUrl: t['image_url']?.toString(),
+        clientReviews: clientMap != null ? (int.tryParse(clientMap['tasks_count']?.toString() ?? '') ?? 0) : 0,
+        milestones: t['milestones'],
+      );
+    } catch (e) {
+      debugPrint('Error mapping task item: $e, data: $t');
+      return null; // Return null so we can filter it out and not crash the whole list
+    }
   }
 
   Future<void> syncProfile() async {
     try {
       final profile = await ApiService.instance.fetchProfile();
+      
+      // Flatten the nested 'profile' object into the root map so our parser can find technician fields
+      if (profile['profile'] != null && profile['profile'] is Map) {
+        final Map<String, dynamic> nested = Map<String, dynamic>.from(profile['profile'] as Map);
+        profile.addAll(nested);
+      }
+      
       final String firstName = profile['first_name'] ?? '';
       final String lastName = profile['last_name'] ?? '';
       final String phone = profile['phone'] ?? '';
@@ -533,7 +547,7 @@ class AppState extends GetxController {
         toolsAndEquipment: (profile['tools_and_equipment'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
         workPreferences: (profile['work_preferences'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
         city: profile['city'] ?? '',
-        preferredLanguages: (profile['preferred_languages'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+        preferredLanguages: ((profile['preferred_languages'] ?? profile['languages']) as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
         yearsExperience: int.tryParse(profile['years_experience']?.toString() ?? '0') ?? 0,
         primaryOccupation: profile['primary_occupation'] ?? '',
         licences: (profile['licences'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
@@ -554,7 +568,7 @@ class AppState extends GetxController {
         bmBuildTeam: profile['bm_build_team'] == true || profile['bm_build_team'] == 'true',
         bmEmergency: profile['bm_emergency'] == true || profile['bm_emergency'] == 'true',
         canSupervise: profile['can_supervise'] == true || profile['can_supervise'] == 'true',
-        dateOfBirth: profile['date_of_birth'] ?? '',
+        dateOfBirth: profile['date_of_birth'] ?? profile['dob'] ?? profile['birth_date'] ?? '',
         educationLevel: profile['education_level'] ?? '',
         expertiseLevel: profile['expertise_level'] ?? '',
         nationalIdNumber: profile['national_id_number'] ?? '',
@@ -564,7 +578,7 @@ class AppState extends GetxController {
         nationalIdFront: profile['national_id_front'] ?? '',
         nationalIdBack: profile['national_id_back'] ?? '',
         selfieUrl: profile['selfie_url'] ?? '',
-        address: profile['address'] ?? '',
+        address: profile['address'] ?? profile['residential_area'] ?? '',
         preferredPayoutMethod: profile['preferred_payout_method'] ?? '',
         bankAccountName: profile['bank_account_name'] ?? '',
         bankAccountNumber: profile['bank_account_number'] ?? '',
@@ -625,10 +639,10 @@ class AppState extends GetxController {
   Future<void> syncTasks() async {
     try {
       final myRaw = await ApiService.instance.fetchMyTasks();
-      _myTasks = myRaw.map((t) => _mapTaskItem(t)).toList();
+      _myTasks = myRaw.map((t) => _mapTaskItem(t)).whereType<TaskItem>().toList();
 
       final marketRaw = await ApiService.instance.fetchTasks();
-      _marketplaceTasks = marketRaw.map((t) => _mapTaskItem(t)).toList();
+      _marketplaceTasks = marketRaw.map((t) => _mapTaskItem(t)).whereType<TaskItem>().toList();
 
       update();
     } catch (e) {
@@ -1340,7 +1354,10 @@ class AppState extends GetxController {
     if (workPreferences != null) body['work_preferences'] = workPreferences;
     if (experience != null) body['experience'] = experience;
     if (city != null) body['city'] = city;
-    if (preferredLanguages != null) body['preferred_languages'] = preferredLanguages;
+    if (preferredLanguages != null) {
+      body['preferred_languages'] = preferredLanguages;
+      body['languages'] = preferredLanguages;
+    }
     if (yearsExperience != null) body['years_experience'] = yearsExperience;
     if (primaryOccupation != null) body['primary_occupation'] = primaryOccupation;
     if (licences != null) body['licences'] = licences;
@@ -1359,7 +1376,11 @@ class AppState extends GetxController {
     if (bmBuildTeam != null) body['bm_build_team'] = bmBuildTeam;
     if (bmEmergency != null) body['bm_emergency'] = bmEmergency;
     if (canSupervise != null) body['can_supervise'] = canSupervise;
-    if (dateOfBirth != null) body['date_of_birth'] = dateOfBirth;
+    if (dateOfBirth != null) {
+      body['date_of_birth'] = dateOfBirth;
+      body['dob'] = dateOfBirth;
+      body['birth_date'] = dateOfBirth;
+    }
     if (educationLevel != null) body['education_level'] = educationLevel;
     if (expertiseLevel != null) body['expertise_level'] = expertiseLevel;
     if (nationalIdNumber != null) body['national_id_number'] = nationalIdNumber;
@@ -1369,7 +1390,10 @@ class AppState extends GetxController {
     if (nationalIdFront != null) body['national_id_front'] = nationalIdFront;
     if (nationalIdBack != null) body['national_id_back'] = nationalIdBack;
     if (selfieUrl != null) body['selfie_url'] = selfieUrl;
-    if (address != null) body['address'] = address;
+    if (address != null) {
+      body['address'] = address;
+      body['residential_area'] = address;
+    }
     if (businessType != null) body['business_type'] = businessType;
     if (acceptsIndividualJobs != null) body['accepts_individual_jobs'] = acceptsIndividualJobs;
     if (acceptsTeamProjects != null) body['accepts_team_projects'] = acceptsTeamProjects;

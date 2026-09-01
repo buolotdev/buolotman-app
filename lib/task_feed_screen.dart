@@ -194,29 +194,37 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
                       child: _buildSearchAndFilters(),
                     ),
                     Expanded(
-                      child: tasks.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.work_off_outlined, size: 64, color: Colors.grey[300]),
-                                  const SizedBox(height: 12),
-                                  const Text('No open tasks right now.', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
-                                  const SizedBox(height: 4),
-                                  const Text('Pull down to refresh.', style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8))),
-                                ],
-                              ),
-                            )
-                          : Showcase(
-                              key: _tourKey2,
-                              description: 'These are live tasks posted by clients. Tap one to read the full details and place a bid.',
-                              child: ListView.builder(
-                                physics: const BouncingScrollPhysics(),
-                                padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
-                                itemCount: tasks.length,
-                                itemBuilder: (context, index) => _buildTaskCard(tasks[index].id),
-                              ),
-                            ),
+                      child: Showcase(
+                        key: _tourKey2,
+                        description: 'These are live tasks posted by clients. Tap one to read the full details and place a bid.',
+                        child: RefreshIndicator(
+                          onRefresh: () => AppStateScope.of(context).syncTasks(),
+                          child: tasks.isEmpty
+                              ? ListView(
+                                  children: [
+                                    SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                                    Center(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.work_off_outlined, size: 64, color: Colors.grey[300]),
+                                          const SizedBox(height: 12),
+                                          const Text('No open tasks right now.', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
+                                          const SizedBox(height: 4),
+                                          const Text('Pull down to refresh.', style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8))),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : ListView.builder(
+                                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                                  padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
+                                  itemCount: tasks.length,
+                                  itemBuilder: (context, index) => _buildTaskCard(tasks[index].id),
+                                ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -234,16 +242,7 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
       child: Row(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Image.asset('assets/images/boulotman-logo.png', fit: BoxFit.contain),
-          ),
-          const SizedBox(width: 12),
+
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,23 +274,27 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
             icon: const Icon(Icons.notifications_none, color: Color(0xFF001F3F)),
             onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NotificationsScreen())),
           ),
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.filter_list, color: Color(0xFF001F3F)),
-                onPressed: _openFilterSheet,
-              ),
-              if (_budgetFilter != 'Any')
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(color: Color(0xFFFF4500), shape: BoxShape.circle),
-                  ),
+          Showcase(
+            key: _tourKey3,
+            description: 'Filter tasks by your specific requirements and budget.',
+            child: Stack(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.filter_list, color: Color(0xFF001F3F)),
+                  onPressed: _openFilterSheet,
                 ),
-            ],
+                if (_budgetFilter != 'Any')
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(color: Color(0xFFFF4500), shape: BoxShape.circle),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),

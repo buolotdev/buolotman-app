@@ -1,3 +1,4 @@
+import 'public_technician_profile_screen.dart' as public_profile;
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -33,27 +34,12 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
       );
       if (pickedFile == null) return;
 
-      final croppedFile = await ImageCropper().cropImage(
-        sourcePath: pickedFile.path,
-        uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: 'Crop Profile Picture',
-            toolbarColor: const Color(0xFF001F3F),
-            toolbarWidgetColor: Colors.white,
-            initAspectRatio: CropAspectRatioPreset.square,
-            lockAspectRatio: true,
-          ),
-        ],
-      );
-
-      if (croppedFile != null) {
-        final file = File(croppedFile.path);
-        final bytes = await file.readAsBytes();
-        setState(() {
-          _pickedImage = file;
-          _base64Avatar = 'data:image/jpeg;base64,${base64Encode(bytes)}';
-        });
-      }
+      final file = File(pickedFile.path);
+      final bytes = await file.readAsBytes();
+      setState(() {
+        _pickedImage = file;
+        _base64Avatar = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+      });
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -155,7 +141,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 8, vsync: this);
+    _tabController = TabController(length: 9, vsync: this);
     
     final appState = Get.find<AppState>();
     final u = appState.currentUser;
@@ -524,6 +510,35 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
         elevation: 0,
         title: const Text('Edit Profile', style: TextStyle(color: Color(0xFF001F3F), fontWeight: FontWeight.bold, fontSize: 18)),
         iconTheme: const IconThemeData(color: Color(0xFF001F3F)),
+          actions: [
+            TextButton.icon(
+              onPressed: () {
+                Get.to(() => public_profile.PublicTechnicianProfileScreen(
+                  technicianData: {
+                    'first_name': Get.find<AppState>().currentUser.firstName,
+                    'last_name': Get.find<AppState>().currentUser.lastName,
+                    'username': Get.find<AppState>().currentUser.name,
+                    'avatar_url': Get.find<AppState>().currentUser.avatar,
+                    'primary_occupation': Get.find<AppState>().currentUser.primaryOccupation,
+                    'verification_badge': Get.find<AppState>().currentUser.verificationBadge,
+                    'average_rating': '4.9',
+                    'city': Get.find<AppState>().currentUser.city,
+                    'identity_verified': Get.find<AppState>().currentUser.verificationBadge.contains('Identity') || Get.find<AppState>().currentUser.verificationBadge.contains('Boulot Man'),
+                    'professional_verified': Get.find<AppState>().currentUser.verificationBadge.contains('Professional') || Get.find<AppState>().currentUser.verificationBadge.contains('Boulot Man'),
+                    'boulotman_verified': Get.find<AppState>().currentUser.verificationBadge.contains('Boulot Man'),
+                    'years_experience': Get.find<AppState>().currentUser.yearsExperience,
+                    'completed_jobs': 94,
+                    'bio': Get.find<AppState>().currentUser.bio,
+                    'hourly_rate': Get.find<AppState>().currentUser.hourlyRate,
+                    'daily_rate': Get.find<AppState>().currentUser.dailyRate,
+                    'starting_price': Get.find<AppState>().currentUser.startingPrice,
+                  },
+                ));
+              },
+              icon: const Icon(Icons.remove_red_eye, color: Color(0xFFFF4500), size: 18),
+              label: const Text('Preview', style: TextStyle(color: Color(0xFFFF4500), fontWeight: FontWeight.bold)),
+            ),
+          ],
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
@@ -539,6 +554,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
             Tab(text: 'Verification'),
             Tab(text: 'Payout Settings'),
             Tab(text: 'References'),
+              Tab(text: 'Portfolio'),
           ],
         ),
       ),
@@ -807,6 +823,8 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
 
                   // Tab 8: References
                   _buildReferencesTab(),
+                    // Tab 9: Portfolio
+                    _buildPortfolioTab(),
                 ],
               ),
             ),
@@ -825,6 +843,47 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
           ),
         ),
       ),
+    );
+  }
+
+
+  Widget _buildPortfolioTab() {
+    return GetBuilder<AppState>(
+      builder: (appState) {
+        final items = appState.portfolioItems;
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            const Text('Portfolio & Previous Work', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+            const SizedBox(height: 8),
+            const Text('Add projects to prove your skills to clients.', style: TextStyle(color: Colors.grey)),
+            const SizedBox(height: 16),
+            if (items.isEmpty)
+              const Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('No portfolio items added yet.')))
+            else
+              ...items.map((item) => Card(
+                elevation: 2,
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  title: Text(item['title'] ?? 'Project', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text(item['description'] ?? ''),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {},
+                  ),
+                ),
+              )).toList(),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Get.snackbar('Coming Soon', 'Portfolio management will be fully integrated in the next update!');
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF4500)),
+              child: const Text('Add Portfolio Project'),
+            ),
+          ],
+        );
+      },
     );
   }
 
