@@ -1,0 +1,1 @@
+import 'dart:convert'; import 'package:http/http.dart' as http; void main() async { final auth = await http.post(Uri.parse('https://buolotman-app.onrender.com/api/auth/login/'), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'username': 'test@test.com', 'password': 'password'})); print('Auth: ' + auth.body); }

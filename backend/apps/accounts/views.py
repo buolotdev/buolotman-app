@@ -286,13 +286,13 @@ def me(request):
                         tech_profile.skills.add(skill_obj)
                         
         # ALL PREMIUM FIELDS
-        premium_fields = ['address', 'date_of_birth', 'years_experience', 'primary_occupation', 'certifications', 'licences', 'education_level', 'expertise_level', 'business_type', 'daily_rate', 'fixed_price', 'inspection_fee', 'starting_price', 'own_tools', 'has_vehicle', 'has_ppe', 'has_specialist_machinery', 'has_driving_licence', 'can_transport_equipment', 'willing_to_travel', 'service_radius_km', 'available_now', 'accepts_full_time', 'accepts_part_time', 'accepts_emergency', 'accepts_weekends', 'accepts_remote', 'accepts_onsite', 'bm_concierge', 'bm_build_team', 'bm_emergency', 'bm_contractor_projects', 'can_supervise', 'team_leader_experience', 'project_management_experience', 'interested_in_long_term_placement', 'national_id_number', 'national_id_front', 'national_id_back', 'selfie_url', 'emergency_contact_name', 'emergency_contact_phone', 'preferred_payout_method', 'bank_account_name', 'bank_account_number', 'bank_name', 'mobile_money_number', 'payout_currency', 'payment_verification_status', 'tools_and_equipment', 'work_preferences', 'preferred_working_days', 'preferred_working_hours']
+        premium_fields = ['residential_address', 'birth_date', 'years_experience', 'primary_occupation', 'certifications', 'licences', 'education_level', 'expertise_level', 'business_type', 'daily_rate', 'fixed_price', 'inspection_fee', 'starting_price', 'own_tools', 'has_vehicle', 'has_ppe', 'has_specialist_machinery', 'has_driving_licence', 'can_transport_equipment', 'willing_to_travel', 'service_radius_km', 'available_now', 'accepts_full_time', 'accepts_part_time', 'accepts_emergency', 'accepts_weekends', 'accepts_remote', 'accepts_onsite', 'bm_concierge', 'bm_build_team', 'bm_emergency', 'bm_contractor_projects', 'can_supervise', 'team_leader_experience', 'project_management_experience', 'interested_in_long_term_placement', 'national_id_number', 'national_id_front', 'national_id_back', 'selfie_url', 'emergency_contact_name', 'emergency_contact_phone', 'preferred_payout_method', 'bank_account_name', 'bank_account_number', 'bank_name', 'mobile_money_number', 'payout_currency', 'payment_verification_status', 'tools_and_equipment', 'work_preferences', 'preferred_working_days', 'preferred_working_hours']
         
         for field in premium_fields:
             if field in request.data:
                 val = request.data.get(field)
                 if val == "":
-                    val = None if field in ['date_of_birth', 'daily_rate', 'fixed_price', 'inspection_fee', 'starting_price'] else ""
+                    val = None if field in ['birth_date', 'daily_rate', 'fixed_price', 'inspection_fee', 'starting_price'] else ""
                 setattr(tech_profile, field, val)
 
         if 'city' in request.data and 'address' not in request.data:
@@ -310,8 +310,8 @@ def me(request):
             res_data['portfolio'] = tech_profile.portfolio
             res_data['hourly_rate'] = str(tech_profile.hourly_rate) if tech_profile.hourly_rate else None
             res_data['response_time'] = tech_profile.response_time
-            res_data['address'] = tech_profile.address
-            res_data['date_of_birth'] = str(tech_profile.date_of_birth) if tech_profile.date_of_birth else None
+            res_data['residential_address'] = tech_profile.residential_address
+            res_data['birth_date'] = str(tech_profile.birth_date) if tech_profile.birth_date else None
             
         return Response(res_data)
 

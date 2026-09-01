@@ -578,7 +578,7 @@ class AppState extends GetxController {
         nationalIdFront: profile['national_id_front'] ?? '',
         nationalIdBack: profile['national_id_back'] ?? '',
         selfieUrl: profile['selfie_url'] ?? '',
-        address: profile['address'] ?? profile['residential_area'] ?? '',
+        address: profile['address'] ?? profile['residential_area'] ?? profile['residential_address'] ?? '',
         preferredPayoutMethod: profile['preferred_payout_method'] ?? '',
         bankAccountName: profile['bank_account_name'] ?? '',
         bankAccountNumber: profile['bank_account_number'] ?? '',
@@ -1393,6 +1393,7 @@ class AppState extends GetxController {
     if (address != null) {
       body['address'] = address;
       body['residential_area'] = address;
+      body['residential_address'] = address;
     }
     if (businessType != null) body['business_type'] = businessType;
     if (acceptsIndividualJobs != null) body['accepts_individual_jobs'] = acceptsIndividualJobs;
