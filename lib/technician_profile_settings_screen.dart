@@ -518,7 +518,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      currentFile != null ? currentFile.path.split('/').last : (currentBase64 != null && currentBase64.isNotEmpty ? 'Document Uploaded' : 'Tap to open intelligent camera'),
+                      currentFile != null ? currentFile.path.split('/').last : (currentBase64 != null && currentBase64.isNotEmpty ? 'Document Uploaded' : 'Tap to scan document'),
                       style: const TextStyle(color: Colors.black87),
                       overflow: TextOverflow.ellipsis,
                     ),
