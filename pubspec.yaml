@@ -50,6 +50,7 @@ dependencies:
   google_sign_in: ^6.2.1
   showcaseview: ^5.1.0
   image_cropper: 8.0.2
+  camera: ^0.12.0+2
 
 dev_dependencies:
   flutter_test:

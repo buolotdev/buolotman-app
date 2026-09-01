@@ -2,6 +2,7 @@ import 'public_technician_profile_screen.dart' as public_profile;
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'custom_camera_screen.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
@@ -369,6 +370,44 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
     }
   }
 
+  Widget _buildDropdownField(String label, TextEditingController controller, List<String> options) {
+    String? currentValue = options.contains(controller.text) ? controller.text : (controller.text.isEmpty ? null : controller.text);
+    if (currentValue != null && !options.contains(currentValue)) {
+      options = [...options, currentValue];
+    }
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: currentValue,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.grey[100],
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            ),
+            items: options.map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            onChanged: (newValue) {
+              if (newValue != null) {
+                controller.text = newValue;
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTextField(String label, TextEditingController controller, {int maxLines = 1, TextInputType? keyboardType, String? hint}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -441,6 +480,55 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
       onChanged: onChanged,
       activeColor: const Color(0xFFFF4500),
       contentPadding: EdgeInsets.zero,
+    );
+  }
+
+  Widget _buildCameraPicker(String label, File? currentFile, String? currentBase64, CameraMode mode, Function(File?, String?) onPicked) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF001F3F))),
+          const SizedBox(height: 8),
+          InkWell(
+            onTap: () async {
+              final String? resultPath = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CustomCameraScreen(mode: mode),
+                ),
+              );
+              if (resultPath != null) {
+                final file = File(resultPath);
+                final bytes = await file.readAsBytes();
+                final b64 = base64Encode(bytes);
+                onPicked(file, 'data:image/jpeg;base64,' + b64);
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.camera_alt, color: Colors.blueGrey),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      currentFile != null ? currentFile.path.split('/').last : (currentBase64 != null && currentBase64.isNotEmpty ? 'Document Uploaded' : 'Tap to open intelligent camera'),
+                      style: const TextStyle(color: Colors.black87),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -631,7 +719,7 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                       _buildTextField('Primary Occupation', _primaryOccupationController, hint: 'e.g., Electrician, Plumber'),
                       _buildTextField('Years of Experience', _yearsExpController, keyboardType: TextInputType.number),
                       _buildTextField('Skills (comma separated)', _skillsController, hint: 'e.g., Plumbing, Electrical, HVAC'),
-                      _buildTextField('Expertise Level', _expertiseLevelController, hint: 'e.g. Beginner, Intermediate, Expert'),
+                      _buildDropdownField('Expertise Level', _expertiseLevelController, ['Beginner', 'Intermediate', 'Expert', 'Master/Specialist']),
                       _buildTextField('Education / Training Institution', _educationLevelController, hint: 'e.g. Technical College'),
                       _buildTextField('Certifications (Comma separated)', _certificationsController),
                       _buildTextField('Licences (Comma separated)', _licencesController),
@@ -786,21 +874,21 @@ class _TechnicianProfileSettingsScreenState extends State<TechnicianProfileSetti
                       const SizedBox(height: 16),
                       _buildTextField('National ID Number', _nationalIdNumberController),
                       const SizedBox(height: 16),
-                      _buildFilePicker('National ID (Front)', _pickedNationalIdFront, _base64NationalIdFront, (file, b64) {
+                      _buildCameraPicker('National ID (Front)', _pickedNationalIdFront, _base64NationalIdFront, CameraMode.idCard, (file, b64) {
                         setState(() {
                           _pickedNationalIdFront = file;
                           _base64NationalIdFront = b64;
                         });
                       }),
                       const SizedBox(height: 16),
-                      _buildFilePicker('National ID (Back)', _pickedNationalIdBack, _base64NationalIdBack, (file, b64) {
+                      _buildCameraPicker('National ID (Back)', _pickedNationalIdBack, _base64NationalIdBack, CameraMode.idCard, (file, b64) {
                         setState(() {
                           _pickedNationalIdBack = file;
                           _base64NationalIdBack = b64;
                         });
                       }),
                       const SizedBox(height: 16),
-                      _buildFilePicker('Selfie (Live Identity)', _pickedSelfie, _base64Selfie, (file, b64) {
+                      _buildCameraPicker('Selfie (Live Identity)', _pickedSelfie, _base64Selfie, CameraMode.selfie, (file, b64) {
                         setState(() {
                           _pickedSelfie = file;
                           _base64Selfie = b64;

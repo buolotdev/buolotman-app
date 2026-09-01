@@ -312,6 +312,8 @@ def me(request):
             res_data['response_time'] = tech_profile.response_time
             res_data['residential_address'] = tech_profile.residential_address
             res_data['birth_date'] = str(tech_profile.birth_date) if tech_profile.birth_date else None
+            res_data['education_level'] = tech_profile.education_level
+            res_data['expertise_level'] = tech_profile.expertise_level
             
         return Response(res_data)
 

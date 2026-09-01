@@ -56,6 +56,8 @@ class TechnicianProfile(models.Model):
     average_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0)
     response_time = models.CharField(max_length=50, blank=True)
     residential_address = models.CharField(max_length=255, blank=True)
+    education_level = models.CharField(max_length=255, blank=True)
+    expertise_level = models.CharField(max_length=100, blank=True)
     birth_date = models.DateField(null=True, blank=True)
 
     class Meta:
