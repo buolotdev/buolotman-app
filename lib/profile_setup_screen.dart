@@ -136,7 +136,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       // I will replace this with a proper API call.
       // For now, I'll use the getx ApiService or the standard http client used in the app.
       final api = Get.find<ApiService>();
-      await api.patch('/api/auth/me/', userUpdates);
+      await api.patch('/auth/me/', userUpdates);
 
       if (role == 'Company') {
         final Map<String, dynamic> companyUpdates = {
