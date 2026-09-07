@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:country_picker/country_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'app_state.dart';
 import 'login_screen.dart';
-import 'otp_screen.dart';
 import 'main_navigation_screen.dart';
 import 'google_role_selection_screen.dart';
 
@@ -43,7 +43,14 @@ class _SignupScreenState extends State<SignupScreen> {
   // Step 3 Fields
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _serviceLocationController = TextEditingController();
-  bool _termsAccepted = true;
+  bool _termsAccepted = false;
+
+  Future<void> _openLegalPage(String path) async {
+    final uri = Uri.parse('https://boulotman.com$path');
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication) && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unable to open the legal page.')));
+    }
+  }
 
   @override
   void dispose() {
@@ -106,7 +113,9 @@ class _SignupScreenState extends State<SignupScreen> {
     try {
       final role = _intentToRole[_selectedIntent] ?? 'Client';
 
-      final otpRes = await AppStateScope.of(context).registerUser(
+      // OTP is temporarily disabled for signup. Registration now logs the user
+      // in immediately; forgot-password OTP remains unchanged.
+      await AppStateScope.of(context).registerAndLogin(
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         email: _emailController.text.trim(),
@@ -116,21 +125,13 @@ class _SignupScreenState extends State<SignupScreen> {
         // Optional fields originally used for Company are ignored here per new progressive flow
       );
 
-      final challengeId = otpRes['challenge_id'] as int;
-      final otpCode = otpRes['code']?.toString();
-
       if (mounted) {
         Navigator.of(context).pop(); // dismiss loading
-        Navigator.of(context).push(
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (context) => OTPScreen(
-              email: _emailController.text.trim(),
-              role: role,
-              challengeId: challengeId,
-              otpCode: otpCode,
-              purpose: 'register',
-            ),
+            builder: (context) => MainNavigationScreen(role: role),
           ),
+          (route) => false,
         );
       }
     } catch (e) {
@@ -392,28 +393,37 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
           
           const SizedBox(height: 16),
-          GestureDetector(
-            onTap: () => setState(() => _termsAccepted = !_termsAccepted),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: _termsAccepted ? const Color(0xFFFF4500) : Colors.white,
-                    border: Border.all(color: _termsAccepted ? const Color(0xFFFF4500) : const Color(0xFFE2E8F0)),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: _termsAccepted ? const Icon(Icons.check, size: 16, color: Colors.white) : null,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 28,
+                height: 28,
+                child: Checkbox(
+                  value: _termsAccepted,
+                  activeColor: const Color(0xFFFF4500),
+                  onChanged: (value) => setState(() => _termsAccepted = value ?? false),
                 ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Text("By creating an account, you agree to our Terms of Service and Privacy Policy.", style: TextStyle(color: Color(0xFF64748B), height: 1.5)),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Wrap(
+                  children: [
+                    const Text('I agree to Boulot Man\'s ', style: TextStyle(color: Color(0xFF64748B), height: 1.5)),
+                    GestureDetector(
+                      onTap: () => _openLegalPage('/terms'),
+                      child: const Text('Terms of Service', style: TextStyle(color: Color(0xFFFF4500), decoration: TextDecoration.underline, fontWeight: FontWeight.w600, height: 1.5)),
+                    ),
+                    const Text(' and ', style: TextStyle(color: Color(0xFF64748B), height: 1.5)),
+                    GestureDetector(
+                      onTap: () => _openLegalPage('/privacy'),
+                      child: const Text('Privacy Policy', style: TextStyle(color: Color(0xFFFF4500), decoration: TextDecoration.underline, fontWeight: FontWeight.w600, height: 1.5)),
+                    ),
+                    const Text('.', style: TextStyle(color: Color(0xFF64748B), height: 1.5)),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
           
           const SizedBox(height: 32),

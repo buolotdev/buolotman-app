@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -69,16 +70,26 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     });
   }
 
-  Future<String?> _pickAndUploadImage() async {
+  Future<String?> _pickAndUploadImage({String? documentTitle, String? documentType}) async {
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
         setState(() => _isSaving = true);
+        final api = Get.find<ApiService>();
+        if (documentTitle != null && documentType != null) {
+          final result = await api.uploadTechnicianDocument(
+            file: File(image.path),
+            title: documentTitle,
+            documentType: documentType,
+          );
+          setState(() => _isSaving = false);
+          return result['file_url'] as String?;
+        }
+
         final bytes = await image.readAsBytes();
         final base64String = base64Encode(bytes);
         final extension = image.name.split('.').last;
-        
-        final api = Get.find<ApiService>();
+
         final response = await api.post('/upload/', {
           'base64_file': base64String,
           'extension': extension,
@@ -254,9 +265,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         const SizedBox(height: 16),
                         const Text('Identity Verification Documents', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                         const SizedBox(height: 8),
-                        _buildDocUploader('National ID (Front)', _nationalIdFrontUrl, (url) => setState(() => _nationalIdFrontUrl = url)),
-                        _buildDocUploader('National ID (Back)', _nationalIdBackUrl, (url) => setState(() => _nationalIdBackUrl = url)),
-                        _buildDocUploader('Live Selfie', _selfieUrl, (url) => setState(() => _selfieUrl = url)),
+                        _buildDocUploader('National ID (Front)', _nationalIdFrontUrl, (url) => setState(() => _nationalIdFrontUrl = url), documentType: 'id'),
+                        _buildDocUploader('National ID (Back)', _nationalIdBackUrl, (url) => setState(() => _nationalIdBackUrl = url), documentType: 'id'),
+                        _buildDocUploader('Live Selfie', _selfieUrl, (url) => setState(() => _selfieUrl = url), documentType: 'id'),
                       ],
                       
                       // Company fields
@@ -298,7 +309,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
   }
 
-  Widget _buildDocUploader(String label, String? url, Function(String) onUploaded) {
+  Widget _buildDocUploader(String label, String? url, Function(String) onUploaded, {String? documentType}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -306,7 +317,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         const SizedBox(height: 8),
         InkWell(
           onTap: () async {
-            final uploadedUrl = await _pickAndUploadImage();
+            final uploadedUrl = await _pickAndUploadImage(
+              documentTitle: documentType == null ? null : label,
+              documentType: documentType,
+            );
             if (uploadedUrl != null) {
               onUploaded(uploadedUrl);
             }

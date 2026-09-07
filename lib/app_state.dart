@@ -6,6 +6,12 @@ export 'app_models.dart';
 import 'api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+double _parseProfileNumber(dynamic value) {
+  if (value == null) return 0.0;
+  final cleaned = value.toString().replaceAll(RegExp(r'[^0-9.]'), '');
+  return double.tryParse(cleaned) ?? 0.0;
+}
+
 
 class AppState extends GetxController {
   AppState() {
@@ -290,8 +296,21 @@ class AppState extends GetxController {
     if (response.statusCode == 204 || response.statusCode == 200) {
       logout();
     } else {
-      throw Exception('Failed to delete account. Please try again.');
+      // Preserve the API response so production auth/permission/routing
+      // failures are diagnosable instead of appearing as a generic update
+      // error.
+      String details = response.body.trim();
+      if (details.isEmpty) details = 'HTTP ${response.statusCode}';
+      throw Exception('Account deletion failed ($details)');
     }
+  }
+
+  String _normalizeMediaUrl(dynamic value) {
+    final raw = value?.toString() ?? '';
+    if (raw.startsWith('/')) {
+      return 'http://BoulotMan-API-env.eba-exncce63.eu-north-1.elasticbeanstalk.com$raw';
+    }
+    return raw;
   }
 
   // ─── STATE SYNCHRONIZATION ──────────────────────────────────────────────────
@@ -438,8 +457,13 @@ class AppState extends GetxController {
 
   TaskItem? _mapTaskItem(dynamic t) {
     try {
-      final double budgetMin = double.tryParse(t['budget_min']?.toString() ?? '0') ?? 0.0;
-      final double budgetMax = double.tryParse(t['budget_max']?.toString() ?? '0') ?? 0.0;
+      final double budgetMin = _parseProfileNumber(t['budget_min'] ?? t['min_budget']);
+      final double budgetMax = _parseProfileNumber(t['budget_max'] ?? t['max_budget']);
+      final double budget = budgetMax > 0
+          ? budgetMax
+          : budgetMin > 0
+              ? budgetMin
+              : _parseProfileNumber(t['budget'] ?? t['price'] ?? t['amount']);
       
       final assignedMap = t['assigned_to'] is Map ? t['assigned_to'] as Map<String, dynamic> : null;
       final String? assignedId = assignedMap?['id']?.toString();
@@ -448,18 +472,21 @@ class AppState extends GetxController {
           : null;
       final String? assignedAvatar = assignedMap?['avatar_url']?.toString();
 
-      final clientMap = t['client'] is Map ? t['client'] as Map<String, dynamic> : null;
+      final clientMap = t['client'] is Map ? Map<String, dynamic>.from(t['client'] as Map) : null;
+      final categoryMap = t['category'] is Map ? Map<String, dynamic>.from(t['category'] as Map) : null;
+      final categoryName = (t['category_name'] ?? categoryMap?['name'] ?? t['category'] ?? 'General').toString();
+      final location = (t['location'] ?? t['city'] ?? 'Remote').toString();
 
       return TaskItem(
         id: t['id']?.toString() ?? '',
         title: t['title'] ?? '',
         description: t['description'] ?? '',
-        category: t['category_name'] ?? 'General',
-        location: t['location'] ?? 'Lagos, Nigeria',
-        clientName: clientMap != null ? '${clientMap['first_name'] ?? ''} ${clientMap['last_name'] ?? ''}'.trim() : (t['client_name'] ?? 'Client'),
+        category: categoryName,
+        location: location,
+        clientName: clientMap != null ? '${clientMap['first_name'] ?? ''} ${clientMap['last_name'] ?? ''}'.trim() : (t['client_name'] ?? t['client'] ?? 'Client').toString(),
         clientAvatar: (clientMap != null && clientMap['avatar_url'] != null && clientMap['avatar_url'].toString().isNotEmpty) ? clientMap['avatar_url'] : 'assets/images/onboard3.jpg',
         clientRating: clientMap != null ? (double.tryParse(clientMap['rating']?.toString() ?? '') ?? 4.9) : 4.9,
-        budget: budgetMax > 0 ? budgetMax : budgetMin,
+        budget: budget,
         status: _mapStatus(t['status'] ?? 'open'),
         createdLabel: (t['created_at'] != null && t['created_at'].toString().length >= 10) ? t['created_at'].toString().substring(0, 10) : 'Just now',
         schedule: t['schedule'] ?? 'Immediate',
@@ -527,8 +554,8 @@ class AppState extends GetxController {
       _currentUser = AppUser(
         name: name,
         role: _mapRole(profile['role'] ?? 'CLIENT'),
-        tagline: profile['tagline'] ?? '${_mapRole(profile['role'] ?? 'CLIENT')} Account',
-        avatar: profile['avatar_url']?.toString().isNotEmpty == true ? profile['avatar_url'] : '',
+        tagline: profile['headline'] ?? profile['tagline'] ?? '${_mapRole(profile['role'] ?? 'CLIENT')} Account',
+        avatar: _normalizeMediaUrl(profile['avatar_url']),
         id: profile['id'] ?? 0,
         location: inferredCountry,
         firstName: firstName,
@@ -536,23 +563,25 @@ class AppState extends GetxController {
         phone: phone,
         country: inferredCountry,
         bio: profile['bio'] ?? '',
-        hourlyRate: double.tryParse(profile['hourly_rate']?.toString() ?? '0') ?? 0.0,
+        hourlyRate: _parseProfileNumber(profile['hourly_rate']),
         availabilityStatus: profile['availability_status'] ?? 'available',
         skills: (profile['skills'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
         certifications: (profile['certifications'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
         experience: profile['experience'] ?? '',
-        dailyRate: double.tryParse(profile['daily_rate']?.toString() ?? '0') ?? 0.0,
-        fixedPrice: double.tryParse(profile['fixed_price']?.toString() ?? '0') ?? 0.0,
-        inspectionFee: double.tryParse(profile['inspection_fee']?.toString() ?? '0') ?? 0.0,
-        toolsAndEquipment: (profile['tools_and_equipment'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+        dailyRate: _parseProfileNumber(profile['daily_rate']),
+        fixedPrice: _parseProfileNumber(profile['fixed_price']),
+        inspectionFee: _parseProfileNumber(profile['inspection_fee']),
+        isNegotiable: profile['is_negotiable'] ??
+            (profile['pricing'] is Map ? (profile['pricing'] as Map)['is_negotiable'] : true),
+        toolsAndEquipment: ((profile['tools'] ?? profile['tools_and_equipment']) as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
         workPreferences: (profile['work_preferences'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
         city: profile['city'] ?? '',
         preferredLanguages: ((profile['preferred_languages'] ?? profile['languages']) as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
-        yearsExperience: int.tryParse(profile['years_experience']?.toString() ?? '0') ?? 0,
+        yearsExperience: int.tryParse((profile['experience_years'] ?? profile['years_experience'])?.toString() ?? '0') ?? 0,
         primaryOccupation: profile['primary_occupation'] ?? '',
         licences: (profile['licences'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
         verificationBadge: profile['verification_badge'] ?? 'Unverified',
-        startingPrice: double.tryParse(profile['starting_price']?.toString() ?? '0') ?? 0.0,
+        startingPrice: _parseProfileNumber(profile['starting_price']),
         ownTools: profile['own_tools'] == true || profile['own_tools'] == 'true',
         hasVehicle: profile['has_vehicle'] == true || profile['has_vehicle'] == 'true',
         willingToTravel: profile['willing_to_travel'] == true || profile['willing_to_travel'] == 'true',
@@ -647,6 +676,27 @@ class AppState extends GetxController {
       update();
     } catch (e) {
       debugPrint('Sync Tasks Error: $e');
+    }
+  }
+
+  /// Loads the complete task payload before opening the task detail screen.
+  /// The feed endpoint intentionally returns a lightweight list payload.
+  Future<TaskItem?> loadTaskDetail(String taskId) async {
+    final id = int.tryParse(taskId);
+    if (id == null) return null;
+    try {
+      final raw = await ApiService.instance.fetchTaskDetail(id);
+      final task = _mapTaskItem(raw);
+      if (task == null) return null;
+      final marketIndex = _marketplaceTasks.indexWhere((item) => item.id == task.id);
+      if (marketIndex >= 0) _marketplaceTasks[marketIndex] = task;
+      final mineIndex = _myTasks.indexWhere((item) => item.id == task.id);
+      if (mineIndex >= 0) _myTasks[mineIndex] = task;
+      update();
+      return task;
+    } catch (e) {
+      debugPrint('Load task detail error: $e');
+      return null;
     }
   }
 
@@ -1271,6 +1321,7 @@ class AppState extends GetxController {
     double? dailyRate,
     double? fixedPrice,
     double? inspectionFee,
+    bool? isNegotiable,
     String? availabilityStatus,
     List<String>? skills,
     List<String>? certifications,
@@ -1337,16 +1388,31 @@ class AppState extends GetxController {
     final body = <String, dynamic>{};
     if (firstName != null) body['first_name'] = firstName;
     if (lastName != null) body['last_name'] = lastName;
-    if (avatarUrl != null) body['avatar_url'] = avatarUrl;
+    // The profile editor keeps newly selected images as a local base64
+    // preview. The website API only accepts a persisted URL here; sending
+    // the data URI causes URL validation to reject the entire PATCH.
+    if (avatarUrl != null && avatarUrl.trimLeft().startsWith('http')) {
+      body['avatar_url'] = avatarUrl;
+    }
     if (phone != null) body['phone'] = phone;
     if (country != null) body['country'] = country;
     if (bio != null) body['bio'] = bio;
-    if (tagline != null) body['tagline'] = tagline;
+    if (tagline != null) body['headline'] = tagline;
     if (hourlyRate != null) body['hourly_rate'] = hourlyRate;
     if (dailyRate != null) body['daily_rate'] = dailyRate;
     if (fixedPrice != null) body['fixed_price'] = fixedPrice;
     if (inspectionFee != null) body['inspection_fee'] = inspectionFee;
     if (startingPrice != null) body['starting_price'] = startingPrice;
+    if (isNegotiable != null) body['is_negotiable'] = isNegotiable;
+    if (startingPrice != null || hourlyRate != null || dailyRate != null || inspectionFee != null) {
+      body['pricing'] = {
+        if (hourlyRate != null) 'hourly_rate': hourlyRate,
+        if (dailyRate != null) 'daily_rate': dailyRate,
+        if (startingPrice != null) 'starting_price': startingPrice,
+        if (inspectionFee != null) 'inspection_fee': inspectionFee,
+        if (isNegotiable != null) 'is_negotiable': isNegotiable,
+      };
+    }
     if (availabilityStatus != null) body['availability_status'] = availabilityStatus;
     if (skills != null) body['skills'] = skills;
     if (certifications != null) body['certifications'] = certifications;
@@ -1355,10 +1421,10 @@ class AppState extends GetxController {
     if (experience != null) body['experience'] = experience;
     if (city != null) body['city'] = city;
     if (preferredLanguages != null) {
-      body['preferred_languages'] = preferredLanguages;
       body['languages'] = preferredLanguages;
     }
-    if (yearsExperience != null) body['years_experience'] = yearsExperience;
+    if (toolsAndEquipment != null) body['tools'] = toolsAndEquipment;
+    if (yearsExperience != null) body['experience_years'] = yearsExperience;
     if (primaryOccupation != null) body['primary_occupation'] = primaryOccupation;
     if (licences != null) body['licences'] = licences;
     if (ownTools != null) body['own_tools'] = ownTools;
@@ -1383,13 +1449,13 @@ class AppState extends GetxController {
     }
     if (educationLevel != null) body['education_level'] = educationLevel;
     if (expertiseLevel != null) body['expertise_level'] = expertiseLevel;
-    if (nationalIdNumber != null) body['national_id_number'] = nationalIdNumber;
+    // Website API uses id_number for KYC identity data.
+    if (nationalIdNumber != null) body['id_number'] = nationalIdNumber;
     if (cvResumeUrl != null) body['cv_resume_url'] = cvResumeUrl;
     if (emergencyContactName != null) body['emergency_contact_name'] = emergencyContactName;
     if (emergencyContactPhone != null) body['emergency_contact_phone'] = emergencyContactPhone;
-    if (nationalIdFront != null) body['national_id_front'] = nationalIdFront;
-    if (nationalIdBack != null) body['national_id_back'] = nationalIdBack;
-    if (selfieUrl != null) body['selfie_url'] = selfieUrl;
+    // ID images/selfie are persisted by uploadTechnicianDocument above, not
+    // by the JSON profile PATCH endpoint.
     if (address != null) {
       body['address'] = address;
       body['residential_area'] = address;
@@ -1416,8 +1482,34 @@ class AppState extends GetxController {
     if (bankName != null) body['bank_name'] = bankName;
     if (mobileMoneyNumber != null) body['mobile_money_number'] = mobileMoneyNumber;
     if (payoutCurrency != null) body['payout_currency'] = payoutCurrency;
+    if (preferredPayoutMethod != null || bankAccountName != null || bankAccountNumber != null || bankName != null || mobileMoneyNumber != null || payoutCurrency != null) {
+      body['payout'] = {
+        if (preferredPayoutMethod != null) 'method': preferredPayoutMethod,
+        if (bankAccountName != null) 'account_name': bankAccountName,
+        if (bankAccountNumber != null) 'account_number': bankAccountNumber,
+        if (bankName != null) 'bank_name': bankName,
+        if (mobileMoneyNumber != null) 'mobile_money_number': mobileMoneyNumber,
+        if (payoutCurrency != null) 'currency': payoutCurrency,
+      };
+    }
 
     if (currentRole == 'Technician') {
+      // The production website API validates this endpoint strictly. Keep
+      // legacy/mobile-only fields out of the request; one unknown key causes
+      // the entire PATCH to be rejected with HTTP 400.
+      const technicianApiFields = {
+        'first_name', 'last_name', 'avatar_url', 'phone', 'country', 'city',
+        'address', 'bio', 'headline', 'experience', 'experience_years',
+        'hourly_rate', 'daily_rate', 'starting_price', 'inspection_fee',
+        'is_negotiable', 'pricing', 'availability', 'availability_status',
+        'available_now', 'response_time', 'skills', 'tools', 'languages',
+        'portfolio', 'payout', 'payout_info', 'kyc', 'kyc_info',
+        'background_check_status', 'education_level', 'expertise_level',
+        'date_of_birth', 'role',
+        'emergency_contact_name', 'emergency_contact_phone',
+        'id_number', 'id_type', 'id_card_front', 'id_card_back',
+      };
+      body.removeWhere((key, value) => !technicianApiFields.contains(key));
       await ApiService.instance.updateTechnicianProfile(body);
     } else {
       await ApiService.instance.updateProfile(body);

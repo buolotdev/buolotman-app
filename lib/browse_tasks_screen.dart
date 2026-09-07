@@ -167,7 +167,7 @@ class BrowseTasksScreen extends StatelessWidget {
                   color: const Color(0xFFFF4500).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text('\$${task.budget.toStringAsFixed(0)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
+                child: Text('${task.budget.toStringAsFixed(0)} XOF', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF001F3F))),
               ),
             ],
           ),

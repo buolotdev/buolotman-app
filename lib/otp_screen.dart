@@ -24,8 +24,9 @@ class OTPScreen extends StatefulWidget {
 }
 
 class _OTPScreenState extends State<OTPScreen> {
-  final List<TextEditingController> _controllers = List.generate(4, (index) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(4, (index) => FocusNode());
+  static const int _otpLength = 6;
+  final List<TextEditingController> _controllers = List.generate(_otpLength, (index) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(_otpLength, (index) => FocusNode());
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
@@ -39,7 +40,7 @@ class _OTPScreenState extends State<OTPScreen> {
     if (widget.otpCode != null && widget.otpCode!.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // 1. Auto-fill the inputs
-        for (int i = 0; i < widget.otpCode!.length && i < 4; i++) {
+        for (int i = 0; i < widget.otpCode!.length && i < _otpLength; i++) {
           _controllers[i].text = widget.otpCode![i];
         }
         // 2. Trigger native OS/system tray notification
@@ -90,13 +91,15 @@ class _OTPScreenState extends State<OTPScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                "Enter the 4-digit code sent to ${widget.email}",
+                widget.otpCode != null && widget.otpCode!.isNotEmpty
+                    ? "Your verification code was sent to a notification on this device."
+                    : "Enter the 6-digit code sent to your phone or email.",
                 style: const TextStyle(color: Color(0xFF64748B), height: 1.5),
               ),
               const SizedBox(height: 36),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(4, (index) => _buildOTPBox(index)),
+                children: List.generate(_otpLength, (index) => _buildOTPBox(index)),
               ),
               if (isForgotPassword) ...[
                 const SizedBox(height: 32),
@@ -152,9 +155,9 @@ class _OTPScreenState extends State<OTPScreen> {
                 child: ElevatedButton(
                   onPressed: () async {
                     final code = _controllers.map((c) => c.text.trim()).join();
-                    if (code.length < 4) {
+                    if (code.length < _otpLength) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please enter a 4-digit code.')),
+                        const SnackBar(content: Text('Please enter the 6-digit code.')),
                       );
                       return;
                     }
@@ -277,7 +280,7 @@ class _OTPScreenState extends State<OTPScreen> {
                         setState(() {
                           _activeChallengeId = newChallengeId;
                           if (newOtpCode != null && newOtpCode.isNotEmpty) {
-                            for (int i = 0; i < newOtpCode.length && i < 4; i++) {
+                            for (int i = 0; i < newOtpCode.length && i < _otpLength; i++) {
                               _controllers[i].text = newOtpCode[i];
                             }
                           }
@@ -315,8 +318,8 @@ class _OTPScreenState extends State<OTPScreen> {
 
   Widget _buildOTPBox(int index) {
     return Container(
-      width: 64,
-      height: 64,
+      width: 48,
+      height: 56,
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(12),
@@ -332,7 +335,7 @@ class _OTPScreenState extends State<OTPScreen> {
           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF001F3F)),
           decoration: const InputDecoration(counterText: "", border: InputBorder.none),
           onChanged: (value) {
-            if (value.isNotEmpty && index < 3) {
+            if (value.isNotEmpty && index < _otpLength - 1) {
               _focusNodes[index + 1].requestFocus();
             } else if (value.isEmpty && index > 0) {
               _focusNodes[index - 1].requestFocus();

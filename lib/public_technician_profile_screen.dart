@@ -81,7 +81,7 @@ class PublicTechnicianProfileScreen extends StatelessWidget {
             radius: 50,
             backgroundImage: (technicianData['avatar_url'] != null && technicianData['avatar_url'].toString().isNotEmpty)
                 ? NetworkImage(technicianData['avatar_url'])
-                : const AssetImage('assets/images/default_avatar.png') as ImageProvider,
+                : const AssetImage('assets/images/onboard3.jpg') as ImageProvider,
           ),
           const SizedBox(height: 12),
           Row(

@@ -22,6 +22,7 @@ class AppUser {
     this.dailyRate = 0.0,
     this.fixedPrice = 0.0,
     this.inspectionFee = 0.0,
+    this.isNegotiable = true,
     this.toolsAndEquipment = const [],
     this.workPreferences = const [],
     this.city = '',
@@ -100,6 +101,7 @@ class AppUser {
   final double dailyRate;
   final double fixedPrice;
   final double inspectionFee;
+  final bool isNegotiable;
   final List<String> toolsAndEquipment;
   final List<String> workPreferences;
   final String city;
@@ -178,6 +180,7 @@ class AppUser {
     double? dailyRate,
     double? fixedPrice,
     double? inspectionFee,
+    bool? isNegotiable,
     List<String>? toolsAndEquipment,
     List<String>? workPreferences,
     String? city,
@@ -256,6 +259,7 @@ class AppUser {
       dailyRate: dailyRate ?? this.dailyRate,
       fixedPrice: fixedPrice ?? this.fixedPrice,
       inspectionFee: inspectionFee ?? this.inspectionFee,
+      isNegotiable: isNegotiable ?? this.isNegotiable,
       toolsAndEquipment: toolsAndEquipment ?? this.toolsAndEquipment,
       workPreferences: workPreferences ?? this.workPreferences,
       city: city ?? this.city,
@@ -681,6 +685,9 @@ class ServiceItem {
 }
 
 ImageProvider getAvatarImageProvider(String avatarUrl) {
+  if (avatarUrl.startsWith('/')) {
+    avatarUrl = 'http://BoulotMan-API-env.eba-exncce63.eu-north-1.elasticbeanstalk.com$avatarUrl';
+  }
   if (avatarUrl.startsWith('data:image/')) {
     final base64Content = avatarUrl.split(',').last;
     return MemoryImage(base64Decode(base64Content));
@@ -692,6 +699,9 @@ ImageProvider getAvatarImageProvider(String avatarUrl) {
 }
 
 Widget buildAvatarImage(String avatarUrl, {double? width, double? height, BoxFit fit = BoxFit.cover, Widget? fallback}) {
+  if (avatarUrl.startsWith('/')) {
+    avatarUrl = 'http://BoulotMan-API-env.eba-exncce63.eu-north-1.elasticbeanstalk.com$avatarUrl';
+  }
   if (avatarUrl.startsWith('data:image/')) {
     final base64Content = avatarUrl.split(',').last;
     return Image.memory(

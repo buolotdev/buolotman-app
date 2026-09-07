@@ -1,8 +1,9 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
@@ -14,29 +15,24 @@ class ApiService {
   bool _showingIpDialog = false;
 
   String get baseUrl {
-    if (kIsWeb) {
-      var host = Uri.base.host;
-      if (host == 'localhost') {
-        host = '127.0.0.1';
-      }
-      if (host.isNotEmpty) {
-        return 'http://$host:8000/api';
-      }
-    }
     if (ipOverride != null && ipOverride!.isNotEmpty) {
       final cleanOverride = ipOverride!.trim();
-      if (cleanOverride.startsWith('http://') || cleanOverride.startsWith('https://')) {
-        return cleanOverride.endsWith('/api') ? cleanOverride : '$cleanOverride/api';
+      if (cleanOverride.startsWith('http://') ||
+          cleanOverride.startsWith('https://')) {
+        return cleanOverride.endsWith('/api')
+            ? cleanOverride
+            : '$cleanOverride/api';
       }
-      if (cleanOverride.contains('.') && !RegExp(r'^[0-9.]+$').hasMatch(cleanOverride)) {
+      if (cleanOverride.contains('.') &&
+          !RegExp(r'^[0-9.]+$').hasMatch(cleanOverride)) {
         // It's a domain name (like buolotman-app.onrender.com)
         return 'https://$cleanOverride/api';
       }
       // Otherwise treat as raw local IP
       return 'http://$cleanOverride:8000/api';
     }
-    // Fallback to production cloud backend on Render
-    return 'https://buolotman-app.onrender.com/api';
+    // Production mobile backend: the same AWS API used by the website/admin.
+    return 'http://BoulotMan-API-env.eba-exncce63.eu-north-1.elasticbeanstalk.com/api';
   }
 
   String? _accessToken;
@@ -71,7 +67,10 @@ class ApiService {
     });
   }
 
-  Map<String, String> _getHeaders({bool requireAuth = true, bool isMultipart = false}) {
+  Map<String, String> _getHeaders({
+    bool requireAuth = true,
+    bool isMultipart = false,
+  }) {
     final Map<String, String> headers = {};
     if (!isMultipart) {
       headers['Content-Type'] = 'application/json';
@@ -87,7 +86,9 @@ class ApiService {
     if (_showingIpDialog) return;
     _showingIpDialog = true;
 
-    final controller = TextEditingController(text: ipOverride ?? 'buolot-man-backend.onrender.com');
+    final controller = TextEditingController(
+      text: ipOverride ?? 'buolot-man-backend.onrender.com',
+    );
 
     Get.dialog(
       AlertDialog(
@@ -143,12 +144,18 @@ class ApiService {
     );
   }
 
-  Future<http.Response> _wrapRequest(Future<http.Response> Function() reqFn) async {
+  Future<http.Response> _wrapRequest(
+    Future<http.Response> Function() reqFn,
+  ) async {
     try {
       return await reqFn();
     } catch (e) {
       final errStr = e.toString();
-      if (errStr.contains('SocketException') || errStr.contains('Connection failed') || errStr.contains('Connection timed out') || errStr.contains('Operation timed out') || errStr.contains('timed out')) {
+      if (errStr.contains('SocketException') ||
+          errStr.contains('Connection failed') ||
+          errStr.contains('Connection timed out') ||
+          errStr.contains('Operation timed out') ||
+          errStr.contains('timed out')) {
         _showIpOverrideDialog();
       }
       rethrow;
@@ -158,12 +165,19 @@ class ApiService {
   Future<http.Response> get(String path, {bool requireAuth = true}) async {
     return _wrapRequest(() async {
       final url = Uri.parse('$baseUrl$path');
-      final response = await http.get(url, headers: _getHeaders(requireAuth: requireAuth));
+      final response = await http.get(
+        url,
+        headers: _getHeaders(requireAuth: requireAuth),
+      );
       return response;
     });
   }
 
-  Future<http.Response> post(String path, Map<String, dynamic> body, {bool requireAuth = true}) async {
+  Future<http.Response> post(
+    String path,
+    Map<String, dynamic> body, {
+    bool requireAuth = true,
+  }) async {
     return _wrapRequest(() async {
       final url = Uri.parse('$baseUrl$path');
       final response = await http.post(
@@ -175,7 +189,11 @@ class ApiService {
     });
   }
 
-  Future<http.Response> patch(String path, Map<String, dynamic> body, {bool requireAuth = true}) async {
+  Future<http.Response> patch(
+    String path,
+    Map<String, dynamic> body, {
+    bool requireAuth = true,
+  }) async {
     return _wrapRequest(() async {
       final url = Uri.parse('$baseUrl$path');
       final response = await http.patch(
@@ -190,9 +208,116 @@ class ApiService {
   Future<http.Response> delete(String path, {bool requireAuth = true}) async {
     return _wrapRequest(() async {
       final url = Uri.parse('$baseUrl$path');
-      final response = await http.delete(url, headers: _getHeaders(requireAuth: requireAuth));
+      final response = await http.delete(
+        url,
+        headers: _getHeaders(requireAuth: requireAuth),
+      );
       return response;
     });
+  }
+
+  Future<String> uploadAvatar(File file) async {
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$baseUrl/uploads/avatar/'),
+    );
+    request.headers.addAll(_getHeaders(isMultipart: true));
+    final path = file.path.toLowerCase();
+    final mediaType = path.endsWith('.png')
+        ? MediaType('image', 'png')
+        : path.endsWith('.webp')
+        ? MediaType('image', 'webp')
+        : MediaType('image', 'jpeg');
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        file.path,
+        contentType: mediaType,
+      ),
+    );
+    final response = await http.Response.fromStream(await request.send());
+    Map<String, dynamic> data = {};
+    try {
+      data = jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (_) {}
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(data['error'] ?? 'Avatar upload failed.');
+    }
+    final url = data['avatar_url'] ?? data['url'];
+    if (url is! String || url.isEmpty)
+      throw Exception('Avatar upload returned no URL.');
+    return url;
+  }
+
+  /// Upload a technician verification file and create the database record
+  /// consumed by the website admin verification dashboard.
+  Future<Map<String, dynamic>> uploadTechnicianDocument({
+    required File file,
+    required String title,
+    required String documentType,
+  }) async {
+    final uploadRequest = http.MultipartRequest(
+      'POST',
+      Uri.parse('$baseUrl/uploads/document/'),
+    );
+    uploadRequest.headers.addAll(_getHeaders(isMultipart: true));
+    final path = file.path.toLowerCase();
+    final mediaType = path.endsWith('.pdf')
+        ? MediaType('application', 'pdf')
+        : path.endsWith('.png')
+        ? MediaType('image', 'png')
+        : path.endsWith('.webp')
+        ? MediaType('image', 'webp')
+        : path.endsWith('.jpg') || path.endsWith('.jpeg')
+        ? MediaType('image', 'jpeg')
+        : path.endsWith('.doc')
+        ? MediaType('application', 'msword')
+        : path.endsWith('.docx')
+        ? MediaType(
+            'application',
+            'vnd.openxmlformats-officedocument.wordprocessingml.document',
+          )
+        : MediaType('application', 'octet-stream');
+    uploadRequest.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        file.path,
+        contentType: mediaType,
+      ),
+    );
+
+    final streamedResponse = await uploadRequest.send();
+    final uploadResponse = await http.Response.fromStream(streamedResponse);
+    Map<String, dynamic> uploadData = {};
+    try {
+      uploadData = jsonDecode(uploadResponse.body) as Map<String, dynamic>;
+    } catch (_) {}
+    if (uploadResponse.statusCode < 200 || uploadResponse.statusCode >= 300) {
+      throw Exception(uploadData['error'] ?? 'Document upload failed.');
+    }
+
+    final fileUrl = uploadData['file_url'] ?? uploadData['url'];
+    if (fileUrl is! String || fileUrl.isEmpty) {
+      throw Exception('Document upload did not return a file URL.');
+    }
+
+    final recordResponse = await post('/auth/technician-documents/', {
+      'title': title,
+      'document_type': documentType,
+      'file_url': fileUrl,
+    });
+    if (recordResponse.statusCode < 200 || recordResponse.statusCode >= 300) {
+      Map<String, dynamic> recordData = {};
+      try {
+        recordData = jsonDecode(recordResponse.body) as Map<String, dynamic>;
+      } catch (_) {}
+      throw Exception(
+        recordData['detail'] ??
+            recordData['error'] ??
+            'Document record creation failed.',
+      );
+    }
+    return jsonDecode(recordResponse.body) as Map<String, dynamic>;
   }
 
   // ─── AUTHENTICATION ENDPOINTS ──────────────────────────────────────────────
@@ -208,7 +333,14 @@ class ApiService {
       setTokens(data['access'], data['refresh']);
       return data;
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
       throw Exception(err['detail'] ?? err['error'] ?? 'Failed to log in.');
     }
   }
@@ -229,8 +361,17 @@ class ApiService {
     }, requireAuth: false);
 
     if (response.statusCode != 201) {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? _parseValidationErrors(err),
+      );
     }
   }
 
@@ -250,8 +391,17 @@ class ApiService {
     }, requireAuth: false);
 
     if (response.statusCode != 201) {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? _parseValidationErrors(err),
+      );
     }
   }
 
@@ -275,8 +425,17 @@ class ApiService {
     }, requireAuth: false);
 
     if (response.statusCode != 201) {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? _parseValidationErrors(err),
+      );
     }
   }
 
@@ -294,8 +453,17 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? 'Failed to update profile.');
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      final details = err['detail'] ?? err['error'];
+      if (details != null) throw Exception(details.toString());
+      throw Exception(_parseValidationErrors(err));
     }
   }
 
@@ -346,18 +514,39 @@ class ApiService {
     if (response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? _parseValidationErrors(err),
+      );
     }
   }
 
-  Future<Map<String, dynamic>> updateTask(int taskId, Map<String, dynamic> taskData) async {
+  Future<Map<String, dynamic>> updateTask(
+    int taskId,
+    Map<String, dynamic> taskData,
+  ) async {
     final response = await patch('/tasks/$taskId/', taskData);
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? 'Failed to update task.');
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? 'Failed to update task.',
+      );
     }
   }
 
@@ -366,8 +555,17 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? 'Failed to publish task.');
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? 'Failed to publish task.',
+      );
     }
   }
 
@@ -376,8 +574,17 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? 'Failed to complete task.');
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? 'Failed to complete task.',
+      );
     }
   }
 
@@ -386,8 +593,17 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? 'Failed to submit work.');
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? 'Failed to submit work.',
+      );
     }
   }
 
@@ -396,8 +612,17 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? 'Failed to cancel task.');
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? 'Failed to cancel task.',
+      );
     }
   }
 
@@ -406,8 +631,17 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? 'Failed to delete task.');
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? 'Failed to delete task.',
+      );
     }
   }
 
@@ -439,8 +673,17 @@ class ApiService {
     if (response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? _parseValidationErrors(err),
+      );
     }
   }
 
@@ -474,7 +717,10 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> requestWithdrawal(double amount, String method) async {
+  Future<Map<String, dynamic>> requestWithdrawal(
+    double amount,
+    String method,
+  ) async {
     final response = await post('/wallet/withdraw/', {
       'amount': amount,
       'account_details': {'method': method},
@@ -483,8 +729,17 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? _parseValidationErrors(err),
+      );
     }
   }
 
@@ -502,8 +757,17 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? 'Failed to deposit escrow.');
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? 'Failed to deposit escrow.',
+      );
     }
   }
 
@@ -512,8 +776,17 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? 'Failed to release escrow.');
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? 'Failed to release escrow.',
+      );
     }
   }
 
@@ -528,7 +801,9 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> fetchConversationDetail(int conversationId) async {
+  Future<Map<String, dynamic>> fetchConversationDetail(
+    int conversationId,
+  ) async {
     final response = await get('/conversations/$conversationId/');
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -537,7 +812,12 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> sendMessage(int conversationId, String text, {String? attachmentUrl, String? attachmentName}) async {
+  Future<Map<String, dynamic>> sendMessage(
+    int conversationId,
+    String text, {
+    String? attachmentUrl,
+    String? attachmentName,
+  }) async {
     final response = await post('/conversations/$conversationId/messages/', {
       'text': text,
       if (attachmentUrl != null) 'attachment_url': attachmentUrl,
@@ -554,8 +834,17 @@ class ApiService {
   Future<void> deleteConversation(int conversationId) async {
     final response = await delete('/conversations/$conversationId/');
     if (response.statusCode != 200) {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? 'Failed to delete conversation.');
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? 'Failed to delete conversation.',
+      );
     }
   }
 
@@ -567,8 +856,17 @@ class ApiService {
     if (response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? 'Failed to open conversation.');
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? 'Failed to open conversation.',
+      );
     }
   }
 
@@ -584,7 +882,9 @@ class ApiService {
   }
 
   Future<List<dynamic>> fetchPublicUsers({String? role}) async {
-    final path = role != null ? '/auth/users/?role=${role.toUpperCase()}' : '/auth/users/';
+    final path = role != null
+        ? '/auth/users/?role=${role.toUpperCase()}'
+        : '/auth/users/';
     final response = await get(path, requireAuth: false);
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -619,28 +919,59 @@ class ApiService {
     if (response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? _parseValidationErrors(err),
+      );
     }
   }
 
-  Future<Map<String, dynamic>> updateCompanyProfile(Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> updateCompanyProfile(
+    Map<String, dynamic> data,
+  ) async {
     final response = await patch('/company/profile/', data);
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? _parseValidationErrors(err),
+      );
     }
   }
 
-  Future<Map<String, dynamic>> updateTechnicianProfile(Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> updateTechnicianProfile(
+    Map<String, dynamic> data,
+  ) async {
     final response = await patch('/auth/me/', data);
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? _parseValidationErrors(err),
+      );
     }
   }
 
@@ -653,13 +984,24 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> addPortfolioItem(Map<String, dynamic> itemData) async {
+  Future<Map<String, dynamic>> addPortfolioItem(
+    Map<String, dynamic> itemData,
+  ) async {
     final response = await post('/auth/portfolio/', itemData);
     if (response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? _parseValidationErrors(err),
+      );
     }
   }
 
@@ -670,13 +1012,24 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> publishTechnicianService(Map<String, dynamic> serviceData) async {
+  Future<Map<String, dynamic>> publishTechnicianService(
+    Map<String, dynamic> serviceData,
+  ) async {
     final response = await post('/auth/technician-services/', serviceData);
     if (response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? _parseValidationErrors(err),
+      );
     }
   }
 
@@ -701,8 +1054,17 @@ class ApiService {
     if (response.statusCode == 201 || response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? _parseValidationErrors(err),
+      );
     }
   }
 
@@ -740,13 +1102,24 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> publishCompanyService(Map<String, dynamic> serviceData) async {
+  Future<Map<String, dynamic>> publishCompanyService(
+    Map<String, dynamic> serviceData,
+  ) async {
     final response = await post('/company/services/', serviceData);
     if (response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-      throw Exception(err['detail'] ?? err['error'] ?? _parseValidationErrors(err));
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
+      throw Exception(
+        err['detail'] ?? err['error'] ?? _parseValidationErrors(err),
+      );
     }
   }
 
@@ -809,7 +1182,11 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> requestPhoneOTP({String? phone, String? email, String purpose = 'verification'}) async {
+  Future<Map<String, dynamic>> requestPhoneOTP({
+    String? phone,
+    String? email,
+    String purpose = 'verification',
+  }) async {
     final response = await post('/auth/otp/request/', {
       if (phone != null) 'phone': phone,
       if (email != null) 'email': email,
@@ -820,8 +1197,17 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       try {
-        Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-        throw Exception(err['detail'] ?? err['error'] ?? 'Failed to request OTP.');
+        Map<String, dynamic> err;
+        try {
+          err = jsonDecode(response.body);
+        } catch (e) {
+          throw Exception(
+            response.body.isNotEmpty ? response.body : 'Server Error',
+          );
+        }
+        throw Exception(
+          err['detail'] ?? err['error'] ?? 'Failed to request OTP.',
+        );
       } catch (e) {
         if (e is Exception) rethrow;
         throw Exception('Failed to request OTP.');
@@ -844,8 +1230,17 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       try {
-        Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
-        throw Exception(err['detail'] ?? err['error'] ?? 'Failed to reset password.');
+        Map<String, dynamic> err;
+        try {
+          err = jsonDecode(response.body);
+        } catch (e) {
+          throw Exception(
+            response.body.isNotEmpty ? response.body : 'Server Error',
+          );
+        }
+        throw Exception(
+          err['detail'] ?? err['error'] ?? 'Failed to reset password.',
+        );
       } catch (e) {
         if (e is Exception) rethrow;
         throw Exception('Failed to reset password.');
@@ -853,7 +1248,10 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> verifyPhoneOTP(int challengeId, String code) async {
+  Future<Map<String, dynamic>> verifyPhoneOTP(
+    int challengeId,
+    String code,
+  ) async {
     final response = await post('/auth/otp/verify/', {
       'challenge_id': challengeId,
       'code': code,
@@ -908,7 +1306,9 @@ class ApiService {
   }
 
   Future<void> saveProfessional(int professionalId) async {
-    final response = await post('/auth/saved-pros/', {'professional_id': professionalId});
+    final response = await post('/auth/saved-pros/', {
+      'professional_id': professionalId,
+    });
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception('Failed to save professional.');
     }
@@ -931,7 +1331,9 @@ class ApiService {
   }
 
   Future<void> saveService(int serviceId) async {
-    final response = await post('/auth/saved-services/', {'service_id': serviceId});
+    final response = await post('/auth/saved-services/', {
+      'service_id': serviceId,
+    });
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception('Failed to save service.');
     }
@@ -991,24 +1393,39 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> createCompanyProject(Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> createCompanyProject(
+    Map<String, dynamic> body,
+  ) async {
     final response = await post('/company/projects/', body);
     if (response.statusCode == 201 || response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
       throw Exception(err['error'] ?? 'Failed to create project.');
     }
   }
 
   Future<void> deleteCompanyProject(String projectId) async {
-    final response = await http.delete(Uri.parse('$baseUrl/company/projects/$projectId/'), headers: _getHeaders());
+    final response = await http.delete(
+      Uri.parse('$baseUrl/company/projects/$projectId/'),
+      headers: _getHeaders(),
+    );
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Failed to delete project.');
     }
   }
 
-  Future<Map<String, dynamic>> updateCompanyProject(String id, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> updateCompanyProject(
+    String id,
+    Map<String, dynamic> body,
+  ) async {
     final url = Uri.parse('$baseUrl/company/projects/$id/');
     final response = await http.patch(
       url,
@@ -1018,7 +1435,14 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
       throw Exception(err['error'] ?? 'Failed to update project.');
     }
   }
@@ -1026,20 +1450,27 @@ class ApiService {
   Future<void> completeProfile(Map<String, dynamic> body) async {
     final response = await post('/auth/complete-profile/', body);
     if (response.statusCode != 200) {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
       throw Exception(err['error'] ?? 'Failed to complete profile.');
     }
   }
 
-  Future<Map<String, dynamic>> googleAuth(String idToken, {String? role}) async {
+  Future<Map<String, dynamic>> googleAuth(
+    String idToken, {
+    String? role,
+  }) async {
     final url = Uri.parse('$baseUrl/auth/google/');
     final response = await http.post(
       url,
       headers: _getHeaders(),
-      body: jsonEncode({
-        'id_token': idToken,
-        if (role != null) 'role': role,
-      }),
+      body: jsonEncode({'id_token': idToken, if (role != null) 'role': role}),
     );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -1048,7 +1479,14 @@ class ApiService {
       }
       return data;
     } else {
-      Map<String, dynamic> err; try { err = jsonDecode(response.body); } catch (e) { throw Exception(response.body.isNotEmpty ? response.body : 'Server Error'); }
+      Map<String, dynamic> err;
+      try {
+        err = jsonDecode(response.body);
+      } catch (e) {
+        throw Exception(
+          response.body.isNotEmpty ? response.body : 'Server Error',
+        );
+      }
       throw Exception(err['error'] ?? 'Google Sign-In failed.');
     }
   }
@@ -1067,4 +1505,3 @@ class ApiService {
     return list.join('\n');
   }
 }
-

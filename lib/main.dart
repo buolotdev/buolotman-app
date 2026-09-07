@@ -1,28 +1,22 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:get/get.dart';
 
-import 'app_state.dart';
-import 'onboarding_screen.dart';
-import 'api_service.dart';
-import 'main_navigation_screen.dart';
+import 'screens/onboarding_screen.dart';
+import 'screens/technician_dashboard_screen.dart';
+import 'screens/client_dashboard_screen.dart';
+import 'screens/company_dashboard_screen.dart';
+import 'core/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'notification_helper.dart';
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await NotificationHelper.initialize();
   try {
     final prefs = await SharedPreferences.getInstance();
-    final savedIp = prefs.getString('backend_ip_override');
-    if (savedIp != null && savedIp.isNotEmpty) {
-      ApiService.instance.ipOverride = savedIp;
-    }
+    await prefs.remove('backend_ip_override');
   } catch (e) {
     debugPrint('Failed to load backend IP override: $e');
   }
-  Get.put(AppState(), permanent: true);
   runApp(const MyApp());
 }
 
@@ -31,10 +25,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!Get.isRegistered<AppState>()) {
-      Get.put(AppState(), permanent: true);
-    }
-    return GetMaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: SplashScreen(),
     );
@@ -68,24 +59,28 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (token != null && token.isNotEmpty && role != null && role.isNotEmpty) {
       try {
-        // Hydrate API service with saved token
-        ApiService.instance.setTokens(token, prefs.getString('refresh_token'));
-        
-        // Sync profile state from server
-        final appState = Get.find<AppState>();
-        await appState.syncProfile();
-        
+        // Validate the persisted session before routing. A deleted account can
+        // leave an old JWT on the device, which must not reopen the dashboard.
+        await ApiService().profile();
+        // Do not let the legacy global-state sync decide the launch route.
+        // Technicians must open the rebuilt technician dashboard directly.
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => MainNavigationScreen(role: role, initialIndex: 0),
+              builder: (context) => role.toUpperCase() == 'TECHNICIAN'
+                  ? const TechnicianDashboardScreen()
+                  : role.toUpperCase() == 'CLIENT'
+                      ? const ClientDashboardScreen()
+                      : role.toUpperCase() == 'COMPANY'
+                          ? const CompanyDashboardScreen()
+                          : const OnboardingScreen(),
             ),
           );
           return;
         }
       } catch (e) {
         // Token might be invalid or expired. Clear session and fallback.
-        ApiService.instance.clearTokens();
+        await ApiService().clearSession();
       }
     }
 

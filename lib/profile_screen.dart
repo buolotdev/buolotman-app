@@ -23,6 +23,19 @@ import 'references_management_screen.dart';
 import 'technician_payout_settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
+  void _previewAvatar(BuildContext context, String avatar) {
+    if (avatar.isEmpty || avatar.contains('onboard') || avatar.startsWith('assets')) return;
+    showDialog(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(12),
+        child: InteractiveViewer(child: Image(image: getAvatarImageProvider(avatar), fit: BoxFit.contain)),
+      ),
+    );
+  }
+
   const ProfileScreen({
     super.key,
     this.name,
@@ -300,15 +313,18 @@ class ProfileScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 44,
-            backgroundColor: const Color(0xFFF1F5F9),
-            backgroundImage: (displayAvatar.isNotEmpty && !displayAvatar.contains('onboard'))
-                ? getAvatarImageProvider(displayAvatar)
-                : null,
-            child: (displayAvatar.isEmpty || displayAvatar.contains('onboard'))
-                ? const Icon(Icons.person, size: 48, color: Color(0xFF94A3B8))
-                : null,
+          GestureDetector(
+            onTap: () => _previewAvatar(context, displayAvatar),
+            child: CircleAvatar(
+              radius: 44,
+              backgroundColor: const Color(0xFFF1F5F9),
+              backgroundImage: (displayAvatar.isNotEmpty && !displayAvatar.contains('onboard'))
+                  ? getAvatarImageProvider(displayAvatar)
+                  : null,
+              child: (displayAvatar.isEmpty || displayAvatar.contains('onboard'))
+                  ? const Icon(Icons.person, size: 48, color: Color(0xFF94A3B8))
+                  : null,
+            ),
           ),
           const SizedBox(height: 16),
           Text(displayName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
@@ -530,55 +546,62 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _confirmDeleteAccount(BuildContext context) {
+    final confirmationController = TextEditingController();
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Delete Account?',
-          style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF001F3F)),
-        ),
-        content: const Text(
-          'This will permanently delete your account and all your data. '
-          'You cannot undo this action.\n\n'
-          'If you want to re-register with a different role, you can sign up again after deletion.',
-          style: TextStyle(color: Color(0xFF64748B), height: 1.5),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel',
-                style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Delete Account?', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF001F3F))),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'This permanently deletes your profile, documents, tasks, bids, and account data. This action cannot be undone.',
+                style: TextStyle(color: Color(0xFF64748B), height: 1.5),
+              ),
+              const SizedBox(height: 16),
+              const Text('Type DELETE to confirm', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF991B1B))),
+              const SizedBox(height: 8),
+              TextField(
+                controller: confirmationController,
+                autofocus: true,
+                textCapitalization: TextCapitalization.characters,
+                onChanged: (_) => setDialogState(() {}),
+                decoration: InputDecoration(
+                  hintText: 'DELETE',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              try {
-                await AppStateScope.of(context).deleteAccount();
-                if (context.mounted) {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    (route) => false,
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
-                  );
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFB91C1C),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
             ),
-            child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.w700)),
-          ),
-        ],
+            ElevatedButton(
+              onPressed: confirmationController.text.trim().toUpperCase() != 'DELETE' ? null : () async {
+                Navigator.of(ctx).pop();
+                try {
+                  await AppStateScope.of(context).deleteAccount();
+                  if (context.mounted) {
+                    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const LoginScreen()), (route) => false);
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))));
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFB91C1C), foregroundColor: Colors.white),
+              child: const Text('Delete permanently', style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ],
+        ),
       ),
-    );
+    ).then((_) => confirmationController.dispose());
   }
 
   Widget _buildSectionCard({

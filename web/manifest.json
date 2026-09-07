@@ -1,6 +1,6 @@
 {
-    "name": "buolot_man_app",
-    "short_name": "buolot_man_app",
+    "name": "boulotman_mobile",
+    "short_name": "boulotman_mobile",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -366,9 +366,13 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
     if (task == null) return const SizedBox.shrink();
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => BrowseTasksScreen(taskId: taskId)),
-        );
+        () async {
+          await AppStateScope.of(context).loadTaskDetail(taskId);
+          if (!context.mounted) return;
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => BrowseTasksScreen(taskId: taskId)),
+          );
+        }();
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
@@ -429,11 +433,15 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
               children: [
                 const Icon(Icons.location_on_outlined, size: 14, color: Color(0xFF64748B)),
                 const SizedBox(width: 4),
-                Text(task.location, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
+                Expanded(
+                  child: Text(task.location, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
+                ),
                 const SizedBox(width: 16),
                 const Icon(Icons.work_outline, size: 14, color: Color(0xFF64748B)),
                 const SizedBox(width: 4),
-                Text(task.category, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
+                Expanded(
+                  child: Text(task.category, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -468,7 +476,7 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
                   ],
                 ),
                 Text(
-                  '\$${task.budget.toStringAsFixed(0)}',
+                  '${task.budget.toStringAsFixed(0)} XOF',
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFFF4500)),
                 ),
               ],
