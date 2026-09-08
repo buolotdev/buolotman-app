@@ -10,6 +10,7 @@ import 'api_service.dart';
 class RealtimeChatConnection {
   WebSocketChannel? _channel;
   StreamSubscription? _subscription;
+  Timer? _heartbeat;
 
   Future<void> connect({
     required dynamic conversationId,
@@ -34,6 +35,13 @@ class RealtimeChatConnection {
           onError?.call(error);
         }
       }, onError: (Object error) => onError?.call(error));
+      _heartbeat = Timer.periodic(const Duration(seconds: 25), (_) {
+        try {
+          _channel?.sink.add(jsonEncode({'type': 'ping'}));
+        } catch (error) {
+          onError?.call(error);
+        }
+      });
     } catch (error) {
       onError?.call(error);
       await close();
@@ -41,6 +49,8 @@ class RealtimeChatConnection {
   }
 
   Future<void> close() async {
+    _heartbeat?.cancel();
+    _heartbeat = null;
     await _subscription?.cancel();
     _subscription = null;
     await _channel?.sink.close();
