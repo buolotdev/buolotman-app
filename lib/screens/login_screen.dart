@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../core/api_service.dart';
 import 'technician_dashboard_screen.dart';
@@ -24,8 +25,9 @@ class _LoginScreenState extends State<LoginScreen> {
       final google = GoogleSignIn(
         serverClientId:
             '1090108678391-00u5aomsoh2gu7rqk2vnfldt9cs4fovq.apps.googleusercontent.com',
-        clientId:
-            '1090108678391-ehsc9ee5k8r9tskdv15ammmmdsic3rnc.apps.googleusercontent.com',
+        clientId: defaultTargetPlatform == TargetPlatform.iOS
+            ? '1090108678391-nb89l4orlsf8kpvj52gunjs2c437t7ia.apps.googleusercontent.com'
+            : null,
         scopes: ['email', 'profile'],
       );
       await google.signOut();

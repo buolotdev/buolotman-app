@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'app_state.dart';
 import 'signup_screen.dart';
@@ -531,6 +532,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               final googleSignIn = GoogleSignIn(
                                 serverClientId:
                                     '1090108678391-00u5aomsoh2gu7rqk2vnfldt9cs4fovq.apps.googleusercontent.com',
+                                clientId:
+                                    defaultTargetPlatform == TargetPlatform.iOS
+                                    ? '1090108678391-nb89l4orlsf8kpvj52gunjs2c437t7ia.apps.googleusercontent.com'
+                                    : null,
                                 scopes: ['email', 'profile'],
                               );
                               final GoogleSignInAccount? account =
