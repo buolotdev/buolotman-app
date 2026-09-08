@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../core/api_service.dart';
 
 class CompanyProfileScreen extends StatefulWidget {
@@ -196,14 +197,14 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                 .toList() ??
             []);
   Future<void> _upload(bool cover) async {
-    final result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp', 'gif'],
-      withData: true,
+    final image = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 90,
+      maxWidth: 2400,
     );
-    if (!mounted || result == null || result.files.single.bytes == null) return;
-    final file = result.files.single;
-    if (file.bytes!.length > 25 * 1024 * 1024) {
+    if (!mounted || image == null) return;
+    final bytes = await image.readAsBytes();
+    if (bytes.length > 25 * 1024 * 1024) {
       _snack('Images must be 25 MB or smaller.');
       return;
     }
@@ -215,11 +216,8 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     });
     try {
       final url = cover
-          ? await api.uploadBannerBytes(bytes: file.bytes!, filename: file.name)
-          : await api.uploadAvatarBytes(
-              bytes: file.bytes!,
-              filename: file.name,
-            );
+          ? await api.uploadBannerBytes(bytes: bytes, filename: image.name)
+          : await api.uploadAvatarBytes(bytes: bytes, filename: image.name);
       await api.updateCompanyProfile({(cover ? 'cover_url' : 'logo_url'): url});
       if (mounted)
         setState(() {

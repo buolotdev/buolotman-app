@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
 import '../core/api_service.dart';
@@ -341,6 +340,9 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
             : null,
       );
     final avatar = api.resolveImageUrl(profile['avatar_url'] as String?);
+    final banner = api.resolveImageUrl(
+      (profile['banner_url'] ?? profile['cover_url']) as String?,
+    );
     final type =
         {
           'household': 'Individual / Household',
@@ -368,6 +370,13 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (banner.isNotEmpty)
+            SizedBox(
+              width: double.infinity,
+              height: 156,
+              child: Image.network(banner, fit: BoxFit.cover),
+            ),
+          if (banner.isNotEmpty) const SizedBox(height: 14),
           Card(
             elevation: 0,
             child: Padding(
@@ -565,7 +574,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       loading = true,
       saving = false,
       uploading = false;
-  String? avatar;
+  String? avatar, banner;
   static const countries = [
     'Benin',
     'Nigeria',
@@ -663,6 +672,9 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       address.text = '${p['address'] ?? p['city'] ?? ''}';
       language = '${p['language_preference'] ?? 'en'}';
       avatar = api.resolveImageUrl(p['avatar_url'] as String?);
+      banner = api.resolveImageUrl(
+        (p['banner_url'] ?? p['cover_url']) as String?,
+      );
       about.text = prefs.getString('client_about') ?? '';
       clientType = prefs.getString('client_type') ?? 'household';
       industry = prefs.getString('client_industry') ?? industry;
@@ -794,6 +806,43 @@ class _ClientProfileState extends State<ClientProfileScreen> {
     if (mounted) setState(() => uploading = false);
   }
 
+  Future<void> _pickBanner() async {
+    final file = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 90,
+      maxWidth: 2400,
+    );
+    if (file == null) return;
+    final extension = file.name.toLowerCase().split('.').last;
+    const supported = {'jpg', 'jpeg', 'png', 'webp', 'gif'};
+    if (!supported.contains(extension)) {
+      if (mounted)
+        _snack('Please choose a JPG, PNG, WEBP, or GIF image.', error: true);
+      return;
+    }
+    final bytes = await file.readAsBytes();
+    if (bytes.length > 25 * 1024 * 1024) {
+      if (mounted)
+        _snack('Cover image must be smaller than 25 MB.', error: true);
+      return;
+    }
+    setState(() => uploading = true);
+    try {
+      final url = await api.uploadBannerBytes(
+        bytes: bytes,
+        filename: file.name,
+      );
+      await api.updateProfile({'banner_url': url});
+      if (mounted) {
+        setState(() => banner = api.resolveImageUrl(url));
+        _snack('Cover image updated.');
+      }
+    } catch (_) {
+      if (mounted) _snack('We could not upload your cover image.', error: true);
+    }
+    if (mounted) setState(() => uploading = false);
+  }
+
   InputDecoration _dec(String label, {IconData? icon}) => InputDecoration(
     labelText: label,
     prefixIcon: icon == null ? null : Icon(icon, color: clientMuted),
@@ -880,6 +929,32 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
+          _section('Cover image', [
+            if (banner != null && banner!.isNotEmpty)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  banner!,
+                  width: double.infinity,
+                  height: 140,
+                  fit: BoxFit.cover,
+                ),
+              )
+            else
+              Container(
+                width: double.infinity,
+                height: 140,
+                alignment: Alignment.center,
+                color: const Color(0xFFE2E8F0),
+                child: const Text('No cover image yet'),
+              ),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: uploading ? null : _pickBanner,
+              icon: const Icon(Icons.image_outlined),
+              label: Text(uploading ? 'Uploading...' : 'Choose cover image'),
+            ),
+          ]),
           _section('Profile photo', [
             Center(
               child: GestureDetector(
@@ -1426,9 +1501,19 @@ class _PublicProfessionalState extends State<ClientPublicProfessionalScreen> {
             '${p['name'] ?? '${p['first_name'] ?? ''} ${p['last_name'] ?? ''}'}'
                 .trim();
         final avatar = api.resolveImageUrl(p['avatar_url'] as String?);
+        final banner = api.resolveImageUrl(
+          (p['banner_url'] ?? p['cover_url']) as String?,
+        );
         return ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            if (banner.isNotEmpty)
+              SizedBox(
+                width: double.infinity,
+                height: 156,
+                child: Image.network(banner, fit: BoxFit.cover),
+              ),
+            if (banner.isNotEmpty) const SizedBox(height: 14),
             Card(
               elevation: 0,
               child: Padding(

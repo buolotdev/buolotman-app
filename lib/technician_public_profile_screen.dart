@@ -154,6 +154,10 @@ class _TechnicianPublicProfileScreenState
         (dataMap['avatar_url']?.toString().isNotEmpty == true)
         ? dataMap['avatar_url']
         : widget.avatar;
+    final String bannerUrl =
+        dataMap['banner_url']?.toString().isNotEmpty == true
+        ? dataMap['banner_url'].toString()
+        : (dataMap['cover_url']?.toString() ?? '');
 
     final String availability =
         (dataMap['availability_status']?.toString() ?? 'available')
@@ -254,6 +258,7 @@ class _TechnicianPublicProfileScreenState
                 availText,
                 verificationBadge,
                 city,
+                bannerUrl,
               ),
               const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
               Padding(
@@ -715,166 +720,180 @@ class _TechnicianPublicProfileScreenState
     String availText,
     String verificationBadge,
     String city,
+    String bannerUrl,
   ) {
-    return Container(
-      width: double.infinity,
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: avatarUrl.isNotEmpty
-                      ? DecorationImage(
-                          image: avatarUrl.startsWith('data:image')
-                              ? MemoryImage(
-                                  base64Decode(avatarUrl.split(',').last),
-                                )
-                              : getAvatarImageProvider(avatarUrl),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                  color: const Color(0xFFF1F5F9),
-                  border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
-                ),
-                child: avatarUrl.isEmpty
-                    ? const Icon(
-                        Icons.person,
-                        size: 40,
-                        color: Color(0xFF94A3B8),
-                      )
-                    : null,
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: availColor,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 3),
-                  ),
-                ),
-              ),
-            ],
+    return Column(
+      children: [
+        if (bannerUrl.isNotEmpty)
+          SizedBox(
+            width: double.infinity,
+            height: 156,
+            child: Image.network(bannerUrl, fit: BoxFit.cover),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.name,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF001F3F),
+        Container(
+          width: double.infinity,
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: avatarUrl.isNotEmpty
+                          ? DecorationImage(
+                              image: avatarUrl.startsWith('data:image')
+                                  ? MemoryImage(
+                                      base64Decode(avatarUrl.split(',').last),
+                                    )
+                                  : getAvatarImageProvider(avatarUrl),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                      color: const Color(0xFFF1F5F9),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 2,
+                      ),
+                    ),
+                    child: avatarUrl.isEmpty
+                        ? const Icon(
+                            Icons.person,
+                            size: 40,
+                            color: Color(0xFF94A3B8),
+                          )
+                        : null,
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  tagline,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFFF5500),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: availColor,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 3),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 4,
+                ],
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
+                    Text(
+                      widget.name,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF001F3F),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      tagline,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFFF5500),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 4,
                       children: [
-                        const Icon(
-                          Icons.star,
-                          color: Color(0xFFFFB020),
-                          size: 16,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.star,
+                              color: Color(0xFFFFB020),
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              ratingText,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          ratingText,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
+                        if (city.isNotEmpty)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.location_on,
+                                color: Color(0xFF64748B),
+                                size: 16,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                city,
+                                style: const TextStyle(
+                                  color: Color(0xFF64748B),
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
                       ],
                     ),
-                    if (city.isNotEmpty)
-                      Row(
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: verificationBadge == 'Unverified'
+                            ? const Color(0xFFF1F5F9)
+                            : const Color(0xFFE0F2FE),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
-                            Icons.location_on,
-                            color: Color(0xFF64748B),
-                            size: 16,
+                          Icon(
+                            verificationBadge == 'Unverified'
+                                ? Icons.info_outline
+                                : Icons.verified,
+                            size: 12,
+                            color: verificationBadge == 'Unverified'
+                                ? const Color(0xFF64748B)
+                                : const Color(0xFF0284C7),
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            city,
-                            style: const TextStyle(
-                              color: Color(0xFF64748B),
-                              fontSize: 13,
+                            verificationBadge,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: verificationBadge == 'Unverified'
+                                  ? const Color(0xFF64748B)
+                                  : const Color(0xFF0284C7),
                             ),
                           ),
                         ],
                       ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: verificationBadge == 'Unverified'
-                        ? const Color(0xFFF1F5F9)
-                        : const Color(0xFFE0F2FE),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        verificationBadge == 'Unverified'
-                            ? Icons.info_outline
-                            : Icons.verified,
-                        size: 12,
-                        color: verificationBadge == 'Unverified'
-                            ? const Color(0xFF64748B)
-                            : const Color(0xFF0284C7),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        verificationBadge,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: verificationBadge == 'Unverified'
-                              ? const Color(0xFF64748B)
-                              : const Color(0xFF0284C7),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

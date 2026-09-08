@@ -214,9 +214,23 @@ class _State extends State<TechnicianProfileDetailsScreen> {
           hydrated = true;
         }
         return ListView(
-          padding: const EdgeInsets.fromLTRB(12, 14, 12, 28),
+          padding: const EdgeInsets.fromLTRB(0, 14, 0, 28),
           children: [
+            if (bannerUrl != null && bannerUrl!.isNotEmpty)
+              SizedBox(
+                width: double.infinity,
+                height: 156,
+                child: Image.network(
+                  bannerUrl!,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
+              ),
+            if (bannerUrl != null && bannerUrl!.isNotEmpty)
+              const SizedBox(height: 14),
             Card(
+              margin: const EdgeInsets.symmetric(horizontal: 12),
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(22),
@@ -225,18 +239,6 @@ class _State extends State<TechnicianProfileDetailsScreen> {
                 padding: const EdgeInsets.all(18),
                 child: Column(
                   children: [
-                    if (bannerUrl != null && bannerUrl!.isNotEmpty)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: Image.network(
-                          bannerUrl!,
-                          height: 100,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    if (bannerUrl != null && bannerUrl!.isNotEmpty)
-                      const SizedBox(height: 10),
                     GestureDetector(
                       onTap: avatarUrl == null || avatarUrl!.isEmpty
                           ? null
