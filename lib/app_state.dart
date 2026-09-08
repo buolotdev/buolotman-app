@@ -1,0 +1,2336 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'dart:convert';
+import 'app_models.dart';
+export 'app_models.dart';
+import 'api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+double _parseProfileNumber(dynamic value) {
+  if (value == null) return 0.0;
+  final cleaned = value.toString().replaceAll(RegExp(r'[^0-9.]'), '');
+  return double.tryParse(cleaned) ?? 0.0;
+}
+
+class AppState extends GetxController {
+  AppState() {
+    // Start with a guest user or attempt to load from local storage.
+    // For demo/testing, we fallback to a local mock if not logged in.
+    _currentUser = const AppUser(
+      name: 'Guest User',
+      role: 'Client',
+      tagline: 'Please log in to continue',
+      avatar: 'assets/images/onboard3.jpg',
+    );
+  }
+
+  late AppUser _currentUser;
+  List<TaskItem> _myTasks = [];
+  List<TaskItem> _marketplaceTasks = [];
+  Map<String, dynamic>? _companyProfile;
+  List<BidItem> _bids = [];
+  List<ChatThread> _threads = [];
+  final Map<String, List<ChatMessage>> _threadMessages = {};
+  List<WalletTransaction> _walletTransactions = [];
+  List<ServiceItem> _services = [];
+  final Set<String> _savedServiceIds = {};
+  final Set<String> _savedTechUserIds = {};
+  List<Map<String, dynamic>> _savedPros = [];
+  List<ServiceItem> _savedServices = [];
+  double _walletBalance = 0.0;
+  double _pendingBalance = 0.0;
+
+  List<Map<String, dynamic>> _publicCompanies = [];
+  List<Map<String, dynamic>> _publicPros = [];
+  List<Map<String, dynamic>> _faqPages = [];
+  List<dynamic> _searchResults = [];
+  List<dynamic> _portfolioItems = [];
+  List<Map<String, dynamic>> _technicianReferences = [];
+  List<Map<String, dynamic>> _apiCategories = [];
+  List<Map<String, dynamic>> _companyProjects = [];
+  List<Map<String, dynamic>> _clientContracts = [];
+
+  String? _companyRegistrationStatus;
+  String? _companyRegistrationSummary;
+  String? _verificationStatus;
+  String? _verificationSummary;
+
+  AppUser get currentUser => _currentUser;
+  String get currentRole => _currentUser.role;
+  List<TaskItem> get tasks => List.unmodifiable(_myTasks);
+  List<BidItem> get bids => List.unmodifiable(_bids);
+  List<ChatThread> get threads => List.unmodifiable(_threads);
+  List<ChatMessage> getMessagesForThread(String threadId) =>
+      _threadMessages[threadId] ?? [];
+  List<WalletTransaction> get walletTransactions =>
+      List.unmodifiable(_walletTransactions);
+  List<ServiceItem> get services => List.unmodifiable(_services);
+  List<ServiceItem> get savedServices => List.unmodifiable(_savedServices);
+  List<Map<String, dynamic>> get savedPros => List.unmodifiable(_savedPros);
+  List<Map<String, dynamic>> get publicCompanies =>
+      List.unmodifiable(_publicCompanies);
+  List<Map<String, dynamic>> get publicPros => List.unmodifiable(_publicPros);
+  List<Map<String, dynamic>> get apiCategories =>
+      List.unmodifiable(_apiCategories);
+  List<Map<String, dynamic>> get faqPages => List.unmodifiable(_faqPages);
+  List<dynamic> get searchResults => List.unmodifiable(_searchResults);
+  List<dynamic> get portfolioItems => List.unmodifiable(_portfolioItems);
+  List<Map<String, dynamic>> get technicianReferences =>
+      List.unmodifiable(_technicianReferences);
+  List<Map<String, dynamic>> get companyProjects =>
+      List.unmodifiable(_companyProjects);
+  List<Map<String, dynamic>> get clientContracts =>
+      List.unmodifiable(_clientContracts);
+  String? get companyRegistrationStatus => _companyRegistrationStatus;
+  String? get companyRegistrationSummary => _companyRegistrationSummary;
+  String? get verificationStatus => _verificationStatus;
+  String? get verificationSummary => _verificationSummary;
+  Map<String, dynamic>? get companyProfile => _companyProfile;
+
+  List<TaskItem> get openMarketplaceTasks =>
+      List.unmodifiable(_marketplaceTasks);
+
+  List<TaskItem> get clientTasks => List.unmodifiable(_myTasks);
+
+  double get walletBalance => _walletBalance;
+  double get pendingBalance => _pendingBalance;
+
+  String _formatTime12Hour(dynamic createdAt) {
+    if (createdAt == null) return '12:00 AM';
+    final parsed = DateTime.tryParse(createdAt.toString());
+    if (parsed == null) return '12:00 AM';
+    final local = parsed.toLocal();
+    int hour = local.hour;
+    final int minute = local.minute;
+    final String period = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    if (hour == 0) hour = 12;
+    final String minuteStr = minute < 10 ? '0$minute' : '$minute';
+    return '$hour:$minuteStr $period';
+  }
+
+  // Helper to map Django backend roles to Flutter title case roles
+  String _mapRole(String backendRole) {
+    switch (backendRole.toUpperCase()) {
+      case 'CLIENT':
+        return 'Client';
+      case 'TECHNICIAN':
+        return 'Technician';
+      case 'COMPANY':
+        return 'Company';
+      case 'ADMIN':
+        return 'Admin';
+      default:
+        return 'Client';
+    }
+  }
+
+  // Helper to map Django task status to Flutter status labels
+  String _mapStatus(String backendStatus) {
+    switch (backendStatus.toLowerCase()) {
+      case 'draft':
+        return 'Draft';
+      case 'open':
+        return 'Open';
+      case 'in_progress':
+        return 'In Progress';
+      case 'delivered':
+        return 'Delivered';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      case 'deleted':
+        return 'Deleted';
+      default:
+        return 'Open';
+    }
+  }
+
+  // ─── AUTHENTICATION ACTIONS ────────────────────────────────────────────────
+
+  Future<void> loginUser(String username, String password) async {
+    await ApiService.instance.login(username, password);
+    await syncAll();
+  }
+
+  Future<bool> googleLogin(
+    String idToken, {
+    String? role,
+    bool signup = false,
+  }) async {
+    final response = await ApiService.instance.googleAuth(
+      idToken,
+      role: role,
+      isSignup: signup,
+    );
+    await syncAll();
+    return response['is_new_user'] == true;
+  }
+
+  Future<void> registerAndLogin({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+    required String phone,
+    required String role,
+  }) async {
+    if (role == 'Client') {
+      await ApiService.instance.registerClient(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: password,
+        phone: phone,
+      );
+    } else if (role == 'Technician') {
+      await ApiService.instance.registerTechnician(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: password,
+        phone: phone,
+      );
+    } else {
+      await ApiService.instance.registerCompany(
+        companyName: '$firstName $lastName'.trim(),
+        email: email,
+        password: password,
+        phone: phone,
+      );
+    }
+    // Auto-login after successful registration
+    await loginUser(email, password);
+  }
+
+  Future<Map<String, dynamic>> registerUser({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+    required String phone,
+    required String role,
+    String? registrationNumber,
+    String? taxId,
+    String? industry,
+  }) async {
+    if (role == 'Client') {
+      await ApiService.instance.registerClient(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: password,
+        phone: phone,
+      );
+    } else if (role == 'Technician') {
+      await ApiService.instance.registerTechnician(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: password,
+        phone: phone,
+      );
+    } else {
+      await ApiService.instance.registerCompany(
+        companyName: '$firstName $lastName'.trim(),
+        email: email,
+        password: password,
+        phone: phone,
+        registrationNumber: registrationNumber,
+        taxId: taxId,
+        industry: industry,
+      );
+    }
+    // Request verification OTP code immediately
+    return await ApiService.instance.requestPhoneOTP(
+      phone: phone,
+      email: email,
+      purpose: 'register',
+    );
+  }
+
+  void logout() {
+    ApiService.instance.clearTokens();
+    _currentUser = const AppUser(
+      name: 'Guest User',
+      role: 'Client',
+      tagline: 'Please log in to continue',
+      avatar: 'assets/images/onboard3.jpg',
+    );
+    _myTasks.clear();
+    _marketplaceTasks.clear();
+    _bids.clear();
+    _threads.clear();
+    _walletTransactions.clear();
+    _walletBalance = 0.0;
+    _pendingBalance = 0.0;
+    _savedServiceIds.clear();
+    _savedTechUserIds.clear();
+    _savedPros.clear();
+    _savedServices.clear();
+    _companyProjects.clear();
+    _clientContracts.clear();
+    _portfolioItems = [];
+    update();
+  }
+
+  Future<void> syncReferences() async {
+    try {
+      final response = await ApiService.instance.get('/auth/references/');
+      if (response.statusCode == 200) {
+        final List data = jsonDecode(response.body);
+        _technicianReferences = data.cast<Map<String, dynamic>>();
+        update();
+      }
+    } catch (e) {
+      debugPrint('Error syncing references: $e');
+    }
+  }
+
+  Future<void> addReference(Map<String, dynamic> refData) async {
+    final response = await ApiService.instance.post(
+      '/auth/references/',
+      refData,
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      await syncReferences();
+    } else {
+      throw Exception('Failed to add reference');
+    }
+  }
+
+  Future<void> removeReference(int id) async {
+    final response = await ApiService.instance.delete('/auth/references/$id/');
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      _technicianReferences.removeWhere((item) => item['id'] == id);
+      update();
+    } else {
+      throw Exception('Failed to delete reference');
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    final response = await ApiService.instance.delete('/auth/user/delete/');
+    if (response.statusCode == 204 || response.statusCode == 200) {
+      logout();
+    } else {
+      // Preserve the API response so production auth/permission/routing
+      // failures are diagnosable instead of appearing as a generic update
+      // error.
+      String details = response.body.trim();
+      if (details.isEmpty) details = 'HTTP ${response.statusCode}';
+      throw Exception('Account deletion failed ($details)');
+    }
+  }
+
+  String _normalizeMediaUrl(dynamic value) {
+    final raw = value?.toString() ?? '';
+    if (raw.startsWith('/')) {
+      return 'http://BoulotMan-API-env.eba-exncce63.eu-north-1.elasticbeanstalk.com$raw';
+    }
+    return raw;
+  }
+
+  // ─── STATE SYNCHRONIZATION ──────────────────────────────────────────────────
+
+  Future<void> syncCategories() async {
+    try {
+      final response = await ApiService.instance.get(
+        '/tasks/categories/',
+        requireAuth: false,
+      );
+      if (response.statusCode == 200) {
+        final List data = jsonDecode(response.body);
+        _apiCategories = data.cast<Map<String, dynamic>>();
+        update();
+      }
+    } catch (e) {
+      debugPrint('Failed to sync categories: $e');
+    }
+  }
+
+  Future<void> syncCompanyProjects() async {
+    try {
+      final raw = await ApiService.instance.fetchCompanyProjects();
+      _companyProjects = raw
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+      update();
+    } catch (e) {
+      debugPrint('Error syncing company projects: $e');
+    }
+  }
+
+  Future<void> syncClientContracts() async {
+    try {
+      final raw = await ApiService.instance.fetchClientContracts();
+      _clientContracts = raw
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+      update();
+    } catch (e) {
+      debugPrint('Error syncing client contracts: $e');
+    }
+  }
+
+  Future<void> fundContractEscrow(String projectId) async {
+    await ApiService.instance.fundEscrowPayment(projectId);
+    await syncClientContracts();
+  }
+
+  Future<void> releaseContractEscrow(String projectId) async {
+    await ApiService.instance.releaseEscrowPayment(projectId);
+    await syncClientContracts();
+  }
+
+  Future<Map<String, dynamic>> createProject({
+    int? clientId,
+    required String title,
+    required String clientName,
+    required double budget,
+    required String timeline,
+    required int milestonesTotal,
+    String location = '',
+  }) async {
+    final data = await ApiService.instance.createCompanyProject({
+      'title': title,
+      'client_name': clientName,
+      'client_id': clientId,
+      'budget': budget.toString(),
+      'timeline': timeline,
+      'milestones_total': milestonesTotal,
+      'location': location,
+    });
+    await syncCompanyProjects();
+    return data;
+  }
+
+  Future<void> updateProjectMilestone(
+    String projectId,
+    int milestonesCompleted,
+    int milestonesTotal,
+  ) async {
+    final progress = milestonesTotal > 0
+        ? ((milestonesCompleted / milestonesTotal) * 100).round()
+        : 0;
+    final updated = await ApiService.instance.updateCompanyProject(projectId, {
+      'milestones_completed': milestonesCompleted,
+      'milestones_total': milestonesTotal,
+      'progress': progress,
+      'status': milestonesCompleted >= milestonesTotal && milestonesTotal > 0
+          ? 'completed'
+          : 'active',
+    });
+    final idx = _companyProjects.indexWhere(
+      (p) => p['id']?.toString() == projectId,
+    );
+    if (idx >= 0) {
+      _companyProjects[idx] = updated;
+    } else {
+      _companyProjects.insert(0, updated);
+    }
+    update();
+  }
+
+  Future<void> updateProjectPaymentStatus(
+    String projectId,
+    String paymentStatus,
+  ) async {
+    final updated = await ApiService.instance.updateCompanyProject(projectId, {
+      'payment_status': paymentStatus,
+    });
+    final idx = _companyProjects.indexWhere(
+      (p) => p['id']?.toString() == projectId,
+    );
+    if (idx >= 0) {
+      _companyProjects[idx] = updated;
+    } else {
+      _companyProjects.insert(0, updated);
+    }
+    update();
+  }
+
+  Future<void> updateProjectStatus(String projectId, String status) async {
+    final updated = await ApiService.instance.updateCompanyProject(projectId, {
+      'status': status,
+    });
+    final idx = _companyProjects.indexWhere(
+      (p) => p['id']?.toString() == projectId,
+    );
+    if (idx >= 0) {
+      _companyProjects[idx] = updated;
+    }
+    update();
+  }
+
+  Future<void> syncAll() async {
+    final List<Future<void>> futures = [
+      syncProfile(),
+      syncTasks(),
+      syncWallet(),
+      syncConversations(),
+      syncPublicData(),
+      syncCategories(),
+      syncBids(),
+      syncPortfolio(),
+      syncSavedPros(),
+      syncSavedServices(),
+    ];
+    if (currentRole == 'Company' || currentRole == 'Technician') {
+      futures.add(syncMyServices());
+    }
+    if (currentRole == 'Company') {
+      futures.add(syncCompanyProjects());
+    }
+    if (currentRole == 'Client') {
+      futures.add(syncClientContracts());
+    }
+
+    try {
+      await Future.wait(
+        futures.map(
+          (f) => f.catchError((e) {
+            debugPrint('Error in syncAll concurrent sub-task: $e');
+          }),
+        ),
+      );
+    } catch (e) {
+      debugPrint('Sync All Error: $e');
+    }
+  }
+
+  TaskItem? _mapTaskItem(dynamic t) {
+    try {
+      final double budgetMin = _parseProfileNumber(
+        t['budget_min'] ?? t['min_budget'],
+      );
+      final double budgetMax = _parseProfileNumber(
+        t['budget_max'] ?? t['max_budget'],
+      );
+      final double budget = budgetMax > 0
+          ? budgetMax
+          : budgetMin > 0
+          ? budgetMin
+          : _parseProfileNumber(t['budget'] ?? t['price'] ?? t['amount']);
+
+      final assignedMap = t['assigned_to'] is Map
+          ? t['assigned_to'] as Map<String, dynamic>
+          : null;
+      final String? assignedId = assignedMap?['id']?.toString();
+      final String? assignedName = assignedMap != null
+          ? '${assignedMap['first_name'] ?? ''} ${assignedMap['last_name'] ?? ''}'
+                .trim()
+          : null;
+      final String? assignedAvatar = assignedMap?['avatar_url']?.toString();
+
+      final clientMap = t['client'] is Map
+          ? Map<String, dynamic>.from(t['client'] as Map)
+          : null;
+      final categoryMap = t['category'] is Map
+          ? Map<String, dynamic>.from(t['category'] as Map)
+          : null;
+      final categoryName =
+          (t['category_name'] ??
+                  categoryMap?['name'] ??
+                  t['category'] ??
+                  'General')
+              .toString();
+      final location = (t['location'] ?? t['city'] ?? 'Remote').toString();
+
+      return TaskItem(
+        id: t['id']?.toString() ?? '',
+        title: t['title'] ?? '',
+        description: t['description'] ?? '',
+        category: categoryName,
+        location: location,
+        clientName: clientMap != null
+            ? '${clientMap['first_name'] ?? ''} ${clientMap['last_name'] ?? ''}'
+                  .trim()
+            : (t['client_name'] ?? t['client'] ?? 'Client').toString(),
+        clientAvatar:
+            (clientMap != null &&
+                clientMap['avatar_url'] != null &&
+                clientMap['avatar_url'].toString().isNotEmpty)
+            ? clientMap['avatar_url']
+            : 'assets/images/onboard3.jpg',
+        clientRating: clientMap != null
+            ? (double.tryParse(clientMap['rating']?.toString() ?? '') ?? 4.9)
+            : 4.9,
+        budget: budget,
+        status: _mapStatus(t['status'] ?? 'open'),
+        createdLabel:
+            (t['created_at'] != null && t['created_at'].toString().length >= 10)
+            ? t['created_at'].toString().substring(0, 10)
+            : 'Just now',
+        schedule: t['schedule'] ?? 'Immediate',
+        urgency: t['urgency']?.toString().toUpperCase() == 'URGENT'
+            ? 'Urgent'
+            : 'Flexible',
+        paymentMethod: 'Escrow / Wallet',
+        tags: [t['service_type'] ?? 'On-site', t['urgency'] ?? 'Flexible'],
+        bidsCount: int.tryParse(t['bids_count']?.toString() ?? '0') ?? 0,
+        acceptedBidId: assignedId,
+        assignedToId: assignedId,
+        assignedToName: assignedName,
+        assignedToAvatar: assignedAvatar,
+        deadline: t['deadline']?.toString(),
+        imageUrl: t['image_url']?.toString(),
+        clientReviews: clientMap != null
+            ? (int.tryParse(clientMap['tasks_count']?.toString() ?? '') ?? 0)
+            : 0,
+        milestones: t['milestones'],
+      );
+    } catch (e) {
+      debugPrint('Error mapping task item: $e, data: $t');
+      return null; // Return null so we can filter it out and not crash the whole list
+    }
+  }
+
+  Future<void> syncProfile() async {
+    try {
+      final profile = await ApiService.instance.fetchProfile();
+
+      // Flatten the nested 'profile' object into the root map so our parser can find technician fields
+      if (profile['profile'] != null && profile['profile'] is Map) {
+        final Map<String, dynamic> nested = Map<String, dynamic>.from(
+          profile['profile'] as Map,
+        );
+        profile.addAll(nested);
+      }
+
+      final String firstName = profile['first_name'] ?? '';
+      final String lastName = profile['last_name'] ?? '';
+      final String phone = profile['phone'] ?? '';
+      final String country = profile['country'] ?? '';
+      final String username = profile['username'] ?? '';
+      final String name = (firstName.isEmpty && lastName.isEmpty)
+          ? username
+          : '$firstName $lastName'.trim();
+
+      // Infer country from phone number prefix if database is empty (e.g. immediately after signup)
+      String inferredCountry = country;
+      if (inferredCountry.isEmpty && phone.isNotEmpty) {
+        if (phone.startsWith('+92')) {
+          inferredCountry = 'Pakistan';
+        } else if (phone.startsWith('+234')) {
+          inferredCountry = 'Nigeria';
+        } else if (phone.startsWith('+1')) {
+          inferredCountry = 'United States';
+        } else if (phone.startsWith('+254')) {
+          inferredCountry = 'Kenya';
+        } else if (phone.startsWith('+27')) {
+          inferredCountry = 'South Africa';
+        } else if (phone.startsWith('+233')) {
+          inferredCountry = 'Ghana';
+        } else {
+          inferredCountry = 'Nigeria';
+        }
+      } else if (inferredCountry.isEmpty) {
+        inferredCountry = 'Nigeria';
+      }
+
+      _currentUser = AppUser(
+        name: name,
+        role: _mapRole(profile['role'] ?? 'CLIENT'),
+        tagline:
+            profile['headline'] ??
+            profile['tagline'] ??
+            '${_mapRole(profile['role'] ?? 'CLIENT')} Account',
+        avatar: _normalizeMediaUrl(profile['avatar_url']),
+        id: profile['id'] ?? 0,
+        location: inferredCountry,
+        firstName: firstName,
+        lastName: lastName,
+        phone: phone,
+        country: inferredCountry,
+        bio: profile['bio'] ?? '',
+        hourlyRate: _parseProfileNumber(profile['hourly_rate']),
+        availabilityStatus: profile['availability_status'] ?? 'available',
+        skills:
+            (profile['skills'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [],
+        certifications:
+            (profile['certifications'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [],
+        experience: profile['experience'] ?? '',
+        dailyRate: _parseProfileNumber(profile['daily_rate']),
+        fixedPrice: _parseProfileNumber(profile['fixed_price']),
+        inspectionFee: _parseProfileNumber(profile['inspection_fee']),
+        isNegotiable:
+            profile['is_negotiable'] ??
+            (profile['pricing'] is Map
+                ? (profile['pricing'] as Map)['is_negotiable']
+                : true),
+        toolsAndEquipment:
+            ((profile['tools'] ?? profile['tools_and_equipment'])
+                    as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [],
+        workPreferences:
+            (profile['work_preferences'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [],
+        city: profile['city'] ?? '',
+        preferredLanguages:
+            ((profile['preferred_languages'] ?? profile['languages'])
+                    as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [],
+        yearsExperience:
+            int.tryParse(
+              (profile['experience_years'] ?? profile['years_experience'])
+                      ?.toString() ??
+                  '0',
+            ) ??
+            0,
+        primaryOccupation: profile['primary_occupation'] ?? '',
+        licences:
+            (profile['licences'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [],
+        verificationBadge: profile['verification_badge'] ?? 'Unverified',
+        startingPrice: _parseProfileNumber(profile['starting_price']),
+        ownTools:
+            profile['own_tools'] == true || profile['own_tools'] == 'true',
+        hasVehicle:
+            profile['has_vehicle'] == true || profile['has_vehicle'] == 'true',
+        willingToTravel:
+            profile['willing_to_travel'] == true ||
+            profile['willing_to_travel'] == 'true',
+        serviceRadiusKm:
+            int.tryParse(profile['service_radius_km']?.toString() ?? '0') ?? 0,
+        availableNow:
+            profile['available_now'] == true ||
+            profile['available_now'] == 'true',
+        acceptsFullTime:
+            profile['accepts_full_time'] == true ||
+            profile['accepts_full_time'] == 'true',
+        acceptsPartTime:
+            profile['accepts_part_time'] != false &&
+            profile['accepts_part_time'] != 'false',
+        acceptsEmergency:
+            profile['accepts_emergency'] == true ||
+            profile['accepts_emergency'] == 'true',
+        acceptsWeekends:
+            profile['accepts_weekends'] == true ||
+            profile['accepts_weekends'] == 'true',
+        acceptsRemote:
+            profile['accepts_remote'] == true ||
+            profile['accepts_remote'] == 'true',
+        acceptsOnsite:
+            profile['accepts_onsite'] != false &&
+            profile['accepts_onsite'] != 'false',
+        bmConcierge:
+            profile['bm_concierge'] == true ||
+            profile['bm_concierge'] == 'true',
+        bmBuildTeam:
+            profile['bm_build_team'] == true ||
+            profile['bm_build_team'] == 'true',
+        bmEmergency:
+            profile['bm_emergency'] == true ||
+            profile['bm_emergency'] == 'true',
+        canSupervise:
+            profile['can_supervise'] == true ||
+            profile['can_supervise'] == 'true',
+        dateOfBirth:
+            profile['date_of_birth'] ??
+            profile['dob'] ??
+            profile['birth_date'] ??
+            '',
+        educationLevel: profile['education_level'] ?? '',
+        expertiseLevel: profile['expertise_level'] ?? '',
+        nationalIdNumber: profile['national_id_number'] ?? '',
+        cvResumeUrl: profile['cv_resume_url'] ?? '',
+        emergencyContactName: profile['emergency_contact_name'] ?? '',
+        emergencyContactPhone: profile['emergency_contact_phone'] ?? '',
+        nationalIdFront: profile['national_id_front'] ?? '',
+        nationalIdBack: profile['national_id_back'] ?? '',
+        selfieUrl: profile['selfie_url'] ?? '',
+        address:
+            profile['address'] ??
+            profile['residential_area'] ??
+            profile['residential_address'] ??
+            '',
+        preferredPayoutMethod: profile['preferred_payout_method'] ?? '',
+        bankAccountName: profile['bank_account_name'] ?? '',
+        bankAccountNumber: profile['bank_account_number'] ?? '',
+        bankName: profile['bank_name'] ?? '',
+        mobileMoneyNumber: profile['mobile_money_number'] ?? '',
+        payoutCurrency: profile['payout_currency'] ?? '',
+        paymentVerificationStatus:
+            profile['payment_verification_status'] ?? 'Unverified',
+        preferredWorkingDays:
+            (profile['preferred_working_days'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [],
+        preferredWorkingHours: profile['preferred_working_hours'] ?? '',
+        businessType: profile['business_type'] ?? '',
+        acceptsIndividualJobs:
+            profile['accepts_individual_jobs'] == true ||
+            profile['accepts_individual_jobs'] == 'true',
+        acceptsTeamProjects:
+            profile['accepts_team_projects'] == true ||
+            profile['accepts_team_projects'] == 'true',
+        acceptsLongTermContracts:
+            profile['accepts_long_term_contracts'] == true ||
+            profile['accepts_long_term_contracts'] == 'true',
+        acceptsShortTermJobs:
+            profile['accepts_short_term_jobs'] == true ||
+            profile['accepts_short_term_jobs'] == 'true',
+        canTransportEquipment:
+            profile['can_transport_equipment'] == true ||
+            profile['can_transport_equipment'] == 'true',
+        hasPpe: profile['has_ppe'] == true || profile['has_ppe'] == 'true',
+        hasSpecialistMachinery:
+            profile['has_specialist_machinery'] == true ||
+            profile['has_specialist_machinery'] == 'true',
+        hasDrivingLicence:
+            profile['has_driving_licence'] == true ||
+            profile['has_driving_licence'] == 'true',
+        bmContractorProjects:
+            profile['bm_contractor_projects'] == true ||
+            profile['bm_contractor_projects'] == 'true',
+        interestedInLongTermPlacement:
+            profile['interested_in_long_term_placement'] == true ||
+            profile['interested_in_long_term_placement'] == 'true',
+        teamLeaderExperience:
+            profile['team_leader_experience'] == true ||
+            profile['team_leader_experience'] == 'true',
+        projectManagementExperience:
+            profile['project_management_experience'] == true ||
+            profile['project_management_experience'] == 'true',
+      );
+
+      if (_currentUser.role == 'Technician') {
+        syncPortfolio();
+        syncReferences();
+      }
+
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setString('user_role', _currentUser.role);
+      });
+
+      if (profile['is_verified'] == true) {
+        _verificationStatus = 'Verified';
+        _verificationSummary = 'Your account has been fully verified.';
+      } else {
+        _verificationStatus = null;
+      }
+
+      if (_currentUser.role == 'Company') {
+        try {
+          _companyProfile = await ApiService.instance.fetchCompanyProfile();
+          _companyRegistrationStatus = _companyProfile!['is_verified'] == true
+              ? 'Verified'
+              : 'Pending Review';
+          _companyRegistrationSummary =
+              _companyProfile!['registration_number']?.toString().isNotEmpty ==
+                  true
+              ? 'Registration: ${_companyProfile!['registration_number']}'
+              : 'Registration pending review.';
+        } catch (e) {
+          debugPrint('Sync Company Profile Error: $e');
+        }
+      }
+      update();
+    } catch (e) {
+      debugPrint('Sync Profile Error: $e');
+    }
+  }
+
+  Future<void> syncTasks() async {
+    try {
+      final myRaw = await ApiService.instance.fetchMyTasks();
+      _myTasks = myRaw
+          .map((t) => _mapTaskItem(t))
+          .whereType<TaskItem>()
+          .toList();
+
+      final marketRaw = await ApiService.instance.fetchTasks();
+      _marketplaceTasks = marketRaw
+          .map((t) => _mapTaskItem(t))
+          .whereType<TaskItem>()
+          .toList();
+
+      update();
+    } catch (e) {
+      debugPrint('Sync Tasks Error: $e');
+    }
+  }
+
+  /// Loads the complete task payload before opening the task detail screen.
+  /// The feed endpoint intentionally returns a lightweight list payload.
+  Future<TaskItem?> loadTaskDetail(String taskId) async {
+    final id = int.tryParse(taskId);
+    if (id == null) return null;
+    try {
+      final raw = await ApiService.instance.fetchTaskDetail(id);
+      final task = _mapTaskItem(raw);
+      if (task == null) return null;
+      final marketIndex = _marketplaceTasks.indexWhere(
+        (item) => item.id == task.id,
+      );
+      if (marketIndex >= 0) _marketplaceTasks[marketIndex] = task;
+      final mineIndex = _myTasks.indexWhere((item) => item.id == task.id);
+      if (mineIndex >= 0) _myTasks[mineIndex] = task;
+      update();
+      return task;
+    } catch (e) {
+      debugPrint('Load task detail error: $e');
+      return null;
+    }
+  }
+
+  Future<void> syncWallet() async {
+    try {
+      final wallet = await ApiService.instance.fetchWallet();
+      _walletBalance =
+          double.tryParse(wallet['available_balance']?.toString() ?? '0.0') ??
+          0.0;
+      _pendingBalance =
+          double.tryParse(wallet['pending_escrow']?.toString() ?? '0.0') ?? 0.0;
+
+      final backendTransactions = await ApiService.instance.fetchTransactions();
+      _walletTransactions = backendTransactions.map((tx) {
+        final double amountVal =
+            double.tryParse(tx['amount']?.toString() ?? '0.0') ?? 0.0;
+        final bool isCredit =
+            tx['type']?.toString().toLowerCase() == 'credit' ||
+            tx['type']?.toString().toLowerCase() == 'pending';
+        return WalletTransaction(
+          title: tx['description'] ?? 'Transaction',
+          date: tx['created_at']?.toString().substring(0, 10) ?? 'Today',
+          amount: '${isCredit ? "+" : "-"}\$${amountVal.toStringAsFixed(2)}',
+          status: tx['status']?.toString().toUpperCase() == 'COMPLETED'
+              ? 'Completed'
+              : 'Pending',
+          isIncome: isCredit,
+        );
+      }).toList();
+      update();
+    } catch (e) {
+      debugPrint('Sync Wallet Error: $e');
+    }
+  }
+
+  Future<void> syncConversations() async {
+    try {
+      final conversations = await ApiService.instance.fetchConversations();
+      _threads = conversations.map((conv) {
+        final int id = conv['id'] ?? 0;
+        final List<dynamic> participantsList = conv['participants'] ?? [];
+        final otherUser = participantsList.firstWhere(
+          (p) =>
+              p['id']?.toString() != currentUser.id.toString() &&
+              currentUser.id != 0,
+          orElse: () {
+            if (participantsList.length > 1) {
+              final p1 = participantsList[0];
+              final p2 = participantsList[1];
+              if (p1['id']?.toString() == currentUser.id.toString()) {
+                return p2;
+              }
+              return p1;
+            }
+            return participantsList.isNotEmpty ? participantsList.first : {};
+          },
+        );
+        final String name =
+            '${otherUser['first_name'] ?? ''} ${otherUser['last_name'] ?? ''}'
+                .trim()
+                .isNotEmpty
+            ? '${otherUser['first_name']} ${otherUser['last_name']}'.trim()
+            : (otherUser['username'] ?? 'User');
+        final String avatar =
+            (otherUser['avatar_url']?.toString().isNotEmpty == true)
+            ? otherUser['avatar_url']
+            : 'assets/images/onboard2.jpg';
+        final bool online = otherUser['is_online'] == true;
+        final String lastSeen = otherUser['last_seen']?.toString() ?? 'Offline';
+
+        final List<dynamic> rawMsgs = conv['last_messages'] ?? [];
+        final List<ChatMessage> messages = rawMsgs.map((m) {
+          final int senderId = m['sender'] ?? 0;
+          return ChatMessage(
+            text: m['text'] ?? '',
+            time: _formatTime12Hour(m['created_at']),
+            isMe: senderId != otherUser['id'],
+          );
+        }).toList();
+
+        return ChatThread(
+          id: id.toString(),
+          name: name,
+          image: avatar,
+          online: online,
+          lastSeen: lastSeen,
+          messages: messages,
+        );
+      }).toList();
+      update();
+    } catch (e) {
+      debugPrint('Sync Conversations Error: $e');
+    }
+  }
+
+  Future<void> syncPublicData() async {
+    try {
+      final companies = await ApiService.instance.fetchCompanies();
+      _publicCompanies = List<Map<String, dynamic>>.from(companies);
+    } catch (e) {
+      debugPrint('Sync Companies Error: $e');
+    }
+
+    try {
+      final pros = await ApiService.instance.fetchPublicUsers(
+        role: 'TECHNICIAN',
+      );
+      _publicPros = List<Map<String, dynamic>>.from(pros);
+    } catch (e) {
+      debugPrint('Sync Pros Error: $e');
+    }
+
+    try {
+      final pages = await ApiService.instance.fetchPublicCmsPages();
+      _faqPages = List<Map<String, dynamic>>.from(pages);
+    } catch (e) {
+      debugPrint('Sync CMS Pages Error: $e');
+    }
+
+    try {
+      final searchRes = await ApiService.instance.searchEverything(
+        tab: 'services',
+      );
+      final List<dynamic> results = searchRes['results'] ?? [];
+      _services = results.map((item) {
+        final double priceVal =
+            double.tryParse(item['price']?.toString() ?? '') ?? 0.0;
+        final String priceLbl = priceVal > 0
+            ? '\$${priceVal.toStringAsFixed(0)}/hr'
+            : (item['priceLabel'] ?? 'hourly');
+        return ServiceItem(
+          id: item['id']?.toString() ?? '',
+          title: item['name'] ?? '',
+          category: item['category'] ?? 'General',
+          description: item['description'] ?? '',
+          priceLabel: priceLbl,
+          providerName: item['role'] ?? 'Provider',
+          providerAvatar: item['image']?.toString().isNotEmpty == true
+              ? item['image']
+              : 'assets/images/onboard1.jpg',
+          providerRole: item['type']?.toString().toLowerCase() == 'company'
+              ? 'Company'
+              : 'Technician',
+          serviceType: item['serviceType'] ?? 'On-site',
+          coverageArea: item['location'] ?? 'Lagos, Nigeria',
+          availability: 'Flexible Availability',
+          pricingModel: item['pricingModel'] ?? 'Hourly Rate',
+          providerId: item['profileId']?.toString() ?? '',
+        );
+      }).toList();
+    } catch (e) {
+      debugPrint('Sync Public Services Error: $e');
+    }
+    update();
+  }
+
+  Future<void> syncMyServices() async {
+    try {
+      List<dynamic> backendServices = [];
+      if (currentRole == 'Technician') {
+        backendServices = await ApiService.instance.fetchTechnicianServices();
+      } else if (currentRole == 'Company') {
+        backendServices = await ApiService.instance.fetchCompanyServices();
+      }
+
+      if (backendServices.isNotEmpty) {
+        final mapped = backendServices.map((item) {
+          String priceLabel;
+          if (currentRole == 'Company') {
+            priceLabel = item['price_label']?.toString().isNotEmpty == true
+                ? item['price_label'].toString()
+                : () {
+                    final pMin =
+                        double.tryParse(
+                          item['pricing_min']?.toString() ?? '',
+                        ) ??
+                        0.0;
+                    final model = item['pricing_model']?.toString() ?? 'fixed';
+                    return pMin > 0
+                        ? (model == 'hourly'
+                              ? '\$${pMin.toStringAsFixed(0)}/hr'
+                              : '\$${pMin.toStringAsFixed(0)}')
+                        : 'Contact for pricing';
+                  }();
+          } else {
+            final double priceMin =
+                double.tryParse(item['pricing_min']?.toString() ?? '') ?? 0.0;
+            priceLabel = priceMin > 0
+                ? '\$${priceMin.toStringAsFixed(0)}/hr'
+                : (item['pricing_model'] ?? 'hourly');
+          }
+          return ServiceItem(
+            id: item['id']?.toString() ?? '',
+            title: item['title'] ?? '',
+            category: currentRole == 'Company'
+                ? (item['category'] ?? 'General')
+                : (item['category_name'] ?? 'General'),
+            description: item['description'] ?? '',
+            priceLabel: priceLabel,
+            providerName: currentUser.name,
+            providerAvatar: currentUser.avatar,
+            providerRole: currentRole,
+            serviceType: currentRole == 'Company'
+                ? (item['service_type'] == 'remote' ? 'Remote' : 'On-site')
+                : (item['service_type'] == 'remote' ? 'Remote' : 'On-site'),
+            coverageArea: item['coverage_area'] ?? 'Lagos, Nigeria',
+            availability: item['availability']?.toString().isNotEmpty == true
+                ? item['availability'].toString()
+                : 'Weekdays 9 AM - 6 PM',
+            pricingModel: item['pricing_model'] == 'hourly'
+                ? 'Hourly Rate'
+                : 'Fixed Price',
+            providerId: currentUser.id.toString(),
+          );
+        }).toList();
+
+        for (final mySvc in mapped) {
+          _services.removeWhere((element) => element.id == mySvc.id);
+          _services.insert(0, mySvc);
+        }
+      }
+      update();
+    } catch (e) {
+      debugPrint('Sync My Services Error: $e');
+    }
+  }
+
+  Future<void> syncBids() async {
+    try {
+      final backendBids = await ApiService.instance.fetchMyBids();
+      _bids = backendBids.map((b) {
+        final taskIdStr = b['task_id']?.toString() ?? '';
+        final double amount =
+            double.tryParse(b['amount']?.toString() ?? '0.0') ?? 0.0;
+        final isAccepted = b['status']?.toString().toLowerCase() == 'accepted';
+        final tech = b['technician'] as Map<String, dynamic>? ?? {};
+        final String firstName = tech['first_name'] ?? '';
+        final String lastName = tech['last_name'] ?? '';
+        final String bidderName = (firstName.isEmpty && lastName.isEmpty)
+            ? (b['technician'] != null
+                  ? '${b['technician']['first_name'] ?? ''} ${b['technician']['last_name'] ?? ''}'
+                        .trim()
+                  : _currentUser.name)
+            : '$firstName $lastName'.trim();
+        final String avatar =
+            (tech['avatar_url']?.toString().isNotEmpty == true)
+            ? tech['avatar_url']
+            : ((b['technician'] != null &&
+                      b['technician']['avatar_url'] != null &&
+                      b['technician']['avatar_url'].toString().isNotEmpty)
+                  ? b['technician']['avatar_url']
+                  : 'assets/images/onboard1.jpg');
+
+        final double rating =
+            double.tryParse(tech['rating']?.toString() ?? '') ?? 4.9;
+        final int reviews =
+            int.tryParse(tech['reviews']?.toString() ?? '') ?? 0;
+
+        return BidItem(
+          id: b['id']?.toString() ?? '',
+          taskId: taskIdStr,
+          bidderName: bidderName.isEmpty ? _currentUser.name : bidderName,
+          skill: 'Professional Provider',
+          rating: rating,
+          reviews: reviews,
+          price: amount,
+          timeline: b['duration'] ?? '3 days',
+          message: b['message'] ?? '',
+          avatar: avatar,
+          role: 'Technician',
+          isAccepted: isAccepted,
+          technicianId: tech['id']?.toString() ?? _currentUser.id.toString(),
+        );
+      }).toList();
+      update();
+    } catch (e) {
+      debugPrint('Sync Bids Error: $e');
+    }
+  }
+
+  Future<void> performSearch(
+    String query, {
+    String? category,
+    String? location,
+    String? tab,
+    String? type,
+  }) async {
+    try {
+      final res = await ApiService.instance.searchEverything(
+        query: query,
+        category: category,
+        location: location,
+        tab: tab,
+        type: type,
+      );
+      _searchResults = res['results'] ?? [];
+      update();
+    } catch (e) {
+      debugPrint('Search Error: $e');
+    }
+  }
+
+  // ─── USER & TASK OPERATION METHODS ─────────────────────────────────────────
+
+  TaskItem? findTask(String taskId) {
+    for (final task in _myTasks) {
+      if (task.id == taskId) {
+        return task;
+      }
+    }
+    for (final task in _marketplaceTasks) {
+      if (task.id == taskId) {
+        return task;
+      }
+    }
+    return null;
+  }
+
+  Future<List<BidItem>> bidsForTask(String taskId) async {
+    try {
+      final int id = int.tryParse(taskId) ?? 0;
+      final backendBids = await ApiService.instance.fetchTaskBids(id);
+      return backendBids.map((b) {
+        final tech = b['technician'] as Map<String, dynamic>? ?? {};
+        final String firstName = tech['first_name'] ?? '';
+        final String lastName = tech['last_name'] ?? '';
+        final String bidderName = (firstName.isEmpty && lastName.isEmpty)
+            ? (tech['email']?.toString().split('@').first ?? 'Technician')
+            : '$firstName $lastName'.trim();
+        final String avatar =
+            (tech['avatar_url']?.toString().isNotEmpty == true)
+            ? tech['avatar_url']
+            : 'assets/images/onboard1.jpg';
+
+        final matchedPro = _publicPros.firstWhere(
+          (u) => u['id']?.toString() == tech['id']?.toString(),
+          orElse: () => <String, dynamic>{},
+        );
+
+        final List<dynamic> matchedSkills = matchedPro['skills'] is List
+            ? matchedPro['skills']
+            : [];
+        final String skill = matchedSkills.isNotEmpty
+            ? matchedSkills.first.toString()
+            : 'Professional Provider';
+        final double rating =
+            double.tryParse(
+              (matchedPro['rating'] ?? matchedPro['average_rating'])
+                      ?.toString() ??
+                  '',
+            ) ??
+            0.0;
+        final int reviews =
+            int.tryParse(
+              (matchedPro['reviews'] ?? matchedPro['completed_jobs'])
+                      ?.toString() ??
+                  '',
+            ) ??
+            0;
+
+        return BidItem(
+          id: b['id']?.toString() ?? '',
+          taskId: taskId,
+          bidderName: bidderName,
+          skill: skill,
+          rating: rating,
+          reviews: reviews,
+          price: double.tryParse(b['amount']?.toString() ?? '0') ?? 0.0,
+          timeline: b['duration'] ?? '3 days',
+          message: b['message'] ?? '',
+          avatar: avatar,
+          role: tech['role'] ?? 'Technician',
+          isAccepted: b['status']?.toString().toLowerCase() == 'accepted',
+          technicianId: tech['id']?.toString(),
+        );
+      }).toList();
+    } catch (e) {
+      debugPrint('Fetch Task Bids Error: $e');
+      return [];
+    }
+  }
+
+  Future<TaskItem> publishTask(TaskDraft draft) async {
+    // 1. Map to actual database category IDs
+    int categoryId = 26; // Default to Plumbing (26)
+    final catLower = draft.category.toLowerCase();
+    if (catLower.contains('elec')) {
+      categoryId = 25;
+    } else if (catLower.contains('plumb') || catLower.contains('repair')) {
+      categoryId = 26;
+    } else if (catLower.contains('hvac')) {
+      categoryId = 27;
+    } else if (catLower.contains('carp')) {
+      categoryId = 28;
+    } else if (catLower.contains('paint')) {
+      categoryId = 29;
+    } else if (catLower.contains('mason')) {
+      categoryId = 30;
+    } else if (catLower.contains('secu')) {
+      categoryId = 31;
+    } else if (catLower.contains('clean')) {
+      categoryId = 32;
+    } else if (catLower.contains('furn')) {
+      categoryId = 33;
+    }
+
+    // 2. Create task draft
+    final taskData = {
+      'title': draft.title,
+      'description': draft.description,
+      'category': categoryId,
+      'budget_min': draft.budgetMin,
+      'budget_max': draft.budgetMax,
+      'budget_mode': draft.budgetMode,
+      'urgency': draft.urgency.toLowerCase(),
+      'service_type': draft.locationType == 'On-site'
+          ? 'onsite'
+          : (draft.locationType == 'Remote' ? 'remote' : 'hybrid'),
+      'location': draft.location,
+      'city': draft.city.isNotEmpty ? draft.city : 'Lagos',
+      'schedule': draft.timeline,
+      'deadline': draft.deadline,
+      'materials_provided': false,
+      'contact_methods': ['chat'],
+      'skills': [],
+      'image_url': draft.imageUrl,
+    };
+
+    final createdTask = await ApiService.instance.createTask(taskData);
+    final int createdId = createdTask['id'] ?? 0;
+
+    // 3. Publish task
+    final published = await ApiService.instance.publishTask(createdId);
+    await syncTasks();
+
+    final double budgetMin =
+        double.tryParse(published['budget_min']?.toString() ?? '0') ?? 0.0;
+    final double budgetMax =
+        double.tryParse(published['budget_max']?.toString() ?? '0') ?? 0.0;
+
+    final assignedMap = published['assigned_to'] as Map<String, dynamic>?;
+    final String? assignedId = assignedMap?['id']?.toString();
+    final String? assignedName = assignedMap != null
+        ? '${assignedMap['first_name'] ?? ''} ${assignedMap['last_name'] ?? ''}'
+              .trim()
+        : null;
+    final String? assignedAvatar = assignedMap?['avatar_url']?.toString();
+
+    return TaskItem(
+      id: published['id']?.toString() ?? '',
+      title: published['title'] ?? '',
+      description: published['description'] ?? '',
+      category: published['category_name'] ?? 'General',
+      location: published['location'] ?? 'Lagos, Nigeria',
+      clientName: published['client'] != null
+          ? '${published['client']['first_name'] ?? ''} ${published['client']['last_name'] ?? ''}'
+                .trim()
+          : (published['client_name'] ?? 'Client'),
+      clientAvatar:
+          (published['client'] != null &&
+              published['client']['avatar_url'] != null &&
+              published['client']['avatar_url'].toString().isNotEmpty)
+          ? published['client']['avatar_url']
+          : 'assets/images/onboard3.jpg',
+      clientRating: published['client'] != null
+          ? (double.tryParse(published['client']['rating']?.toString() ?? '') ??
+                4.9)
+          : 4.9,
+      budget: budgetMax > 0 ? budgetMax : budgetMin,
+      status: _mapStatus(published['status'] ?? 'open'),
+      createdLabel:
+          published['created_at']?.toString().substring(0, 10) ?? 'Just now',
+      schedule: published['schedule'] ?? 'Immediate',
+      urgency: published['urgency']?.toString().toUpperCase() == 'URGENT'
+          ? 'Urgent'
+          : 'Flexible',
+      paymentMethod: 'Escrow / Wallet',
+      tags: [
+        published['service_type'] ?? 'On-site',
+        published['urgency'] ?? 'Flexible',
+      ],
+      bidsCount: published['bids_count'] ?? 0,
+      acceptedBidId: assignedId,
+      assignedToId: assignedId,
+      assignedToName: assignedName,
+      assignedToAvatar: assignedAvatar,
+      deadline: published['deadline']?.toString(),
+      imageUrl: published['image_url']?.toString(),
+      clientReviews: published['client'] != null
+          ? (int.tryParse(
+                  published['client']['tasks_count']?.toString() ?? '',
+                ) ??
+                0)
+          : 0,
+    );
+  }
+
+  Future<void> updateTaskItem(String taskId, TaskDraft draft) async {
+    final int id = int.tryParse(taskId) ?? 0;
+
+    int categoryId = 26; // Default to Plumbing (26)
+    final catLower = draft.category.toLowerCase();
+    if (catLower.contains('elec')) {
+      categoryId = 25;
+    } else if (catLower.contains('plumb') || catLower.contains('repair')) {
+      categoryId = 26;
+    } else if (catLower.contains('hvac')) {
+      categoryId = 27;
+    } else if (catLower.contains('carp')) {
+      categoryId = 28;
+    } else if (catLower.contains('paint')) {
+      categoryId = 29;
+    } else if (catLower.contains('mason')) {
+      categoryId = 30;
+    } else if (catLower.contains('secu')) {
+      categoryId = 31;
+    } else if (catLower.contains('clean')) {
+      categoryId = 32;
+    } else if (catLower.contains('furn')) {
+      categoryId = 33;
+    }
+
+    final taskData = {
+      'title': draft.title,
+      'description': draft.description,
+      'category': categoryId,
+      'budget_min': draft.budgetMin,
+      'budget_max': draft.budgetMax,
+      'budget_mode': draft.budgetMode,
+      'urgency': draft.urgency.toLowerCase(),
+      'service_type': draft.locationType == 'On-site'
+          ? 'onsite'
+          : (draft.locationType == 'Remote' ? 'remote' : 'hybrid'),
+      'location': draft.location,
+      'city': draft.city.isNotEmpty ? draft.city : 'Lagos',
+      'schedule': draft.timeline,
+      'deadline': draft.deadline,
+      'image_url': draft.imageUrl,
+    };
+
+    await ApiService.instance.updateTask(id, taskData);
+    await syncTasks();
+  }
+
+  Future<ServiceItem> publishService({
+    required String title,
+    required String category,
+    required String description,
+    required String priceLabel,
+    required String providerName,
+    required String providerAvatar,
+    required String providerRole,
+    required String serviceType,
+    required String coverageArea,
+    required String availability,
+    required String pricingModel,
+  }) async {
+    int categoryId = 26; // Default to Plumbing (26)
+    final catLower = category.toLowerCase();
+    if (catLower.contains('elec')) {
+      categoryId = 25;
+    } else if (catLower.contains('plumb') || catLower.contains('repair')) {
+      categoryId = 26;
+    } else if (catLower.contains('hvac')) {
+      categoryId = 27;
+    } else if (catLower.contains('carp')) {
+      categoryId = 28;
+    } else if (catLower.contains('paint')) {
+      categoryId = 29;
+    } else if (catLower.contains('mason')) {
+      categoryId = 30;
+    } else if (catLower.contains('secu')) {
+      categoryId = 31;
+    } else if (catLower.contains('clean')) {
+      categoryId = 32;
+    } else if (catLower.contains('furn')) {
+      categoryId = 33;
+    }
+
+    double priceVal =
+        double.tryParse(priceLabel.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 50.0;
+
+    if (currentRole == 'Technician') {
+      final data = {
+        'title': title,
+        'category': categoryId,
+        'description': description,
+        'service_type': serviceType.toLowerCase().contains('remote')
+            ? 'remote'
+            : 'onsite',
+        'coverage_area': coverageArea,
+        'pricing_model': pricingModel.toLowerCase().contains('hour')
+            ? 'hourly'
+            : 'fixed',
+        'pricing_min': priceVal,
+        'pricing_max': priceVal,
+        'is_active': true,
+      };
+      final published = await ApiService.instance.publishTechnicianService(
+        data,
+      );
+      await syncMyServices();
+      return ServiceItem(
+        id: published['id']?.toString() ?? '',
+        title: published['title'] ?? '',
+        category: category,
+        description: published['description'] ?? '',
+        priceLabel: '\$${priceVal.toStringAsFixed(0)}/hr',
+        providerName: providerName,
+        providerAvatar: providerAvatar,
+        providerRole: providerRole,
+        serviceType: serviceType,
+        coverageArea: coverageArea,
+        availability: availability,
+        pricingModel: pricingModel,
+        providerId: currentUser.id.toString(),
+      );
+    } else {
+      // Company role: publish with full service data
+      final catLower = category.toLowerCase();
+      String categoryName = category;
+      if (catLower.contains('elec'))
+        categoryName = 'Electrical';
+      else if (catLower.contains('plumb') || catLower.contains('repair'))
+        categoryName = 'Plumbing';
+      else if (catLower.contains('hvac'))
+        categoryName = 'HVAC';
+      else if (catLower.contains('carp'))
+        categoryName = 'Carpentry';
+      else if (catLower.contains('paint'))
+        categoryName = 'Painting';
+      else if (catLower.contains('mason'))
+        categoryName = 'Masonry';
+      else if (catLower.contains('secu'))
+        categoryName = 'Security';
+      else if (catLower.contains('clean'))
+        categoryName = 'Cleaning';
+      else if (catLower.contains('furn'))
+        categoryName = 'Furniture';
+
+      final data = {
+        'title': title,
+        'description': description,
+        'category': categoryName,
+        'price_label': priceLabel,
+        'pricing_model': pricingModel.toLowerCase().contains('hour')
+            ? 'hourly'
+            : 'fixed',
+        'service_type': serviceType.toLowerCase().contains('remote')
+            ? 'remote'
+            : 'onsite',
+        'coverage_area': coverageArea,
+        'availability': availability,
+        'pricing_min': priceVal,
+      };
+      final published = await ApiService.instance.publishCompanyService(data);
+      await syncMyServices();
+      return ServiceItem(
+        id: published['id']?.toString() ?? '',
+        title: published['title'] ?? '',
+        category: published['category'] ?? categoryName,
+        description: published['description'] ?? '',
+        priceLabel: published['price_label']?.toString().isNotEmpty == true
+            ? published['price_label']
+            : (pricingModel.toLowerCase().contains('hour')
+                  ? '\$${priceVal.toStringAsFixed(0)}/hr'
+                  : '\$${priceVal.toStringAsFixed(0)}'),
+        providerName: providerName,
+        providerAvatar: providerAvatar,
+        providerRole: providerRole,
+        serviceType: serviceType,
+        coverageArea: coverageArea,
+        availability: availability,
+        pricingModel: pricingModel,
+        providerId: currentUser.id.toString(),
+      );
+    }
+  }
+
+  Future<void> submitBid({
+    required String taskId,
+    required double price,
+    required String timeline,
+    required String message,
+  }) async {
+    final int id = int.tryParse(taskId) ?? 0;
+    await ApiService.instance.submitBid(
+      taskId: id,
+      amount: price,
+      timeline: timeline,
+      message: message,
+    );
+    await syncTasks();
+    await syncBids();
+  }
+
+  Future<void> acceptBid(String taskId, String bidId) async {
+    final int tId = int.tryParse(taskId) ?? 0;
+    final int bId = int.tryParse(bidId) ?? 0;
+
+    // Fetch bids for task to get the correct bid amount
+    final bidsList = await bidsForTask(taskId);
+    final bid = bidsList.firstWhere((element) => element.id == bidId);
+
+    // Call deposit escrow endpoint to trigger bid acceptance
+    await ApiService.instance.depositEscrow(
+      taskId: tId,
+      bidId: bId,
+      amount: bid.price,
+    );
+    await syncTasks();
+    await syncWallet();
+  }
+
+  Future<void> completeTask(String taskId) async {
+    final int tId = int.tryParse(taskId) ?? 0;
+    await ApiService.instance.completeTask(tId);
+    await syncTasks();
+    await syncWallet();
+  }
+
+  Future<void> submitWork(String taskId) async {
+    final int tId = int.tryParse(taskId) ?? 0;
+    await ApiService.instance.submitWork(tId);
+    await syncTasks();
+  }
+
+  Future<void> deleteTask(String taskId) async {
+    final int tId = int.tryParse(taskId) ?? 0;
+    await ApiService.instance.deleteTask(tId);
+    await syncTasks();
+  }
+
+  Future<void> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? avatarUrl,
+    String? phone,
+    String? country,
+    String? bio,
+    double? hourlyRate,
+    double? dailyRate,
+    double? fixedPrice,
+    double? inspectionFee,
+    bool? isNegotiable,
+    String? availabilityStatus,
+    List<String>? skills,
+    List<String>? certifications,
+    List<String>? toolsAndEquipment,
+    List<String>? workPreferences,
+    String? experience,
+    String? city,
+    List<String>? preferredLanguages,
+    int? yearsExperience,
+    String? primaryOccupation,
+    List<String>? licences,
+    String? tagline,
+    double? startingPrice,
+    bool? ownTools,
+    bool? hasVehicle,
+    bool? willingToTravel,
+    int? serviceRadiusKm,
+    bool? availableNow,
+    bool? acceptsFullTime,
+    bool? acceptsPartTime,
+    bool? acceptsEmergency,
+    bool? acceptsWeekends,
+    bool? acceptsRemote,
+    bool? acceptsOnsite,
+    bool? bmConcierge,
+    bool? bmBuildTeam,
+    bool? bmEmergency,
+    bool? canSupervise,
+    String? dateOfBirth,
+    String? educationLevel,
+    String? expertiseLevel,
+    String? nationalIdNumber,
+    String? cvResumeUrl,
+    String? emergencyContactName,
+    String? emergencyContactPhone,
+    String? nationalIdFront,
+    String? nationalIdBack,
+    String? selfieUrl,
+    String? address,
+
+    // Additional parameters
+    String? businessType,
+    bool? acceptsIndividualJobs,
+    bool? acceptsTeamProjects,
+    bool? acceptsLongTermContracts,
+    bool? acceptsShortTermJobs,
+    bool? interestedInLongTermPlacement,
+    bool? canTransportEquipment,
+    bool? hasPpe,
+    bool? hasSpecialistMachinery,
+    bool? hasDrivingLicence,
+    bool? bmContractorProjects,
+    bool? teamLeaderExperience,
+    bool? projectManagementExperience,
+    List<String>? preferredWorkingDays,
+    String? preferredWorkingHours,
+    String? preferredPayoutMethod,
+    String? bankAccountName,
+    String? bankAccountNumber,
+    String? bankName,
+    String? mobileMoneyNumber,
+    String? payoutCurrency,
+  }) async {
+    final body = <String, dynamic>{};
+    if (firstName != null) body['first_name'] = firstName;
+    if (lastName != null) body['last_name'] = lastName;
+    // The profile editor keeps newly selected images as a local base64
+    // preview. The website API only accepts a persisted URL here; sending
+    // the data URI causes URL validation to reject the entire PATCH.
+    if (avatarUrl != null && avatarUrl.trimLeft().startsWith('http')) {
+      body['avatar_url'] = avatarUrl;
+    }
+    if (phone != null) body['phone'] = phone;
+    if (country != null) body['country'] = country;
+    if (bio != null) body['bio'] = bio;
+    if (tagline != null) body['headline'] = tagline;
+    if (hourlyRate != null) body['hourly_rate'] = hourlyRate;
+    if (dailyRate != null) body['daily_rate'] = dailyRate;
+    if (fixedPrice != null) body['fixed_price'] = fixedPrice;
+    if (inspectionFee != null) body['inspection_fee'] = inspectionFee;
+    if (startingPrice != null) body['starting_price'] = startingPrice;
+    if (isNegotiable != null) body['is_negotiable'] = isNegotiable;
+    if (startingPrice != null ||
+        hourlyRate != null ||
+        dailyRate != null ||
+        inspectionFee != null) {
+      body['pricing'] = {
+        if (hourlyRate != null) 'hourly_rate': hourlyRate,
+        if (dailyRate != null) 'daily_rate': dailyRate,
+        if (startingPrice != null) 'starting_price': startingPrice,
+        if (inspectionFee != null) 'inspection_fee': inspectionFee,
+        if (isNegotiable != null) 'is_negotiable': isNegotiable,
+      };
+    }
+    if (availabilityStatus != null)
+      body['availability_status'] = availabilityStatus;
+    if (skills != null) body['skills'] = skills;
+    if (certifications != null) body['certifications'] = certifications;
+    if (toolsAndEquipment != null)
+      body['tools_and_equipment'] = toolsAndEquipment;
+    if (workPreferences != null) body['work_preferences'] = workPreferences;
+    if (experience != null) body['experience'] = experience;
+    if (city != null) body['city'] = city;
+    if (preferredLanguages != null) {
+      body['languages'] = preferredLanguages;
+    }
+    if (toolsAndEquipment != null) body['tools'] = toolsAndEquipment;
+    if (yearsExperience != null) body['experience_years'] = yearsExperience;
+    if (primaryOccupation != null)
+      body['primary_occupation'] = primaryOccupation;
+    if (licences != null) body['licences'] = licences;
+    if (ownTools != null) body['own_tools'] = ownTools;
+    if (hasVehicle != null) body['has_vehicle'] = hasVehicle;
+    if (willingToTravel != null) body['willing_to_travel'] = willingToTravel;
+    if (serviceRadiusKm != null) body['service_radius_km'] = serviceRadiusKm;
+    if (availableNow != null) body['available_now'] = availableNow;
+    if (acceptsFullTime != null) body['accepts_full_time'] = acceptsFullTime;
+    if (acceptsPartTime != null) body['accepts_part_time'] = acceptsPartTime;
+    if (acceptsEmergency != null) body['accepts_emergency'] = acceptsEmergency;
+    if (acceptsWeekends != null) body['accepts_weekends'] = acceptsWeekends;
+    if (acceptsRemote != null) body['accepts_remote'] = acceptsRemote;
+    if (acceptsOnsite != null) body['accepts_onsite'] = acceptsOnsite;
+    if (bmConcierge != null) body['bm_concierge'] = bmConcierge;
+    if (bmBuildTeam != null) body['bm_build_team'] = bmBuildTeam;
+    if (bmEmergency != null) body['bm_emergency'] = bmEmergency;
+    if (canSupervise != null) body['can_supervise'] = canSupervise;
+    if (dateOfBirth != null) {
+      body['date_of_birth'] = dateOfBirth;
+      body['dob'] = dateOfBirth;
+      body['birth_date'] = dateOfBirth;
+    }
+    if (educationLevel != null) body['education_level'] = educationLevel;
+    if (expertiseLevel != null) body['expertise_level'] = expertiseLevel;
+    // Website API uses id_number for KYC identity data.
+    if (nationalIdNumber != null) body['id_number'] = nationalIdNumber;
+    if (cvResumeUrl != null) body['cv_resume_url'] = cvResumeUrl;
+    if (emergencyContactName != null)
+      body['emergency_contact_name'] = emergencyContactName;
+    if (emergencyContactPhone != null)
+      body['emergency_contact_phone'] = emergencyContactPhone;
+    // ID images/selfie are persisted by uploadTechnicianDocument above, not
+    // by the JSON profile PATCH endpoint.
+    if (address != null) {
+      body['address'] = address;
+      body['residential_area'] = address;
+      body['residential_address'] = address;
+    }
+    if (businessType != null) body['business_type'] = businessType;
+    if (acceptsIndividualJobs != null)
+      body['accepts_individual_jobs'] = acceptsIndividualJobs;
+    if (acceptsTeamProjects != null)
+      body['accepts_team_projects'] = acceptsTeamProjects;
+    if (acceptsLongTermContracts != null)
+      body['accepts_long_term_contracts'] = acceptsLongTermContracts;
+    if (acceptsShortTermJobs != null)
+      body['accepts_short_term_jobs'] = acceptsShortTermJobs;
+    if (interestedInLongTermPlacement != null)
+      body['interested_in_long_term_placement'] = interestedInLongTermPlacement;
+    if (canTransportEquipment != null)
+      body['can_transport_equipment'] = canTransportEquipment;
+    if (hasPpe != null) body['has_ppe'] = hasPpe;
+    if (hasSpecialistMachinery != null)
+      body['has_specialist_machinery'] = hasSpecialistMachinery;
+    if (hasDrivingLicence != null)
+      body['has_driving_licence'] = hasDrivingLicence;
+    if (bmContractorProjects != null)
+      body['bm_contractor_projects'] = bmContractorProjects;
+    if (teamLeaderExperience != null)
+      body['team_leader_experience'] = teamLeaderExperience;
+    if (projectManagementExperience != null)
+      body['project_management_experience'] = projectManagementExperience;
+    if (preferredWorkingDays != null)
+      body['preferred_working_days'] = preferredWorkingDays;
+    if (preferredWorkingHours != null)
+      body['preferred_working_hours'] = preferredWorkingHours;
+    if (preferredPayoutMethod != null)
+      body['preferred_payout_method'] = preferredPayoutMethod;
+    if (bankAccountName != null) body['bank_account_name'] = bankAccountName;
+    if (bankAccountNumber != null)
+      body['bank_account_number'] = bankAccountNumber;
+    if (bankName != null) body['bank_name'] = bankName;
+    if (mobileMoneyNumber != null)
+      body['mobile_money_number'] = mobileMoneyNumber;
+    if (payoutCurrency != null) body['payout_currency'] = payoutCurrency;
+    if (preferredPayoutMethod != null ||
+        bankAccountName != null ||
+        bankAccountNumber != null ||
+        bankName != null ||
+        mobileMoneyNumber != null ||
+        payoutCurrency != null) {
+      body['payout'] = {
+        if (preferredPayoutMethod != null) 'method': preferredPayoutMethod,
+        if (bankAccountName != null) 'account_name': bankAccountName,
+        if (bankAccountNumber != null) 'account_number': bankAccountNumber,
+        if (bankName != null) 'bank_name': bankName,
+        if (mobileMoneyNumber != null) 'mobile_money_number': mobileMoneyNumber,
+        if (payoutCurrency != null) 'currency': payoutCurrency,
+      };
+    }
+
+    if (currentRole == 'Technician') {
+      // The production website API validates this endpoint strictly. Keep
+      // legacy/mobile-only fields out of the request; one unknown key causes
+      // the entire PATCH to be rejected with HTTP 400.
+      const technicianApiFields = {
+        'first_name',
+        'last_name',
+        'avatar_url',
+        'phone',
+        'country',
+        'city',
+        'address',
+        'bio',
+        'headline',
+        'experience',
+        'experience_years',
+        'hourly_rate',
+        'daily_rate',
+        'starting_price',
+        'inspection_fee',
+        'is_negotiable',
+        'pricing',
+        'availability',
+        'availability_status',
+        'available_now',
+        'response_time',
+        'skills',
+        'tools',
+        'languages',
+        'portfolio',
+        'payout',
+        'payout_info',
+        'kyc',
+        'kyc_info',
+        'background_check_status',
+        'education_level',
+        'expertise_level',
+        'date_of_birth',
+        'role',
+        'emergency_contact_name',
+        'emergency_contact_phone',
+        'id_number',
+        'id_type',
+        'id_card_front',
+        'id_card_back',
+      };
+      body.removeWhere((key, value) => !technicianApiFields.contains(key));
+      await ApiService.instance.updateTechnicianProfile(body);
+    } else {
+      await ApiService.instance.updateProfile(body);
+    }
+    await syncAll(); // Reload user state from backend
+  }
+
+  Future<void> syncPortfolio() async {
+    try {
+      final items = await ApiService.instance.fetchPortfolioItems();
+      _portfolioItems.clear();
+      _portfolioItems.addAll(items);
+      update();
+    } catch (e) {
+      debugPrint('Sync Portfolio Error: $e');
+    }
+  }
+
+  Future<void> createPortfolioItem({
+    required String title,
+    required String description,
+    required String category,
+    required String imageUrl,
+    String? servicePerformed,
+    String? videoUrl,
+    String? projectLocation,
+    String? clientCompany,
+    String? beforeImageUrl,
+    String? completedDate,
+    String? projectValue,
+  }) async {
+    await ApiService.instance.addPortfolioItem({
+      'title': title,
+      'description': description,
+      'category': category,
+      'image_url': imageUrl,
+      'service_performed': servicePerformed ?? '',
+      'video_url': videoUrl ?? '',
+      'project_location': projectLocation ?? '',
+      'client_company': clientCompany ?? '',
+      'before_image_url': beforeImageUrl ?? '',
+      'completed_date': completedDate ?? '',
+      'project_value': projectValue ?? '',
+    });
+    await syncPortfolio();
+  }
+
+  Future<void> removePortfolioItem(int itemId) async {
+    await ApiService.instance.deletePortfolioItem(itemId);
+    await syncPortfolio();
+  }
+
+  Future<void> syncThreadMessages(String threadId) async {
+    final int convId = int.tryParse(threadId) ?? 0;
+    if (convId == 0) return;
+    try {
+      final detail = await ApiService.instance.fetchConversationDetail(convId);
+      final List<dynamic> rawMsgs = detail['messages'] ?? [];
+      final List<ChatMessage> messages = rawMsgs.map((m) {
+        final int senderId = m['sender'] ?? 0;
+        return ChatMessage(
+          text: m['text'] ?? '',
+          time: _formatTime12Hour(m['created_at']),
+          isMe: senderId == currentUser.id,
+          attachmentUrl: m['attachment_url'],
+          attachmentName: m['attachment_name'],
+        );
+      }).toList();
+      _threadMessages[threadId] = messages;
+      update();
+    } catch (e) {
+      debugPrint('Sync Thread Messages Error: $e');
+    }
+  }
+
+  Future<void> sendMessage(
+    String threadId,
+    String text, {
+    String? attachmentUrl,
+    String? attachmentName,
+  }) async {
+    final int convId = int.tryParse(threadId) ?? 0;
+    await ApiService.instance.sendMessage(
+      convId,
+      text,
+      attachmentUrl: attachmentUrl,
+      attachmentName: attachmentName,
+    );
+    await syncThreadMessages(threadId);
+    await syncConversations();
+  }
+
+  Future<void> deleteConversation(String threadId) async {
+    final int convId = int.tryParse(threadId) ?? 0;
+    if (convId == 0) return;
+    await ApiService.instance.deleteConversation(convId);
+    _threads.removeWhere((t) => t.id == threadId);
+    _threadMessages.remove(threadId);
+    update();
+  }
+
+  Future<String?> createOrOpenThread({
+    required String otherPartyName,
+    required String otherPartyImage,
+    String initialMessage = '',
+    String? attachmentUrl,
+    String? attachmentName,
+  }) async {
+    try {
+      final usersResponse = await ApiService.instance.get('/auth/users/');
+      final List<dynamic> users = jsonDecode(usersResponse.body);
+      int otherUserId = 1;
+      for (final u in users) {
+        final fName = '${u['first_name'] ?? ''} ${u['last_name'] ?? ''}'.trim();
+        final username = u['username'] ?? '';
+        if (fName.toLowerCase() == otherPartyName.toLowerCase() ||
+            username.toLowerCase() == otherPartyName.toLowerCase()) {
+          otherUserId = u['id'];
+          break;
+        }
+      }
+      final conv = await ApiService.instance.createConversation(otherUserId);
+      final int convId = conv['id'] ?? 1;
+      if (initialMessage.isNotEmpty) {
+        await ApiService.instance.sendMessage(
+          convId,
+          initialMessage,
+          attachmentUrl: attachmentUrl,
+          attachmentName: attachmentName,
+        );
+      }
+      await syncConversations();
+      await syncThreadMessages(convId.toString());
+      return convId.toString();
+    } catch (e) {
+      debugPrint('Create Thread Error: $e');
+      return null;
+    }
+  }
+
+  Future<void> requestWithdrawal({
+    required double amount,
+    required String method,
+  }) async {
+    await ApiService.instance.requestWithdrawal(amount, method);
+    await syncWallet();
+  }
+
+  Future<void> deleteCompanyProject(String projectId) async {
+    await ApiService.instance.deleteCompanyProject(projectId);
+    final idx = _companyProjects.indexWhere(
+      (p) => p['id']?.toString() == projectId,
+    );
+    if (idx >= 0) {
+      _companyProjects[idx]['status'] = 'deleted';
+    }
+    update();
+  }
+
+  // ─── LOCAL STATE PREFS ─────────────────────────────────────────────────────
+
+  bool isServiceSaved(String serviceId) => _savedServiceIds.contains(serviceId);
+
+  Future<void> toggleSavedService(String serviceId) async {
+    final int id = int.tryParse(serviceId) ?? 0;
+    if (id == 0) return;
+
+    if (_savedServiceIds.contains(serviceId)) {
+      _savedServiceIds.remove(serviceId);
+      update();
+      try {
+        await ApiService.instance.unsaveService(id);
+        await syncSavedServices();
+      } catch (e) {
+        _savedServiceIds.add(serviceId);
+        update();
+        debugPrint('Unsave service error: $e');
+      }
+    } else {
+      _savedServiceIds.add(serviceId);
+      update();
+      try {
+        await ApiService.instance.saveService(id);
+        await syncSavedServices();
+      } catch (e) {
+        _savedServiceIds.remove(serviceId);
+        update();
+        debugPrint('Save service error: $e');
+      }
+    }
+  }
+
+  bool isTechSaved(String techId) => _savedTechUserIds.contains(techId);
+
+  Future<void> toggleSavedTech(String techId) async {
+    final int id = int.tryParse(techId) ?? 0;
+    if (id == 0) return;
+
+    if (_savedTechUserIds.contains(techId)) {
+      _savedTechUserIds.remove(techId);
+      update();
+      try {
+        await ApiService.instance.unsaveProfessional(id);
+        await syncSavedPros();
+      } catch (e) {
+        _savedTechUserIds.add(techId);
+        update();
+        debugPrint('Unsave professional error: $e');
+      }
+    } else {
+      _savedTechUserIds.add(techId);
+      update();
+      try {
+        await ApiService.instance.saveProfessional(id);
+        await syncSavedPros();
+      } catch (e) {
+        _savedTechUserIds.remove(techId);
+        update();
+        debugPrint('Save professional error: $e');
+      }
+    }
+  }
+
+  Future<void> syncSavedPros() async {
+    try {
+      final list = await ApiService.instance.fetchSavedProfessionals();
+      _savedTechUserIds.clear();
+      _savedPros.clear();
+      for (final item in list) {
+        final Map<String, dynamic>? prof =
+            item['professional'] as Map<String, dynamic>?;
+        if (prof != null) {
+          final String? profId = prof['id']?.toString();
+          if (profId != null) {
+            _savedTechUserIds.add(profId);
+            _savedPros.add(prof);
+          }
+        }
+      }
+      update();
+    } catch (e) {
+      debugPrint('Sync saved pros error: $e');
+    }
+  }
+
+  Future<void> syncSavedServices() async {
+    try {
+      final list = await ApiService.instance.fetchSavedServices();
+      _savedServiceIds.clear();
+      _savedServices.clear();
+      for (final item in list) {
+        final Map<String, dynamic>? serviceData =
+            item['service'] as Map<String, dynamic>?;
+        if (serviceData != null) {
+          final String? servId = serviceData['id']?.toString();
+          if (servId != null) {
+            _savedServiceIds.add(servId);
+
+            final double priceVal =
+                double.tryParse(serviceData['price']?.toString() ?? '') ?? 0.0;
+            final String priceLbl = priceVal > 0
+                ? '\$${priceVal.toStringAsFixed(0)}/hr'
+                : 'hourly';
+
+            final techMap = serviceData['technician'] as Map<String, dynamic>?;
+            final techName = techMap != null
+                ? '${techMap['first_name'] ?? ''} ${techMap['last_name'] ?? ''}'
+                      .trim()
+                : 'Provider';
+
+            _savedServices.add(
+              ServiceItem(
+                id: servId,
+                title: serviceData['title'] ?? '',
+                category: serviceData['category_name'] ?? 'General',
+                description: serviceData['description'] ?? '',
+                priceLabel: priceLbl,
+                providerName: techName.isEmpty
+                    ? (techMap?['username'] ?? 'Provider')
+                    : techName,
+                providerAvatar:
+                    techMap?['avatar_url']?.toString().isNotEmpty == true
+                    ? techMap!['avatar_url']
+                    : 'assets/images/onboard1.jpg',
+                providerRole: 'Technician',
+                serviceType: 'On-site',
+                coverageArea: serviceData['coverage_area'] ?? 'Lagos, Nigeria',
+                availability: 'Flexible Availability',
+                pricingModel: serviceData['pricing_model'] ?? 'Hourly Rate',
+                providerId: techMap?['id']?.toString() ?? '',
+              ),
+            );
+          }
+        }
+      }
+      update();
+    } catch (e) {
+      debugPrint('Sync saved services error: $e');
+    }
+  }
+
+  Future<void> submitCompanyRegistration({
+    required Map<String, String> details,
+  }) async {
+    final website = details['website'] ?? '';
+    final body = {
+      'company_name': details['companyName'] ?? '',
+      'registration_number': details['registrationNumber'] ?? '',
+      'tax_id': details['taxId'] ?? '',
+      'industry': details['industry'] ?? '',
+      'website': website.isEmpty
+          ? ''
+          : (website.startsWith('http') ? website : 'https://$website'),
+      'headquarters': details['address'] ?? '',
+      'about': 'Industry: ${details['industry'] ?? ''}',
+      'registration_status': 'pending',
+    };
+    await ApiService.instance.updateCompanyProfile(body);
+    _companyRegistrationStatus = 'Pending Review';
+    _companyRegistrationSummary =
+        '${details['companyName']} submitted for compliance review.';
+    // Refresh company profile so the screen shows updated data
+    try {
+      _companyProfile = await ApiService.instance.fetchCompanyProfile();
+    } catch (e) {
+      debugPrint('Refresh company profile after registration: $e');
+    }
+    update();
+  }
+
+  Future<void> updateCompanyProfile(Map<String, dynamic> data) async {
+    await ApiService.instance.updateCompanyProfile(data);
+    try {
+      _companyProfile = await ApiService.instance.fetchCompanyProfile();
+    } catch (e) {
+      debugPrint('Refresh company profile: $e');
+    }
+    update();
+  }
+
+  Future<void> submitVerification({
+    required Map<String, String> details,
+  }) async {
+    final body = {
+      'first_name': currentUser.name.split(' ').first,
+      'last_name': currentUser.name.split(' ').length > 1
+          ? currentUser.name.split(' ').sublist(1).join(' ')
+          : '',
+      'phone': details['license'] ?? '',
+    };
+    await ApiService.instance.updateTechnicianProfile(body);
+    _verificationStatus = 'Pending Review';
+    _verificationSummary =
+        'Professional verification details submitted for review. Specialization: ${details['specialization']}. Bio: ${details['bio']}';
+    update();
+  }
+
+  Future<void> createDispute({
+    required String taskId,
+    required String reason,
+    required String title,
+    required String description,
+  }) async {
+    final tId = int.tryParse(taskId) ?? 0;
+    final task = findTask(taskId);
+    int? againstId;
+    if (task != null && task.acceptedBidId != null) {
+      againstId = int.tryParse(task.acceptedBidId!);
+    }
+
+    await ApiService.instance.createDispute(
+      taskId: tId,
+      reason: reason,
+      title: title,
+      description: description,
+      againstId: againstId,
+    );
+  }
+
+  Future<Map<String, dynamic>> requestLoginOTP(String phone) async {
+    return await ApiService.instance.requestPhoneOTP(
+      phone: phone,
+      purpose: 'login',
+    );
+  }
+
+  Future<Map<String, dynamic>> requestOTP(
+    String identifier,
+    String purpose,
+  ) async {
+    final isEmail = identifier.contains('@');
+    return await ApiService.instance.requestPhoneOTP(
+      phone: isEmail ? null : identifier,
+      email: isEmail ? identifier : null,
+      purpose: purpose,
+    );
+  }
+
+  Future<void> verifyOTPAndLogin(int challengeId, String code) async {
+    final res = await ApiService.instance.verifyPhoneOTP(challengeId, code);
+    if (res['access'] != null) {
+      ApiService.instance.setTokens(res['access'], res['refresh']);
+      await syncAll();
+    } else {
+      throw Exception('Login credentials were not returned.');
+    }
+  }
+
+  Future<void> resetPassword({
+    required int challengeId,
+    required String code,
+    required String newPassword,
+  }) async {
+    await ApiService.instance.resetPassword(
+      challengeId: challengeId,
+      code: code,
+      newPassword: newPassword,
+    );
+  }
+
+  List<dynamic> _adminUsersList = [];
+  List<dynamic> _adminTasksList = [];
+
+  List<dynamic> get adminUsersList => _adminUsersList;
+  List<dynamic> get adminTasksList => _adminTasksList;
+
+  Future<void> syncAdminData() async {
+    try {
+      _adminUsersList = await ApiService.instance.fetchAdminUsers();
+      _adminTasksList = await ApiService.instance.fetchAdminTasks();
+      update();
+    } catch (e) {
+      debugPrint('Sync Admin Data Error: $e');
+    }
+  }
+
+  Future<void> verifyUser(int userId) async {
+    await ApiService.instance.adminVerifyUser(userId);
+    await syncAdminData();
+  }
+
+  Future<void> suspendUser(int userId) async {
+    await ApiService.instance.adminSuspendUser(userId);
+    await syncAdminData();
+  }
+}
+
+class AppStateScope {
+  const AppStateScope._();
+
+  static AppState of(BuildContext context) {
+    return Get.find<AppState>();
+  }
+}

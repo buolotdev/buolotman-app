@@ -1,0 +1,658 @@
+import 'package:flutter/material.dart';
+import '../core/api_service.dart';
+import 'client_messaging_screen.dart';
+
+const companyNavy = Color(0xFF001F3F);
+const companyOrange = Color(0xFFFF4500);
+const companyMuted = Color(0xFF64748B);
+const companyBg = Color(0xFFF5F7FA);
+
+class CompanyProjectsScreen extends StatefulWidget {
+  const CompanyProjectsScreen({super.key});
+  @override
+  State<CompanyProjectsScreen> createState() => _CompanyProjectsState();
+}
+
+class _CompanyProjectsState extends State<CompanyProjectsScreen> {
+  final api = ApiService();
+  late Future<List<dynamic>> future = api.companyProjects();
+  String filter = 'all';
+
+  void reload() => setState(
+    () => future = api.companyProjects(status: filter == 'all' ? null : filter),
+  );
+  void notice(Object e) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(e.toString())));
+
+  Future<void> createProject() async {
+    final title = TextEditingController();
+    final client = TextEditingController();
+    final budget = TextEditingController();
+    final timeline = TextEditingController();
+    final location = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (d) => AlertDialog(
+        title: const Text('Create project'),
+        content: SingleChildScrollView(
+          child: Column(
+            children: [
+              TextField(
+                controller: title,
+                decoration: const InputDecoration(labelText: 'Project title'),
+              ),
+              TextField(
+                controller: client,
+                decoration: const InputDecoration(labelText: 'Client name'),
+              ),
+              TextField(
+                controller: budget,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: const InputDecoration(labelText: 'Budget'),
+              ),
+              TextField(
+                controller: timeline,
+                decoration: const InputDecoration(
+                  labelText: 'Timeline / deadline',
+                ),
+              ),
+              TextField(
+                controller: location,
+                decoration: const InputDecoration(labelText: 'Location'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(d, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(
+              d,
+              title.text.trim().isNotEmpty && client.text.trim().isNotEmpty,
+            ),
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      try {
+        await api.createCompanyProject({
+          'title': title.text.trim(),
+          'client_name': client.text.trim(),
+          'budget': budget.text.trim(),
+          'timeline': timeline.text.trim(),
+          'location': location.text.trim(),
+          'status': 'pending',
+          'progress': 0,
+        });
+        reload();
+      } catch (e) {
+        notice(e);
+      }
+    }
+    for (final c in [title, client, budget, timeline, location]) {
+      c.dispose();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: const Text('Company projects'),
+      foregroundColor: companyNavy,
+      backgroundColor: Colors.white,
+      actions: [
+        IconButton(
+          onPressed: createProject,
+          icon: const Icon(Icons.add, color: companyOrange),
+        ),
+      ],
+    ),
+    backgroundColor: companyBg,
+    body: Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: DropdownButtonFormField<String>(
+            initialValue: filter,
+            decoration: const InputDecoration(
+              labelText: 'Status',
+              border: OutlineInputBorder(),
+            ),
+            items: const [
+              DropdownMenuItem(value: 'all', child: Text('All projects')),
+              DropdownMenuItem(value: 'pending', child: Text('Pending')),
+              DropdownMenuItem(value: 'active', child: Text('Active')),
+              DropdownMenuItem(value: 'completed', child: Text('Completed')),
+            ],
+            onChanged: (v) {
+              filter = v ?? 'all';
+              reload();
+            },
+          ),
+        ),
+        Expanded(
+          child: FutureBuilder<List<dynamic>>(
+            future: future,
+            builder: (context, snap) {
+              if (!snap.hasData)
+                return const Center(
+                  child: CircularProgressIndicator(color: companyOrange),
+                );
+              final items = snap.data!;
+              if (items.isEmpty)
+                return const Center(
+                  child: Text(
+                    'No projects yet.',
+                    style: TextStyle(color: companyMuted),
+                  ),
+                );
+              return ListView.builder(
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 24),
+                itemCount: items.length,
+                itemBuilder: (_, i) {
+                  final p = items[i] as Map;
+                  return Card(
+                    elevation: 0,
+                    child: ListTile(
+                      title: Text(
+                        '${p['title'] ?? 'Project'}',
+                        style: const TextStyle(
+                          color: companyNavy,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      subtitle: Text(
+                        '${p['client_name'] ?? ''} • ${p['status'] ?? 'pending'}\nBudget: ${p['budget'] ?? '—'} • Progress: ${p['progress'] ?? 0}%',
+                      ),
+                      isThreeLine: true,
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (p['client_id'] != null)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.message_outlined,
+                                color: companyNavy,
+                              ),
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ClientMessagesScreen(
+                                    participantId: p['client_id'],
+                                    participantName:
+                                        '${p['client_name'] ?? 'Client'}',
+                                    contextType: 'project',
+                                    contextId: p['id'],
+                                    withBottomNavigation: false,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.red,
+                            ),
+                            onPressed: () async {
+                              try {
+                                await api.deleteCompanyProject(p['id']);
+                                reload();
+                              } catch (e) {
+                                notice(e);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class CompanyQuotesScreen extends StatefulWidget {
+  const CompanyQuotesScreen({super.key});
+  @override
+  State<CompanyQuotesScreen> createState() => _CompanyQuotesState();
+}
+
+class _CompanyQuotesState extends State<CompanyQuotesScreen> {
+  final api = ApiService();
+  late Future<List<dynamic>> future = ApiService().companyQuotes();
+  void notice(Object e) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(e.toString())));
+  Future<void> setStatus(dynamic id, String status) async {
+    try {
+      await api.updateCompanyQuote(id, {'status': status});
+      setState(() => future = api.companyQuotes());
+    } catch (e) {
+      notice(e);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: const Text('Quote requests'),
+      foregroundColor: companyNavy,
+      backgroundColor: Colors.white,
+    ),
+    backgroundColor: companyBg,
+    body: FutureBuilder<List<dynamic>>(
+      future: future,
+      builder: (context, snap) {
+        if (!snap.hasData)
+          return const Center(
+            child: CircularProgressIndicator(color: companyOrange),
+          );
+        final items = snap.data!;
+        if (items.isEmpty)
+          return const Center(
+            child: Text(
+              'No quote requests yet.',
+              style: TextStyle(color: companyMuted),
+            ),
+          );
+        return ListView.builder(
+          padding: const EdgeInsets.all(14),
+          itemCount: items.length,
+          itemBuilder: (_, i) {
+            final q = items[i] as Map;
+            final status = '${q['status'] ?? 'pending'}';
+            final closed =
+                status == 'approved' ||
+                status == 'accepted' ||
+                status == 'rejected';
+            return Card(
+              elevation: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${q['service'] ?? 'Quote request'}',
+                      style: const TextStyle(
+                        color: companyNavy,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 17,
+                      ),
+                    ),
+                    Text(
+                      '${q['client_name'] ?? 'Client'} • ${q['client_email'] ?? ''}',
+                      style: const TextStyle(color: companyMuted),
+                    ),
+                    Text(
+                      'Budget: ${q['budget'] ?? '—'} • Deadline: ${q['deadline'] ?? '—'}',
+                    ),
+                    if ('${q['project_summary'] ?? ''}'.isNotEmpty)
+                      Text('${q['project_summary']}'),
+                    Row(
+                      children: [
+                        Chip(label: Text(status)),
+                        const Spacer(),
+                        if (q['client_id'] != null)
+                          IconButton(
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ClientMessagesScreen(
+                                  participantId: q['client_id'],
+                                  participantName:
+                                      '${q['client_name'] ?? 'Client'}',
+                                  contextType: 'quote',
+                                  contextId: q['id'],
+                                  withBottomNavigation: false,
+                                ),
+                              ),
+                            ),
+                            icon: const Icon(
+                              Icons.message_outlined,
+                              color: companyNavy,
+                            ),
+                          ),
+                        if (!closed)
+                          TextButton(
+                            onPressed: () => setStatus(q['id'], 'rejected'),
+                            child: const Text('Reject'),
+                          ),
+                        if (!closed)
+                          ElevatedButton(
+                            onPressed: () => setStatus(q['id'], 'approved'),
+                            child: const Text('Approve'),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    ),
+  );
+}
+
+class CompanyTeamScreen extends StatefulWidget {
+  const CompanyTeamScreen({super.key});
+  @override
+  State<CompanyTeamScreen> createState() => _CompanyTeamState();
+}
+
+class _CompanyTeamState extends State<CompanyTeamScreen> {
+  final api = ApiService();
+  late Future<List<dynamic>> future = ApiService().companyTeam();
+  void notice(Object e) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(e.toString())));
+  Future<void> addMember() async {
+    final name = TextEditingController(),
+        role = TextEditingController(),
+        email = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (d) => AlertDialog(
+        title: const Text('Add team member'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: name,
+              decoration: const InputDecoration(labelText: 'Name'),
+            ),
+            TextField(
+              controller: role,
+              decoration: const InputDecoration(labelText: 'Position / role'),
+            ),
+            TextField(
+              controller: email,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(labelText: 'Email'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(d, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(
+              d,
+              name.text.trim().isNotEmpty && role.text.trim().isNotEmpty,
+            ),
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      try {
+        await api.createCompanyTeamMember({
+          'name': name.text.trim(),
+          'role': role.text.trim(),
+          'email': email.text.trim(),
+          'status': 'active',
+        });
+        setState(() => future = api.companyTeam());
+      } catch (e) {
+        notice(e);
+      }
+    }
+    name.dispose();
+    role.dispose();
+    email.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: const Text('Team'),
+      foregroundColor: companyNavy,
+      backgroundColor: Colors.white,
+      actions: [
+        IconButton(
+          onPressed: addMember,
+          icon: const Icon(Icons.person_add, color: companyOrange),
+        ),
+      ],
+    ),
+    backgroundColor: companyBg,
+    body: FutureBuilder<List<dynamic>>(
+      future: future,
+      builder: (context, snap) {
+        if (!snap.hasData)
+          return const Center(
+            child: CircularProgressIndicator(color: companyOrange),
+          );
+        final items = snap.data!;
+        if (items.isEmpty)
+          return const Center(
+            child: Text(
+              'No team members yet.',
+              style: TextStyle(color: companyMuted),
+            ),
+          );
+        return ListView(
+          padding: const EdgeInsets.all(14),
+          children: items.map((item) {
+            final m = item as Map;
+            return Card(
+              elevation: 0,
+              child: ListTile(
+                leading: const CircleAvatar(child: Icon(Icons.person)),
+                title: Text('${m['name'] ?? ''}'),
+                subtitle: Text(
+                  '${m['role'] ?? ''}\n${m['email'] ?? ''} • ${m['status'] ?? 'active'}',
+                ),
+                isThreeLine: true,
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  onPressed: () async {
+                    try {
+                      await api.deleteCompanyTeamMember(m['id']);
+                      setState(() => future = api.companyTeam());
+                    } catch (e) {
+                      notice(e);
+                    }
+                  },
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    ),
+  );
+}
+
+class CompanyInsightsScreen extends StatefulWidget {
+  const CompanyInsightsScreen({super.key});
+  @override
+  State<CompanyInsightsScreen> createState() => _CompanyInsightsState();
+}
+
+class _CompanyInsightsState extends State<CompanyInsightsScreen> {
+  late Future<Map<String, dynamic>> future = ApiService().companyProfile();
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: const Text('Analytics and reviews'),
+      foregroundColor: companyNavy,
+      backgroundColor: Colors.white,
+    ),
+    backgroundColor: companyBg,
+    body: FutureBuilder<Map<String, dynamic>>(
+      future: future,
+      builder: (context, snap) {
+        if (!snap.hasData)
+          return const Center(
+            child: CircularProgressIndicator(color: companyOrange),
+          );
+        final p = snap.data!;
+        final d = p['rating_distribution'] is Map
+            ? p['rating_distribution'] as Map
+            : const {};
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            _metric('Profile views', p['profile_views']),
+            _metric('Completed projects', p['completed_tasks']),
+            _metric('Average rating', p['average_rating']),
+            _metric('Reviews', p['review_count']),
+            Card(
+              elevation: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Rating distribution',
+                      style: TextStyle(
+                        color: companyNavy,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    for (final n in ['5', '4', '3', '2', '1'])
+                      Text('$n stars: ${d[n] ?? 0}'),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    ),
+  );
+
+  Widget _metric(String label, dynamic value) => Card(
+    elevation: 0,
+    child: ListTile(
+      title: Text(label, style: const TextStyle(color: companyMuted)),
+      trailing: Text(
+        '${value ?? 0}',
+        style: const TextStyle(
+          color: companyNavy,
+          fontWeight: FontWeight.w800,
+          fontSize: 20,
+        ),
+      ),
+    ),
+  );
+}
+
+class CompanyWalletScreen extends StatefulWidget {
+  const CompanyWalletScreen({super.key});
+  @override
+  State<CompanyWalletScreen> createState() => _CompanyWalletState();
+}
+
+class _CompanyWalletState extends State<CompanyWalletScreen> {
+  final api = ApiService();
+  late Future<List<dynamic>> future = ApiService().walletTransactions();
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: const Text('Wallet'),
+      foregroundColor: companyNavy,
+      backgroundColor: Colors.white,
+    ),
+    backgroundColor: companyBg,
+    body: FutureBuilder<List<dynamic>>(
+      future: future,
+      builder: (context, snap) {
+        if (!snap.hasData)
+          return const Center(
+            child: CircularProgressIndicator(color: companyOrange),
+          );
+        final rows = snap.data!;
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            FutureBuilder<Map<String, dynamic>>(
+              future: api.wallet(),
+              builder: (_, w) {
+                final x = w.data ?? {};
+                return Card(
+                  color: companyNavy,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Available balance',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '${x['available_balance'] ?? x['balance'] ?? 0} ${x['currency'] ?? 'XAF'}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 26,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Transactions',
+              style: TextStyle(
+                color: companyNavy,
+                fontWeight: FontWeight.w800,
+                fontSize: 18,
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (rows.isEmpty)
+              const Text(
+                'No transactions yet.',
+                style: TextStyle(color: companyMuted),
+              ),
+            ...rows.map((item) {
+              final t = item as Map;
+              return Card(
+                elevation: 0,
+                child: ListTile(
+                  title: Text(
+                    '${t['description'] ?? t['type'] ?? 'Transaction'}',
+                  ),
+                  subtitle: Text(
+                    '${t['status'] ?? ''} • ${t['created_at'] ?? t['date'] ?? ''}',
+                  ),
+                  trailing: Text('${t['amount'] ?? 0}'),
+                ),
+              );
+            }),
+          ],
+        );
+      },
+    ),
+  );
+}

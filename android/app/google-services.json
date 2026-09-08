@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "1090108678391",
+    "project_id": "boulotman-api",
+    "storage_bucket": "boulotman-api.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1090108678391:android:52a9623853042db7c0b3f2",
+        "android_client_info": {
+          "package_name": "com.example.boulotman_mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1090108678391-00u5aomsoh2gu7rqk2vnfldt9cs4fovq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "REDACTED_GOOGLE_KEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1090108678391-00u5aomsoh2gu7rqk2vnfldt9cs4fovq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1090108678391-nb89l4orlsf8kpvj52gunjs2c437t7ia.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.buolotManApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

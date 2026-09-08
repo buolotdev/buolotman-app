@@ -1,0 +1,160 @@
+import 'package:flutter/material.dart';
+import '../core/api_service.dart';
+import 'technician_navigation.dart';
+import 'technician_messages_screen.dart';
+
+class TechnicianNotificationsScreen extends StatefulWidget {
+  const TechnicianNotificationsScreen({super.key});
+  @override
+  State<TechnicianNotificationsScreen> createState() => _NotificationsState();
+}
+
+class _NotificationsState extends State<TechnicianNotificationsScreen> {
+  final api = ApiService();
+  late Future<List<dynamic>> future = api.notifications();
+  static const navy = Color(0xFF001F3F),
+      orange = Color(0xFFFF4500),
+      muted = Color(0xFF64748B);
+  Future<void> _reload() async {
+    setState(() => future = api.notifications());
+  }
+
+  Future<void> _readAll(List<dynamic> items) async {
+    for (final item in items) {
+      if (item is Map && item['is_read'] != true && item['id'] != null) {
+        try {
+          await api.markNotificationRead(item['id']);
+        } catch (_) {}
+      }
+    }
+    if (mounted) _reload();
+  }
+
+  void _open(Map item) {
+    final meta = item['metadata'] is Map ? item['metadata'] as Map : {};
+    final conversation = meta['conversation_id'];
+    if (conversation != null)
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              TechnicianConversationScreen(conversationId: conversation),
+        ),
+      );
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: 0),
+    appBar: AppBar(
+      title: const Text('Notifications'),
+      foregroundColor: navy,
+      backgroundColor: Colors.white,
+      actions: [
+        IconButton(
+          onPressed: () async {
+            final items = await future;
+            await _readAll(items);
+          },
+          icon: const Icon(Icons.done_all),
+        ),
+        IconButton(onPressed: _reload, icon: const Icon(Icons.refresh)),
+      ],
+    ),
+    backgroundColor: const Color(0xFFF4F6F8),
+    body: FutureBuilder<List<dynamic>>(
+      future: future,
+      builder: (_, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done)
+          return const Center(child: CircularProgressIndicator(color: orange));
+        if (snapshot.hasError)
+          return _empty('Notifications are temporarily unavailable.');
+        final items = snapshot.data ?? const [];
+        final unread = items
+            .where((x) => x is Map && x['is_read'] != true)
+            .length;
+        if (items.isEmpty) return _empty('You have no notifications yet.');
+        return Column(
+          children: [
+            if (unread > 0)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '$unread unread notification${unread == 1 ? '' : 's'}',
+                    style: const TextStyle(
+                      color: navy,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: items.length,
+                itemBuilder: (_, i) {
+                  final item = items[i] as Map;
+                  final read = item['is_read'] == true;
+                  return Card(
+                    elevation: 0,
+                    color: read ? Colors.white : const Color(0xFFFFF7F3),
+                    margin: const EdgeInsets.only(bottom: 10),
+                    child: ListTile(
+                      onTap: () async {
+                        if (!read) await api.markNotificationRead(item['id']);
+                        if (mounted) {
+                          _open(item);
+                          _reload();
+                        }
+                      },
+                      leading: CircleAvatar(
+                        backgroundColor: read
+                            ? const Color(0xFFE8EEF5)
+                            : const Color(0xFFFFE0D6),
+                        child: Icon(
+                          read
+                              ? Icons.notifications_none
+                              : Icons.notifications_active,
+                          color: orange,
+                        ),
+                      ),
+                      title: Text(
+                        '${item['title'] ?? 'Notification'}',
+                        style: TextStyle(
+                          color: navy,
+                          fontWeight: read ? FontWeight.w600 : FontWeight.w800,
+                        ),
+                      ),
+                      subtitle: Text(
+                        '${item['body'] ?? ''}\n${item['category'] ?? ''}',
+                        style: const TextStyle(color: muted),
+                      ),
+                      trailing: read
+                          ? null
+                          : const CircleAvatar(
+                              radius: 5,
+                              backgroundColor: orange,
+                            ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    ),
+  );
+  Widget _empty(String text) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(28),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: muted),
+      ),
+    ),
+  );
+}
