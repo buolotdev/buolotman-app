@@ -15,6 +15,7 @@ class RealtimeChatConnection {
   Future<void> connect({
     required dynamic conversationId,
     required void Function(Map<String, dynamic> message) onMessage,
+    void Function(Map<String, dynamic> presence)? onPresence,
     void Function(Object error)? onError,
   }) async {
     final token = await ApiService().accessToken();
@@ -30,7 +31,14 @@ class RealtimeChatConnection {
       _subscription = _channel!.stream.listen((event) {
         try {
           final decoded = jsonDecode('$event');
-          if (decoded is Map) onMessage(Map<String, dynamic>.from(decoded));
+          if (decoded is Map) {
+            final event = Map<String, dynamic>.from(decoded);
+            if (event['type'] == 'presence') {
+              onPresence?.call(event);
+            } else {
+              onMessage(event);
+            }
+          }
         } catch (error) {
           onError?.call(error);
         }

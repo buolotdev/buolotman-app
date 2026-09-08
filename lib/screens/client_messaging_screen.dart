@@ -251,6 +251,7 @@ class _ClientConversationState extends State<ClientConversationScreen> {
   dynamic currentUserId;
   bool loading = true, sending = false;
   RealtimeChatConnection? realtime;
+  final Map<String, bool> presence = {};
   @override
   void initState() {
     super.initState();
@@ -263,6 +264,12 @@ class _ClientConversationState extends State<ClientConversationScreen> {
     await realtime!.connect(
       conversationId: widget.conversationId,
       onMessage: _receiveRealtimeMessage,
+      onPresence: (event) {
+        if (!mounted || event['user_id'] == null) return;
+        setState(
+          () => presence['${event['user_id']}'] = event['is_online'] == true,
+        );
+      },
     );
   }
 
@@ -389,6 +396,9 @@ class _ClientConversationState extends State<ClientConversationScreen> {
             .cast<dynamic>()
             .firstOrNull ??
         (participants.isNotEmpty ? participants.first : <String, dynamic>{});
+    final otherMap = other is Map ? other : <String, dynamic>{};
+    final online =
+        presence['${otherMap['id']}'] ?? otherMap['is_online'] == true;
     return Column(
       children: [
         Container(
@@ -416,6 +426,15 @@ class _ClientConversationState extends State<ClientConversationScreen> {
                       style: const TextStyle(
                         color: messageNavy,
                         fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      online
+                          ? 'Online'
+                          : '${otherMap['last_seen_display'] ?? 'Offline'}',
+                      style: TextStyle(
+                        color: online ? Colors.green.shade700 : messageMuted,
+                        fontSize: 11,
                       ),
                     ),
                     if ('${conversation['task_title'] ?? ''}'.isNotEmpty)

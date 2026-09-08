@@ -149,6 +149,7 @@ class _ConversationState extends State<TechnicianConversationScreen> {
   PlatformFile? attachment;
   bool sending = false;
   dynamic currentUserId;
+  bool? otherOnline;
   @override
   void initState() {
     super.initState();
@@ -161,6 +162,10 @@ class _ConversationState extends State<TechnicianConversationScreen> {
     await realtime!.connect(
       conversationId: widget.conversationId,
       onMessage: _receiveRealtimeMessage,
+      onPresence: (event) {
+        if (!mounted || event['user_id'] == null) return;
+        setState(() => otherOnline = event['is_online'] == true);
+      },
     );
   }
 
@@ -254,11 +259,34 @@ class _ConversationState extends State<TechnicianConversationScreen> {
             ),
           );
         final data = s.data is Map ? s.data as Map : {};
+        final participants = data['participants'] is List
+            ? data['participants'] as List
+            : const [];
+        final other = participants
+            .where((p) => p is Map && '${p['id']}' != '$currentUserId')
+            .cast<dynamic>()
+            .firstOrNull;
+        final otherMap = other is Map ? other : <String, dynamic>{};
+        final online = otherOnline ?? otherMap['is_online'] == true;
         final messages = data['messages'] is List
             ? data['messages'] as List
             : const [];
         return Column(
           children: [
+            Container(
+              width: double.infinity,
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+              child: Text(
+                online
+                    ? 'Online'
+                    : '${otherMap['last_seen_display'] ?? 'Offline'}',
+                style: TextStyle(
+                  color: online ? Colors.green : muted,
+                  fontSize: 12,
+                ),
+              ),
+            ),
             Expanded(
               child: messages.isEmpty
                   ? const Center(
