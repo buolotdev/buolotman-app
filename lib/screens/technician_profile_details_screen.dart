@@ -214,20 +214,33 @@ class _State extends State<TechnicianProfileDetailsScreen> {
           hydrated = true;
         }
         return ListView(
-          padding: const EdgeInsets.fromLTRB(0, 14, 0, 28),
+          padding: const EdgeInsets.fromLTRB(0, 0, 0, 28),
           children: [
             if (bannerUrl != null && bannerUrl!.isNotEmpty)
-              SizedBox(
-                width: double.infinity,
-                height: 156,
-                child: Image.network(
-                  bannerUrl!,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: 220,
+                    child: Image.network(
+                      bannerUrl!,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                  ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: -70,
+                    child: Center(child: _profileAvatar()),
+                  ),
+                ],
               ),
             if (bannerUrl != null && bannerUrl!.isNotEmpty)
+              const SizedBox(height: 86),
+            if (bannerUrl == null || bannerUrl!.isEmpty)
               const SizedBox(height: 14),
             Card(
               margin: const EdgeInsets.symmetric(horizontal: 12),
@@ -239,26 +252,8 @@ class _State extends State<TechnicianProfileDetailsScreen> {
                 padding: const EdgeInsets.all(18),
                 child: Column(
                   children: [
-                    GestureDetector(
-                      onTap: avatarUrl == null || avatarUrl!.isEmpty
-                          ? null
-                          : _showAvatarPreview,
-                      child: CircleAvatar(
-                        key: ValueKey(avatarUrl),
-                        radius: 62,
-                        backgroundColor: const Color(0xFFFFE8E0),
-                        backgroundImage: avatarUrl == null || avatarUrl!.isEmpty
-                            ? null
-                            : NetworkImage(avatarUrl!),
-                        child: avatarUrl == null || avatarUrl!.isEmpty
-                            ? const Icon(
-                                Icons.person,
-                                size: 62,
-                                color: Color(0xFFFF4500),
-                              )
-                            : null,
-                      ),
-                    ),
+                    if (bannerUrl == null || bannerUrl!.isEmpty)
+                      _profileAvatar(),
                     const SizedBox(height: 10),
                     Text(
                       '${first.text} ${last.text}'.trim().isEmpty
@@ -280,6 +275,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
                     const SizedBox(height: 12),
                     Wrap(
                       spacing: 10,
+                      alignment: WrapAlignment.center,
                       children: [
                         OutlinedButton.icon(
                           onPressed: avatarBusy ? null : _changeAvatar,
@@ -1029,6 +1025,21 @@ class _State extends State<TechnicianProfileDetailsScreen> {
       ),
     );
   }
+
+  Widget _profileAvatar() => GestureDetector(
+    onTap: avatarUrl == null || avatarUrl!.isEmpty ? null : _showAvatarPreview,
+    child: CircleAvatar(
+      key: ValueKey(avatarUrl),
+      radius: 62,
+      backgroundColor: const Color(0xFFFFE8E0),
+      backgroundImage: avatarUrl == null || avatarUrl!.isEmpty
+          ? null
+          : NetworkImage(avatarUrl!),
+      child: avatarUrl == null || avatarUrl!.isEmpty
+          ? const Icon(Icons.person, size: 62, color: Color(0xFFFF4500))
+          : null,
+    ),
+  );
 
   Future<void> _changeAvatar() async {
     final image = await _imagePicker.pickImage(source: ImageSource.gallery);
