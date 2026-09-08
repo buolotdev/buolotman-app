@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import '../core/api_service.dart';
 import 'technician_profile_screen.dart';
 import 'onboarding_screen.dart';
@@ -142,6 +142,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
 
   bool saving = false;
   bool avatarBusy = false;
+  final ImagePicker _imagePicker = ImagePicker();
   @override
   Widget build(BuildContext context) => Scaffold(
     bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: 3),
@@ -1028,18 +1029,22 @@ class _State extends State<TechnicianProfileDetailsScreen> {
   }
 
   Future<void> _changeAvatar() async {
-    final result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
-      withData: true,
-    );
-    if (!mounted || result == null || result.files.single.bytes == null) return;
+    final image = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (!mounted || image == null) return;
+    final bytes = await image.readAsBytes();
+    if (bytes.length > 10 * 1024 * 1024) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile picture must be 10 MB or smaller.'),
+        ),
+      );
+      return;
+    }
     setState(() => avatarBusy = true);
     try {
-      final file = result.files.single;
       final url = await api.uploadAvatarBytes(
-        bytes: file.bytes!,
-        filename: file.name,
+        bytes: bytes,
+        filename: image.name,
       );
       if (mounted) {
         setState(() => avatarUrl = _imageUrl(url));
@@ -1066,13 +1071,10 @@ class _State extends State<TechnicianProfileDetailsScreen> {
   }
 
   Future<void> _changeBanner() async {
-    final result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
-      withData: true,
-    );
-    if (!mounted || result == null || result.files.single.bytes == null) return;
-    if (result.files.single.bytes!.length > 25 * 1024 * 1024) {
+    final image = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (!mounted || image == null) return;
+    final bytes = await image.readAsBytes();
+    if (bytes.length > 25 * 1024 * 1024) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Banner must be 25 MB or smaller.')),
       );
@@ -1080,10 +1082,9 @@ class _State extends State<TechnicianProfileDetailsScreen> {
     }
     setState(() => avatarBusy = true);
     try {
-      final file = result.files.single;
       final url = await api.uploadBannerBytes(
-        bytes: file.bytes!,
-        filename: file.name,
+        bytes: bytes,
+        filename: image.name,
       );
       if (mounted) {
         setState(() => bannerUrl = _imageUrl(url));

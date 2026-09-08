@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 import '../core/api_service.dart';
 import 'technician_messages_screen.dart';
@@ -42,6 +43,13 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.black,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+    );
     _load();
     verificationTimer = Timer.periodic(
       const Duration(seconds: 15),
@@ -178,9 +186,11 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
               children: [
                 Text(
                   'Technician Feed',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 25,
-                    height: 1.1,
+                    fontSize: 22,
+                    height: 1.15,
                     fontWeight: FontWeight.w800,
                     color: ink,
                   ),
