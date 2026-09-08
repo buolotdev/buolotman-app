@@ -159,86 +159,98 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
     bottomNavigationBar: TechnicianBottomNavigation(selectedIndex: tab),
   );
 
-  Widget _header() => Row(
+  Widget _header() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      IconButton(
-        onPressed: _refreshAndShowDrawer,
-        icon: const Icon(Icons.menu, color: navy),
-      ),
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Technician Feed',
-              style: TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.w800,
-                color: ink,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text('Dashboard overview', style: TextStyle(color: muted)),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 38,
-              child: TextField(
-                onChanged: (value) => setState(() => query = value),
-                decoration: InputDecoration(
-                  hintText: 'Search tasks or cities',
-                  prefixIcon: const Icon(Icons.search, size: 18, color: muted),
-                  filled: true,
-                  fillColor: const Color(0xFFF1F5F9),
-                  contentPadding: EdgeInsets.zero,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          IconButton(
+            onPressed: _refreshAndShowDrawer,
+            padding: const EdgeInsets.all(8),
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+            icon: const Icon(Icons.menu, color: navy),
+          ),
+          const SizedBox(width: 4),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Technician Feed',
+                  style: TextStyle(
+                    fontSize: 25,
+                    height: 1.1,
+                    fontWeight: FontWeight.w800,
+                    color: ink,
                   ),
                 ),
-              ),
+                SizedBox(height: 5),
+                Text('Dashboard overview', style: TextStyle(color: muted)),
+              ],
             ),
-          ],
-        ),
-      ),
-      Stack(
-        children: [
+          ),
+          Stack(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const TechnicianNotificationsScreen(),
+                  ),
+                ),
+                icon: const Icon(Icons.notifications_none, color: navy),
+              ),
+              if (notifications.isNotEmpty)
+                Positioned(
+                  right: 5,
+                  top: 5,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: orange,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      '${notifications.length > 99 ? '99+' : notifications.length}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
           IconButton(
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const TechnicianNotificationsScreen(),
+                builder: (_) => const TechnicianMessagesScreen(),
               ),
             ),
-            icon: const Icon(Icons.notifications_none, color: navy),
+            icon: const Icon(Icons.chat_bubble_outline, color: navy),
           ),
-          if (notifications.isNotEmpty)
-            Positioned(
-              right: 5,
-              top: 5,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: orange,
-                  shape: BoxShape.circle,
-                ),
-                child: Text(
-                  '${notifications.length > 99 ? '99+' : notifications.length}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
-      IconButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const TechnicianMessagesScreen()),
+      const SizedBox(height: 12),
+      SizedBox(
+        height: 44,
+        child: TextField(
+          onChanged: (value) => setState(() => query = value),
+          decoration: InputDecoration(
+            hintText: 'Search tasks or cities',
+            prefixIcon: const Icon(Icons.search, size: 20, color: muted),
+            filled: true,
+            fillColor: const Color(0xFFF1F5F9),
+            contentPadding: EdgeInsets.zero,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
         ),
-        icon: const Icon(Icons.chat_bubble_outline, color: navy),
       ),
     ],
   );

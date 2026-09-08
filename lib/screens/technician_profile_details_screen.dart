@@ -988,34 +988,40 @@ class _State extends State<TechnicianProfileDetailsScreen> {
   void _showAvatarPreview() {
     showDialog<void>(
       context: context,
-      builder: (_) => Dialog(
-        backgroundColor: Colors.black,
-        insetPadding: const EdgeInsets.all(10),
-        child: Stack(
-          children: [
-            InteractiveViewer(
-              child: Image.network(
-                avatarUrl!,
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Padding(
-                  padding: EdgeInsets.all(40),
-                  child: Icon(
-                    Icons.broken_image_outlined,
-                    color: Colors.white,
-                    size: 64,
+      barrierColor: Colors.black87,
+      builder: (dialogContext) => Dialog.fullscreen(
+        backgroundColor: Colors.black87,
+        child: SafeArea(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Center(
+                child: InteractiveViewer(
+                  minScale: 0.8,
+                  maxScale: 4,
+                  child: Image.network(
+                    avatarUrl!,
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.broken_image_outlined,
+                      color: Colors.white,
+                      size: 64,
+                    ),
                   ),
                 ),
               ),
-            ),
-            Positioned(
-              top: 4,
-              right: 4,
-              child: IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close, color: Colors.white, size: 30),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: IconButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  icon: const Icon(Icons.close, color: Colors.white, size: 34),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
