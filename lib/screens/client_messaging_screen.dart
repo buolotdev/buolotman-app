@@ -108,10 +108,35 @@ class _ClientMessagesState extends State<ClientMessagesScreen> {
       body: loading
           ? const Center(child: CircularProgressIndicator(color: messageOrange))
           : conversations.isEmpty && activeId == null
-          ? const Center(
-              child: Text(
-                'No conversations yet. Accept a proposal to start messaging.',
-                style: TextStyle(color: messageMuted),
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(
+                      Icons.forum_outlined,
+                      size: 48,
+                      color: Color(0xFFCBD5E1),
+                    ),
+                    SizedBox(height: 14),
+                    Text(
+                      'No conversations yet',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: messageNavy,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      'Accept a proposal to start messaging.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: messageMuted, height: 1.35),
+                    ),
+                  ],
+                ),
               ),
             )
           : Row(

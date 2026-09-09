@@ -408,18 +408,42 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
     child: SafeArea(
       child: ListView(
         children: [
-          const DrawerHeader(
-            decoration: BoxDecoration(color: navy),
-            child: Align(
-              alignment: Alignment.bottomLeft,
-              child: Text(
-                'Boulot Man\nClient',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 23,
-                  fontWeight: FontWeight.w800,
+          Container(
+            height: 188,
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 22),
+            decoration: const BoxDecoration(color: navy),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Image.asset(
+                    'assets/images/boulotman-logo.png',
+                    fit: BoxFit.contain,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 14),
+                const Text(
+                  'Boulot Man',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                const Text(
+                  'Client workspace',
+                  style: TextStyle(color: Color(0xFFB8C7D9), fontSize: 14),
+                ),
+              ],
             ),
           ),
           _drawerItem(

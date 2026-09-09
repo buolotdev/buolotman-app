@@ -2008,17 +2008,34 @@ class _SupportState extends State<ClientSupportScreen> {
               ),
             ),
             SafeArea(
+              minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
                     child: TextField(
                       controller: reply,
-                      decoration: const InputDecoration(
+                      minLines: 1,
+                      maxLines: 4,
+                      textInputAction: TextInputAction.newline,
+                      decoration: InputDecoration(
                         hintText: 'Reply to Support',
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 13,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                     ),
                   ),
+                  const SizedBox(width: 8),
                   IconButton(
+                    padding: const EdgeInsets.all(12),
                     onPressed: sending ? null : _send,
                     icon: const Icon(Icons.send, color: clientOrange),
                   ),
