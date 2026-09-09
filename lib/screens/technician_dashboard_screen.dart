@@ -309,19 +309,22 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
           Container(
             color: navy,
             padding: const EdgeInsets.fromLTRB(22, 24, 18, 22),
-            child: const Row(
+            child: Row(
               children: [
-                CircleAvatar(
-                  backgroundColor: orange,
-                  child: Text(
-                    'BM',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
+                Container(
+                  width: 48,
+                  height: 48,
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(13),
+                  ),
+                  child: Image.asset(
+                    'assets/images/boulotman-logo.png',
+                    fit: BoxFit.contain,
                   ),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -333,7 +336,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    Text(
+                    const Text(
                       'Technician Space',
                       style: TextStyle(color: Colors.white70),
                     ),

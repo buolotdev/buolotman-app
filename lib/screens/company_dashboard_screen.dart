@@ -575,16 +575,18 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
             padding: const EdgeInsets.fromLTRB(20, 24, 14, 22),
             child: Row(
               children: [
-                CircleAvatar(
-                  backgroundColor: orange,
-                  backgroundImage: '${profile['logo_url'] ?? ''}'.isNotEmpty
-                      ? NetworkImage(
-                          api.resolveImageUrl('${profile['logo_url']}'),
-                        )
-                      : null,
-                  child: '${profile['logo_url'] ?? ''}'.isEmpty
-                      ? const Icon(Icons.business, color: Colors.white)
-                      : null,
+                Container(
+                  width: 48,
+                  height: 48,
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(13),
+                  ),
+                  child: Image.asset(
+                    'assets/images/boulotman-logo.png',
+                    fit: BoxFit.contain,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
