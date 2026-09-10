@@ -1071,7 +1071,22 @@ class ApiService {
 
   String _message(Map<String, dynamic> data, String fallback) {
     final value = data['detail'] ?? data['error'] ?? data['message'];
-    return value is String && value.isNotEmpty ? value : fallback;
+    if (value is String && value.isNotEmpty) return value;
+
+    final messages = <String>[];
+    data.forEach((field, raw) {
+      if (raw is List) {
+        for (final item in raw) {
+          final text = '$item'.trim();
+          if (text.isNotEmpty) {
+            messages.add(field == 'non_field_errors' ? text : '$field: $text');
+          }
+        }
+      } else if (raw is String && raw.trim().isNotEmpty) {
+        messages.add(field == 'non_field_errors' ? raw.trim() : '$field: ${raw.trim()}');
+      }
+    });
+    return messages.isEmpty ? fallback : messages.join('\n');
   }
 }
 
