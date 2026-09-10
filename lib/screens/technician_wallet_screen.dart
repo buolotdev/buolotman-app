@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/api_service.dart';
 import 'technician_navigation.dart';
+import 'subscription_screen.dart';
 
 class TechnicianWalletScreen extends StatefulWidget {
   const TechnicianWalletScreen({super.key});
@@ -154,6 +155,20 @@ class _WalletState extends State<TechnicianWalletScreen> {
                       backgroundColor: orange,
                       foregroundColor: Colors.white,
                     ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SubscriptionScreen(),
+                      ),
+                    ),
+                    icon: const Icon(Icons.stars_outlined),
+                    label: const Text('Plans and subscriptions'),
                   ),
                 ),
                 const SizedBox(height: 22),

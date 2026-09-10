@@ -721,6 +721,10 @@ class ApiService {
       _postAny('wallet/campay/collect/', values);
   Future<dynamic> campayCheckStatus(String reference) async =>
       _getAny('wallet/campay/status/$reference/');
+  Future<dynamic> campayGetBalance() async =>
+      _getAny('wallet/campay/balance/');
+  Future<dynamic> upgradeSubscriptionPlan(Map<String, dynamic> values) async =>
+      _postAny('wallet/upgrade-plan/', values);
   Future<dynamic> technicianServices() async =>
       _getAny('auth/technician-services/');
   Future<List<dynamic>> serviceCategories() async =>

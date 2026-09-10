@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/api_service.dart';
 import 'login_screen.dart';
-import 'company_dashboard_screen.dart';
+import 'company_workflow_screens.dart';
 
 class CompanySettingsScreen extends StatefulWidget {
   const CompanySettingsScreen({super.key});
@@ -255,8 +255,8 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
                   () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) =>
-                          const CompanyPlaceholderScreen(title: 'Wallet'),
+                    builder: (_) =>
+                          const CompanyWalletScreen(),
                     ),
                   ),
                 ),
