@@ -91,7 +91,10 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
           ? _messages()
           : _profile(),
     ),
-    bottomNavigationBar: tab == 2 ? null : _bottom(),
+    // Keep one navigation shell mounted for every client tab. Messages must
+    // not push its own Scaffold/bottom bar onto the route stack; doing that
+    // makes the whole page slide and leaves later tabs inside that transition.
+    bottomNavigationBar: _bottom(),
   );
   final _key = GlobalKey<ScaffoldState>();
 
@@ -155,7 +158,7 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
   }
 
   Widget _tasks() => const ClientTasksScreen(withBottomNavigation: false);
-  Widget _messages() => const ClientMessagesScreen(withBottomNavigation: true);
+  Widget _messages() => const ClientMessagesScreen(withBottomNavigation: false);
   Widget _profile() =>
       const ClientProfileOverviewScreen(withBottomNavigation: false);
   void _openAnimatedDrawer() {
@@ -379,12 +382,7 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
     currentIndex: tab,
     selectedItemColor: orange,
     unselectedItemColor: muted,
-    onTap: (value) => value == 2
-        ? Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ClientMessagesScreen()),
-          )
-        : setState(() => tab = value),
+    onTap: (value) => setState(() => tab = value),
     items: const [
       BottomNavigationBarItem(
         icon: Icon(Icons.dashboard_outlined),
