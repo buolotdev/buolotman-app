@@ -756,6 +756,11 @@ class _ClientProfileState extends State<ClientProfileScreen> {
         _snack('Enter a valid business email.', error: true);
         return;
       }
+      if (businessPhone.text.trim().isNotEmpty &&
+          !validPhoneForCountry(businessPhone.text.trim(), country)) {
+        _snack('Enter a valid $country business phone number.', error: true);
+        return;
+      }
     }
     if (phone.text.trim().isNotEmpty &&
         !validPhoneForCountry(phone.text.trim(), country)) {
@@ -898,9 +903,9 @@ class _ClientProfileState extends State<ClientProfileScreen> {
   );
   Widget _section(String title, List<Widget> children) => Card(
     elevation: 0,
-    margin: const EdgeInsets.only(bottom: 16),
+    margin: const EdgeInsets.only(bottom: 12),
     child: Padding(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -913,7 +918,12 @@ class _ClientProfileState extends State<ClientProfileScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          ...children,
+          ...children.asMap().entries.expand(
+            (entry) => [
+              if (entry.key > 0) const SizedBox(height: 12),
+              entry.value,
+            ],
+          ),
         ],
       ),
     ),
@@ -927,7 +937,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
     bool enabled = true,
     List<TextInputFormatter>? formatters,
   }) => Padding(
-    padding: const EdgeInsets.only(bottom: 12),
+    padding: EdgeInsets.zero,
     child: TextField(
       controller: c,
       enabled: enabled,
@@ -966,7 +976,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       ),
       backgroundColor: clientBg,
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
         children: [
           _section('Cover image', [
             if (banner != null && banner!.isNotEmpty)
@@ -1237,6 +1247,8 @@ class _ClientProfileState extends State<ClientProfileScreen> {
                   ),
                   title: Text(
                     verified ? 'Verified client' : 'Verification pending',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: clientNavy,
                       fontWeight: FontWeight.w700,
@@ -1262,9 +1274,20 @@ class _ClientProfileState extends State<ClientProfileScreen> {
               items: const [
                 DropdownMenuItem(
                   value: 'initial',
-                  child: Text('Show last-name initial'),
+                  child: Text(
+                    'Show last-name initial',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                DropdownMenuItem(value: 'full', child: Text('Show full name')),
+                DropdownMenuItem(
+                  value: 'full',
+                  child: Text(
+                    'Show full name',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
               onChanged: (x) => setState(() => privacy = x ?? privacy),
             ),
@@ -1272,8 +1295,22 @@ class _ClientProfileState extends State<ClientProfileScreen> {
               value: language,
               decoration: _dec('Language'),
               items: const [
-                DropdownMenuItem(value: 'en', child: Text('English')),
-                DropdownMenuItem(value: 'fr', child: Text('Français')),
+                DropdownMenuItem(
+                  value: 'en',
+                  child: Text(
+                    'English',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'fr',
+                  child: Text(
+                    'Français',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
               onChanged: (x) => setState(() => language = x ?? language),
             ),

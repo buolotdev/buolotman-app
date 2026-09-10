@@ -141,12 +141,13 @@ class _SignupScreenState extends State<SignupScreen> {
         role: _role.toUpperCase(),
         signup: true,
       );
-      await _api.updateProfile({
+      final location = await _api.updateProfile({
         'country': _country,
         'city': _city.text.trim(),
         'address':
             '${_city.text.trim()}${_region.text.trim().isEmpty ? '' : ', ${_region.text.trim()}'}',
       });
+      _verifySavedLocation(location, googleSignup: true);
       if (mounted) {
         _error('Account created. It is pending admin verification.');
         Navigator.pop(context);
@@ -262,6 +263,10 @@ class _SignupScreenState extends State<SignupScreen> {
       _error('Please enter your company name.');
       return;
     }
+    if (_city.text.trim().isEmpty) {
+      _error('Please enter your city or town.');
+      return;
+    }
     if (_role != 'company' &&
         (_first.text.trim().isEmpty || _last.text.trim().isEmpty)) {
       _error('Please enter your first and last name.');
@@ -290,12 +295,13 @@ class _SignupScreenState extends State<SignupScreen> {
       // The registration serializers differ by role. Persist the common
       // location fields after authentication so client and company accounts
       // receive the same profile data as technicians.
-      await _api.updateProfile({
+      final location = await _api.updateProfile({
         'country': _country,
         'city': _city.text.trim(),
         'address':
             '${_city.text.trim()}${_region.text.trim().isEmpty ? '' : ', ${_region.text.trim()}'}',
       });
+      _verifySavedLocation(location);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -310,6 +316,22 @@ class _SignupScreenState extends State<SignupScreen> {
       _error(e.message);
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  void _verifySavedLocation(
+    Map<String, dynamic> profile, {
+    bool googleSignup = false,
+  }) {
+    final savedCountry = profile['country']?.toString() ?? '';
+    final savedCity = (profile['city'] ?? profile['address'])?.toString() ?? '';
+    if (savedCountry != _country || !savedCity.contains(_city.text.trim())) {
+      throw ApiException(
+        googleSignup
+            ? 'Google account created, but its location could not be saved. Update it from Profile.'
+            : 'Account created, but its location could not be saved. Update it from Profile.',
+        500,
+      );
     }
   }
 
@@ -498,7 +520,7 @@ class _SignupScreenState extends State<SignupScreen> {
       foregroundColor: const Color(0xFF001F3F),
     ),
     body: ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       children: [
         const Text(
           'Join Boulot Man',

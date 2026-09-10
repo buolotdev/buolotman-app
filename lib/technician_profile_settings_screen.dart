@@ -1084,7 +1084,7 @@ class _TechnicianProfileSettingsScreenState
                 children: [
                   // Tab 1
                   ListView(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(14),
                     children: [
                       GestureDetector(
                         onTap: _isLoading ? null : _pickBanner,
@@ -1253,7 +1253,7 @@ class _TechnicianProfileSettingsScreenState
 
                   // Tab 2
                   ListView(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(14),
                     children: [
                       _buildTextField(
                         'Years of Experience',
@@ -1287,7 +1287,7 @@ class _TechnicianProfileSettingsScreenState
 
                   // Tab 3
                   ListView(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(14),
                     children: [
                       const Text(
                         'Availability Status',
@@ -1334,7 +1334,7 @@ class _TechnicianProfileSettingsScreenState
 
                   // Tab 4
                   ListView(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(14),
                     children: [
                       _buildTextField(
                         'Starting Price (\$)',
@@ -1369,7 +1369,7 @@ class _TechnicianProfileSettingsScreenState
 
                   // Tab 5
                   ListView(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(14),
                     children: [
                       const Text(
                         'Tools & Equipment',
@@ -1389,7 +1389,7 @@ class _TechnicianProfileSettingsScreenState
 
                   // Tab 6: Verification
                   ListView(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(14),
                     children: [
                       const Text(
                         'Identity Verification',
@@ -1579,7 +1579,7 @@ class _TechnicianProfileSettingsScreenState
 
   Widget _buildPayoutSettingsTab() {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       children: [
         const Text(
           'Payout Settings',
@@ -1663,7 +1663,7 @@ class _TechnicianProfileSettingsScreenState
       builder: (appState) {
         final refs = appState.technicianReferences;
         return ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(14),
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
