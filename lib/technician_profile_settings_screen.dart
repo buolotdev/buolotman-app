@@ -9,6 +9,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:buolot_man_app/app_state.dart';
 import 'package:buolot_man_app/api_service.dart';
+import 'profile_media_actions.dart';
+import 'core/api_service.dart' as core_api;
+import 'phone_validation.dart';
 
 class TechnicianProfileSettingsScreen extends StatefulWidget {
   const TechnicianProfileSettingsScreen({Key? key}) : super(key: key);
@@ -27,23 +30,50 @@ class _TechnicianProfileSettingsScreenState
 
   File? _pickedImage;
   String? _base64Avatar;
+  File? _pickedBanner;
+  String? _bannerUrl;
 
   Future<void> _pickImage() async {
+    await ProfileMediaActions.show(
+      context,
+      label: 'profile photo',
+      hasImage:
+          _pickedImage != null ||
+          Get.find<AppState>().currentUser.avatar.isNotEmpty,
+      onRemove: () => setState(() {
+        _pickedImage = null;
+        _base64Avatar = '';
+      }),
+      onDefault: () => setState(() {
+        _pickedImage = null;
+        _base64Avatar = '';
+      }),
+      onGallery: () => _chooseImage(ImageSource.gallery),
+      onCamera: () => _chooseImage(ImageSource.camera),
+    );
+  }
+
+  Future<void> _chooseImage(ImageSource source) async {
     try {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 60,
-        maxWidth: 800,
-        maxHeight: 800,
+      final pickedFile = await ProfileMediaActions.pick(
+        context,
+        source: source,
+        label: 'profile photo',
       );
       if (pickedFile == null) return;
 
       final file = File(pickedFile.path);
       final bytes = await file.readAsBytes();
+      final validation = ProfileMediaActions.validate(
+        pickedFile,
+        bytes,
+        'Profile photo',
+      );
+      if (validation != null) throw Exception(validation);
       setState(() {
         _pickedImage = file;
-        _base64Avatar = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+        _base64Avatar =
+            'data:image/${pickedFile.name.split('.').last};base64,${base64Encode(bytes)}';
       });
     } catch (e) {
       if (mounted) {
@@ -52,6 +82,48 @@ class _TechnicianProfileSettingsScreenState
         ).showSnackBar(SnackBar(content: Text('Could not pick image: $e')));
       }
     }
+  }
+
+  Future<void> _pickBanner() async {
+    await ProfileMediaActions.show(
+      context,
+      label: 'cover photo',
+      hasImage: _bannerUrl?.isNotEmpty == true || _pickedBanner != null,
+      onRemove: () async {
+        await ApiService.instance.updateProfile({'banner_url': ''});
+        if (mounted) setState(() => _bannerUrl = null);
+      },
+      onDefault: () async {
+        await ApiService.instance.updateProfile({'banner_url': ''});
+        if (mounted) setState(() => _bannerUrl = null);
+      },
+      onGallery: () => _chooseBanner(ImageSource.gallery),
+      onCamera: () => _chooseBanner(ImageSource.camera),
+    );
+  }
+
+  Future<void> _chooseBanner(ImageSource source) async {
+    final picked = await ProfileMediaActions.pick(
+      context,
+      source: source,
+      label: 'cover photo',
+    );
+    if (picked == null) return;
+    final file = File(picked.path);
+    final bytes = await file.readAsBytes();
+    final validation = ProfileMediaActions.validate(
+      picked,
+      bytes,
+      'Cover photo',
+    );
+    if (validation != null) {
+      if (mounted)
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(validation)));
+      return;
+    }
+    setState(() => _pickedBanner = file);
   }
 
   // Tab 1: Personal
@@ -152,6 +224,7 @@ class _TechnicianProfileSettingsScreenState
 
     final appState = Get.find<AppState>();
     final u = appState.currentUser;
+    _loadBanner();
 
     // Tab 1
     _firstNameController = TextEditingController(text: u.firstName);
@@ -277,6 +350,15 @@ class _TechnicianProfileSettingsScreenState
     );
   }
 
+  Future<void> _loadBanner() async {
+    try {
+      final profile = await ApiService.instance.fetchProfile();
+      if (mounted) {
+        setState(() => _bannerUrl = profile['banner_url']?.toString());
+      }
+    } catch (_) {}
+  }
+
   @override
   void dispose() {
     _firstNameController.dispose();
@@ -318,6 +400,20 @@ class _TechnicianProfileSettingsScreenState
 
   Future<void> _saveSettings() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_phoneController.text.trim().isNotEmpty &&
+        !validPhoneForCountry(
+          _phoneController.text.trim(),
+          _countryController.text.trim(),
+        )) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Enter a valid ${_countryController.text.trim()} phone number.',
+          ),
+        ),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -336,6 +432,16 @@ class _TechnicianProfileSettingsScreenState
         uploadedAvatarUrl = avatarUrl;
         _base64Avatar = avatarUrl;
         _pickedImage = null;
+      }
+      if (_pickedBanner != null) {
+        final bytes = await _pickedBanner!.readAsBytes();
+        final bannerUrl = await core_api.ApiService().uploadBannerBytes(
+          bytes: bytes,
+          filename: _pickedBanner!.path.split(Platform.pathSeparator).last,
+        );
+        await api.updateProfile({'banner_url': bannerUrl});
+        _bannerUrl = bannerUrl;
+        _pickedBanner = null;
       }
       String? frontUrl;
       String? backUrl;
@@ -980,6 +1086,39 @@ class _TechnicianProfileSettingsScreenState
                   ListView(
                     padding: const EdgeInsets.all(20),
                     children: [
+                      GestureDetector(
+                        onTap: _isLoading ? null : _pickBanner,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: SizedBox(
+                            height: 150,
+                            width: double.infinity,
+                            child: _pickedBanner != null
+                                ? Image.file(_pickedBanner!, fit: BoxFit.cover)
+                                : (_bannerUrl?.isNotEmpty == true
+                                      ? Image.network(
+                                          _bannerUrl!,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Container(
+                                          color: const Color(0xFF001F3F),
+                                          alignment: Alignment.center,
+                                          child: const Icon(
+                                            Icons.panorama_outlined,
+                                            color: Colors.white54,
+                                            size: 42,
+                                          ),
+                                        )),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        onPressed: _isLoading ? null : _pickBanner,
+                        icon: const Icon(Icons.panorama_outlined),
+                        label: const Text('Cover photo'),
+                      ),
+                      const SizedBox(height: 18),
                       Center(
                         child: GestureDetector(
                           onTap: _previewAvatar,

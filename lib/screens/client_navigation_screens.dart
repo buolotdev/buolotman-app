@@ -10,6 +10,8 @@ import 'client_task_management_screen.dart';
 import 'client_messaging_screen.dart';
 import 'client_payment_screen.dart';
 import '../browse_professionals_screen.dart';
+import '../profile_media_actions.dart';
+import '../phone_validation.dart';
 
 const clientNavy = Color(0xFF001F3F),
     clientOrange = Color(0xFFFF4500),
@@ -368,23 +370,26 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
       ),
       backgroundColor: clientBg,
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.zero,
         children: [
-          if (banner.isNotEmpty)
-            SizedBox(
-              width: double.infinity,
-              height: 156,
-              child: Image.network(banner, fit: BoxFit.cover),
-            ),
-          if (banner.isNotEmpty) const SizedBox(height: 14),
-          Card(
-            elevation: 0,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  GestureDetector(
-                    onTap: avatar.isEmpty ? null : () => _preview(avatar),
+          Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.bottomCenter,
+            children: [
+              SizedBox(
+                width: double.infinity,
+                height: 210,
+                child: banner.isEmpty
+                    ? Container(color: clientNavy)
+                    : Image.network(banner, fit: BoxFit.cover),
+              ),
+              Positioned(
+                bottom: -52,
+                child: GestureDetector(
+                  onTap: avatar.isEmpty ? null : () => _preview(avatar),
+                  child: CircleAvatar(
+                    radius: 58,
+                    backgroundColor: clientBg,
                     child: CircleAvatar(
                       radius: 52,
                       backgroundColor: const Color(0xFFFFE8E0),
@@ -400,100 +405,119 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
                           : null,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    '${_value('first_name')} ${_value('last_name')}'.trim(),
-                    style: const TextStyle(
-                      color: clientNavy,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _value('email'),
-                    style: const TextStyle(color: clientMuted),
-                  ),
-                  const SizedBox(height: 14),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const ClientProfileScreen(),
-                      ),
-                    ).then((_) => _load()),
-                    icon: const Icon(Icons.edit_outlined),
-                    label: const Text('Edit profile'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: clientOrange,
-                      side: const BorderSide(color: clientOrange),
-                    ),
-                  ),
-                ],
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 66),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Column(
+              children: [
+                Text(
+                  '${_value('first_name')} ${_value('last_name')}'.trim(),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: clientNavy,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _value('email'),
+                  style: const TextStyle(color: clientMuted),
+                ),
+                const SizedBox(height: 14),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ClientProfileScreen(),
+                    ),
+                  ).then((_) => _load()),
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text('Edit profile'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: clientOrange,
+                    side: const BorderSide(color: clientOrange),
+                  ),
+                ),
+              ],
             ),
           ),
-          _section('Personal information', [
-            _row('First name', _value('first_name')),
-            _row('Last name', _value('last_name')),
-            _row('Phone', _value('phone')),
-            _row('Country', _value('country')),
-            _row('City', _value('city')),
-            _row('Address', _value('address')),
-            _row('About', _local('about')),
-          ]),
-          _section('Client & business', [
-            _row('Client type', type),
-            _row('Organization', _local('business_name')),
-            _row('Industry', _local('industry')),
-            _row('Business email', _local('business_email')),
-            _row('Business phone', _local('business_phone')),
-            _row('Registration / tax ID', _local('tax_id')),
-            _row('Representative', _local('representative')),
-            _row('Website', _local('website')),
-          ]),
-          _section('Saved service location', [
-            _row('Label', _local('location_label')),
-            _row('Type', _local('location_category')),
-            _row('Neighborhood', _local('neighborhood')),
-            _row('Access notes', _local('access')),
-          ]),
-          _section('Privacy & preferences', [
-            _row(
-              'Public name',
-              _local('privacy') == 'full' ? 'Full name' : 'Last-name initial',
-            ),
-            _row(
-              'Language',
-              _value('language_preference') == 'fr' ? 'Français' : 'English',
-            ),
-            _row('Direct offers', _local('allow_offers')),
-            _row('Email notifications', _local('email_notifications')),
-            _row('SMS notifications', _local('sms_notifications')),
-          ]),
-          _verificationCard(),
-          const SizedBox(height: 4),
-          OutlinedButton.icon(
-            onPressed: _logout,
-            icon: const Icon(Icons.logout),
-            label: const Text('Log out'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: clientNavy,
-              minimumSize: const Size.fromHeight(48),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Column(
+              children: [
+                _section('Personal information', [
+                  _row('First name', _value('first_name')),
+                  _row('Last name', _value('last_name')),
+                  _row('Phone', _value('phone')),
+                  _row('Country', _value('country')),
+                  _row('City', _value('city')),
+                  _row('Address', _value('address')),
+                  _row('About', _local('about')),
+                ]),
+                _section('Client & business', [
+                  _row('Client type', type),
+                  _row('Organization', _local('business_name')),
+                  _row('Industry', _local('industry')),
+                  _row('Business email', _local('business_email')),
+                  _row('Business phone', _local('business_phone')),
+                  _row('Registration / tax ID', _local('tax_id')),
+                  _row('Representative', _local('representative')),
+                  _row('Website', _local('website')),
+                ]),
+                _section('Saved service location', [
+                  _row('Label', _local('location_label')),
+                  _row('Type', _local('location_category')),
+                  _row('Neighborhood', _local('neighborhood')),
+                  _row('Access notes', _local('access')),
+                ]),
+                _section('Privacy & preferences', [
+                  _row(
+                    'Public name',
+                    _local('privacy') == 'full'
+                        ? 'Full name'
+                        : 'Last-name initial',
+                  ),
+                  _row(
+                    'Language',
+                    _value('language_preference') == 'fr'
+                        ? 'Français'
+                        : 'English',
+                  ),
+                  _row('Direct offers', _local('allow_offers')),
+                  _row('Email notifications', _local('email_notifications')),
+                  _row('SMS notifications', _local('sms_notifications')),
+                ]),
+                _verificationCard(),
+                const SizedBox(height: 4),
+                OutlinedButton.icon(
+                  onPressed: _logout,
+                  icon: const Icon(Icons.logout),
+                  label: const Text('Log out'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: clientNavy,
+                    minimumSize: const Size.fromHeight(48),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: _delete,
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Delete account'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    minimumSize: const Size.fromHeight(48),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
           ),
-          const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed: _delete,
-            icon: const Icon(Icons.delete_outline),
-            label: const Text('Delete account'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-              side: const BorderSide(color: Colors.red),
-              minimumSize: const Size.fromHeight(48),
-            ),
-          ),
-          const SizedBox(height: 20),
         ],
       ),
       bottomNavigationBar: widget.withBottomNavigation
@@ -706,7 +730,11 @@ class _ClientProfileState extends State<ClientProfileScreen> {
         ),
       );
   Future<void> _save() async {
-    final site = website.text.trim();
+    final site = website.text.trim().isEmpty
+        ? ''
+        : (website.text.trim().startsWith(RegExp(r'https?://'))
+              ? website.text.trim()
+              : 'https://${website.text.trim()}');
     if (site.isNotEmpty &&
         (Uri.tryParse(site)?.hasScheme != true ||
             Uri.tryParse(site)?.host.isEmpty != false)) {
@@ -716,9 +744,22 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       );
       return;
     }
+    if (clientType != 'household') {
+      if (businessName.text.trim().isEmpty) {
+        _snack('Enter the company or organization name.', error: true);
+        return;
+      }
+      if (businessEmail.text.trim().isNotEmpty &&
+          !RegExp(
+            r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+          ).hasMatch(businessEmail.text.trim())) {
+        _snack('Enter a valid business email.', error: true);
+        return;
+      }
+    }
     if (phone.text.trim().isNotEmpty &&
-        !RegExp(r'^\+?[0-9][0-9\s()\-]{6,}$').hasMatch(phone.text.trim())) {
-      _snack('Enter a valid phone number.', error: true);
+        !validPhoneForCountry(phone.text.trim(), country)) {
+      _snack('Enter a valid $country phone number.', error: true);
       return;
     }
     setState(() => saving = true);
@@ -747,7 +788,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
         'client_representative',
         representative.text.trim(),
       );
-      await prefs.setString('client_website', website.text.trim());
+      await prefs.setString('client_website', site);
       await prefs.setString('client_privacy', privacy);
       await prefs.setBool('client_allow_offers', allowOffers);
       await prefs.setBool('client_email_notifications', emailNotifications);
@@ -770,78 +811,76 @@ class _ClientProfileState extends State<ClientProfileScreen> {
     if (mounted) setState(() => saving = false);
   }
 
-  Future<void> _pickAvatar() async {
-    final file = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 88,
-      maxWidth: 1600,
+  Future<void> _pickAvatar() async => _showMediaActions(false);
+
+  Future<void> _showMediaActions(bool isBanner) async {
+    await ProfileMediaActions.show(
+      context,
+      label: isBanner ? 'cover photo' : 'profile photo',
+      hasImage: (isBanner ? banner : avatar)?.isNotEmpty == true,
+      onRemove: () => _clearMedia(isBanner),
+      onDefault: () => _clearMedia(isBanner),
+      onGallery: () => _uploadMedia(isBanner, ImageSource.gallery),
+      onCamera: () => _uploadMedia(isBanner, ImageSource.camera),
+    );
+  }
+
+  Future<void> _clearMedia(bool isBanner) async {
+    setState(() => uploading = true);
+    try {
+      await api.updateProfile({(isBanner ? 'banner_url' : 'avatar_url'): ''});
+      if (!mounted) return;
+      setState(() => isBanner ? banner = null : avatar = null);
+      _snack('${isBanner ? 'Cover' : 'Profile'} photo removed.');
+    } catch (_) {
+      if (mounted) _snack('We could not update your photo.', error: true);
+    } finally {
+      if (mounted) setState(() => uploading = false);
+    }
+  }
+
+  Future<void> _uploadMedia(bool isBanner, ImageSource source) async {
+    final file = await ProfileMediaActions.pick(
+      context,
+      source: source,
+      label: isBanner ? 'cover photo' : 'profile photo',
     );
     if (file == null) return;
-    final extension = file.name.toLowerCase().split('.').last;
-    const supported = {'jpg', 'jpeg', 'png', 'webp', 'gif'};
-    if (!supported.contains(extension)) {
-      if (mounted)
-        _snack('Please choose a JPG, PNG, WEBP, or GIF image.', error: true);
-      return;
-    }
     final bytes = await file.readAsBytes();
-    if (bytes.length > 25 * 1024 * 1024) {
-      if (mounted)
-        _snack('Profile photo must be smaller than 25 MB.', error: true);
+    final validation = ProfileMediaActions.validate(
+      file,
+      bytes,
+      isBanner ? 'Cover photo' : 'Profile photo',
+    );
+    if (validation != null) {
+      if (mounted) _snack(validation, error: true);
       return;
     }
     setState(() => uploading = true);
     try {
-      avatar = api.resolveImageUrl(
-        await api.uploadAvatarBytes(bytes: bytes, filename: file.name),
-      );
+      final url = isBanner
+          ? await api.uploadBannerBytes(bytes: bytes, filename: file.name)
+          : await api.uploadAvatarBytes(bytes: bytes, filename: file.name);
+      await api.updateProfile({(isBanner ? 'banner_url' : 'avatar_url'): url});
       if (mounted) {
-        setState(() {});
-        _snack('Profile photo updated.');
+        setState(
+          () => isBanner
+              ? banner = api.resolveImageUrl(url)
+              : avatar = api.resolveImageUrl(url),
+        );
+        _snack('${isBanner ? 'Cover' : 'Profile'} photo updated.');
       }
     } catch (_) {
       if (mounted)
-        _snack('We could not upload your profile photo.', error: true);
+        _snack(
+          'We could not upload your ${isBanner ? 'cover' : 'profile'} photo.',
+          error: true,
+        );
     }
     if (mounted) setState(() => uploading = false);
   }
 
-  Future<void> _pickBanner() async {
-    final file = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 90,
-      maxWidth: 2400,
-    );
-    if (file == null) return;
-    final extension = file.name.toLowerCase().split('.').last;
-    const supported = {'jpg', 'jpeg', 'png', 'webp', 'gif'};
-    if (!supported.contains(extension)) {
-      if (mounted)
-        _snack('Please choose a JPG, PNG, WEBP, or GIF image.', error: true);
-      return;
-    }
-    final bytes = await file.readAsBytes();
-    if (bytes.length > 25 * 1024 * 1024) {
-      if (mounted)
-        _snack('Cover image must be smaller than 25 MB.', error: true);
-      return;
-    }
-    setState(() => uploading = true);
-    try {
-      final url = await api.uploadBannerBytes(
-        bytes: bytes,
-        filename: file.name,
-      );
-      await api.updateProfile({'banner_url': url});
-      if (mounted) {
-        setState(() => banner = api.resolveImageUrl(url));
-        _snack('Cover image updated.');
-      }
-    } catch (_) {
-      if (mounted) _snack('We could not upload your cover image.', error: true);
-    }
-    if (mounted) setState(() => uploading = false);
-  }
+  Future<void> _pickBanner() async => _showMediaActions(true);
 
   InputDecoration _dec(String label, {IconData? icon}) => InputDecoration(
     labelText: label,

@@ -156,10 +156,12 @@ class CompanyProfileScreen extends StatelessWidget {
     String displayName,
   ) {
     final String heroAvatar = _isPublicView
-        ? (companyData!['logo_url']?.toString().isNotEmpty == true
-              ? companyData!['logo_url']
-              : '')
-        : appState.currentUser.avatar;
+        ? (companyData!['cover_url'] ?? companyData!['banner_url'] ?? '')
+              .toString()
+        : (appState.companyProfile?['cover_url'] ??
+                  appState.companyProfile?['banner_url'] ??
+                  '')
+              .toString();
 
     return SliverAppBar(
       expandedHeight: 200,
@@ -249,96 +251,106 @@ class CompanyProfileScreen extends StatelessWidget {
         ? (companyData!['logo_url']?.toString().isNotEmpty == true
               ? companyData!['logo_url']
               : '')
-        : appState.currentUser.avatar;
+        : ((appState.companyProfile?['logo_url']?.toString().isNotEmpty == true
+                  ? appState.companyProfile!['logo_url']
+                  : appState.currentUser.avatar)
+              .toString());
 
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+    return Transform.translate(
+      offset: const Offset(0, -34),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: logoAvatar.startsWith('http')
+                  ? Image.network(
+                      logoAvatar,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _logoFallback(displayName),
+                    )
+                  : logoAvatar.isNotEmpty
+                  ? Image.asset(
+                      logoAvatar,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _logoFallback(displayName),
+                    )
+                  : _logoFallback(displayName),
             ),
-            clipBehavior: Clip.antiAlias,
-            child: logoAvatar.startsWith('http')
-                ? Image.network(
-                    logoAvatar,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _logoFallback(displayName),
-                  )
-                : logoAvatar.isNotEmpty
-                ? Image.asset(
-                    logoAvatar,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _logoFallback(displayName),
-                  )
-                : _logoFallback(displayName),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  displayName,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF001F3F),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    displayName,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF001F3F),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                if (isVerified)
-                  Row(
-                    children: const [
-                      Icon(Icons.verified, color: Color(0xFF1E8E3E), size: 16),
-                      SizedBox(width: 4),
-                      Text(
-                        'Verified Company',
-                        style: TextStyle(
+                  const SizedBox(height: 4),
+                  if (isVerified)
+                    Row(
+                      children: const [
+                        Icon(
+                          Icons.verified,
                           color: Color(0xFF1E8E3E),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
+                          size: 16,
                         ),
-                      ),
-                    ],
-                  )
-                else
-                  Row(
-                    children: const [
-                      Icon(
-                        Icons.pending_outlined,
-                        color: Color(0xFFF59E0B),
-                        size: 16,
-                      ),
-                      SizedBox(width: 4),
-                      Text(
-                        'Verification Pending',
-                        style: TextStyle(
+                        SizedBox(width: 4),
+                        Text(
+                          'Verified Company',
+                          style: TextStyle(
+                            color: Color(0xFF1E8E3E),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Row(
+                      children: const [
+                        Icon(
+                          Icons.pending_outlined,
                           color: Color(0xFFF59E0B),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
+                          size: 16,
                         ),
-                      ),
-                    ],
+                        SizedBox(width: 4),
+                        Text(
+                          'Verification Pending',
+                          style: TextStyle(
+                            color: Color(0xFFF59E0B),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 8),
+                  Text(
+                    displayTagline,
+                    style: const TextStyle(
+                      color: Color(0xFF64748B),
+                      fontSize: 14,
+                    ),
                   ),
-                const SizedBox(height: 8),
-                Text(
-                  displayTagline,
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 14,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

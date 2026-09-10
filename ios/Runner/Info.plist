@@ -8,6 +8,10 @@
 	<string>Boulot Man</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Boulot Man uses your location to place an exact pin for an on-site task.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Boulot Man needs photo access so you can choose a profile photo or cover photo.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Boulot Man uses the camera when you choose to take a profile photo or cover photo.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

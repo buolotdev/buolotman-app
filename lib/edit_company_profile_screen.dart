@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'app_state.dart';
+import 'core/api_service.dart' as core_api;
+import 'profile_media_actions.dart';
 
 class EditCompanyProfileScreen extends StatefulWidget {
   const EditCompanyProfileScreen({super.key});
@@ -13,6 +16,9 @@ class EditCompanyProfileScreen extends StatefulWidget {
 class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isSaving = false;
+  bool _mediaBusy = false;
+  String? _logoUrl;
+  String? _coverUrl;
 
   late TextEditingController _companyNameCtrl;
   late TextEditingController _aboutCtrl;
@@ -27,6 +33,9 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
   void initState() {
     super.initState();
     final profile = AppStateScope.of(context).companyProfile ?? {};
+    _logoUrl = profile['logo_url']?.toString();
+    _coverUrl =
+        profile['cover_url']?.toString() ?? profile['banner_url']?.toString();
     _companyNameCtrl = TextEditingController(
       text: profile['company_name']?.toString() ?? '',
     );
@@ -87,11 +96,17 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
           .where((s) => s.isNotEmpty)
           .toList();
 
+      final rawWebsite = _websiteCtrl.text.trim();
+      final website = rawWebsite.isEmpty
+          ? ''
+          : (rawWebsite.startsWith(RegExp(r'https?://'))
+                ? rawWebsite
+                : 'https://$rawWebsite');
       final data = <String, dynamic>{
         'company_name': _companyNameCtrl.text.trim(),
         'about': _aboutCtrl.text.trim(),
         'headquarters': _headquartersCtrl.text.trim(),
-        'website': _websiteCtrl.text.trim(),
+        'website': website,
         'industry': _industryCtrl.text.trim(),
         'services_offered': servicesOffered,
         'company_size': _companySizeCtrl.text.trim(),
@@ -122,6 +137,77 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
       if (mounted) setState(() => _isSaving = false);
     }
   }
+
+  Future<void> _mediaMenu(bool isCover) async {
+    await ProfileMediaActions.show(
+      context,
+      label: isCover ? 'cover photo' : 'company logo',
+      hasImage: (isCover ? _coverUrl : _logoUrl)?.isNotEmpty == true,
+      onRemove: () => _clearMedia(isCover),
+      onDefault: () => _clearMedia(isCover),
+      onGallery: () => _uploadMedia(isCover, ImageSource.gallery),
+      onCamera: () => _uploadMedia(isCover, ImageSource.camera),
+    );
+  }
+
+  Future<void> _clearMedia(bool isCover) async {
+    setState(() => _mediaBusy = true);
+    try {
+      await AppStateScope.of(
+        context,
+      ).updateCompanyProfile({(isCover ? 'cover_url' : 'logo_url'): ''});
+      if (!mounted) return;
+      setState(() => isCover ? _coverUrl = null : _logoUrl = null);
+    } catch (e) {
+      if (mounted) _showError('Could not update company media.');
+    } finally {
+      if (mounted) setState(() => _mediaBusy = false);
+    }
+  }
+
+  Future<void> _uploadMedia(bool isCover, ImageSource source) async {
+    final file = await ProfileMediaActions.pick(
+      context,
+      source: source,
+      label: isCover ? 'cover photo' : 'company logo',
+    );
+    if (file == null) return;
+    final bytes = await file.readAsBytes();
+    final validation = ProfileMediaActions.validate(
+      file,
+      bytes,
+      isCover ? 'Cover photo' : 'Company logo',
+    );
+    if (validation != null) {
+      if (mounted) _showError(validation);
+      return;
+    }
+    setState(() => _mediaBusy = true);
+    try {
+      final url = isCover
+          ? await core_api.ApiService().uploadBannerBytes(
+              bytes: bytes,
+              filename: file.name,
+            )
+          : await core_api.ApiService().uploadAvatarBytes(
+              bytes: bytes,
+              filename: file.name,
+            );
+      await AppStateScope.of(
+        context,
+      ).updateCompanyProfile({(isCover ? 'cover_url' : 'logo_url'): url});
+      if (!mounted) return;
+      setState(() => isCover ? _coverUrl = url : _logoUrl = url);
+    } catch (_) {
+      if (mounted) _showError('Could not upload company media.');
+    } finally {
+      if (mounted) setState(() => _mediaBusy = false);
+    }
+  }
+
+  void _showError(String message) => ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(message), backgroundColor: Colors.red.shade700),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -169,6 +255,48 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              GestureDetector(
+                onTap: _mediaBusy ? null : () => _mediaMenu(true),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 150,
+                    child: _coverUrl?.isNotEmpty == true
+                        ? Image.network(_coverUrl!, fit: BoxFit.cover)
+                        : Container(
+                            color: const Color(0xFF001F3F),
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.image_outlined,
+                              color: Colors.white54,
+                              size: 42,
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _mediaBusy ? null : () => _mediaMenu(false),
+                      icon: const Icon(Icons.business_outlined),
+                      label: const Text('Company logo'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _mediaBusy ? null : () => _mediaMenu(true),
+                      icon: const Icon(Icons.panorama_outlined),
+                      label: const Text('Cover photo'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 22),
               // ── BASIC INFO ──────────────────────────────────────────────
               _sectionLabel('Basic Information'),
               const SizedBox(height: 12),
@@ -198,7 +326,7 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
                 controller: _websiteCtrl,
                 label: 'Website',
                 icon: Icons.language_outlined,
-                hint: 'https://yourcompany.com',
+                hint: 'yourcompany.com',
                 keyboardType: TextInputType.url,
               ),
               const SizedBox(height: 14),

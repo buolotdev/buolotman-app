@@ -141,6 +141,12 @@ class _SignupScreenState extends State<SignupScreen> {
         role: _role.toUpperCase(),
         signup: true,
       );
+      await _api.updateProfile({
+        'country': _country,
+        'city': _city.text.trim(),
+        'address':
+            '${_city.text.trim()}${_region.text.trim().isEmpty ? '' : ', ${_region.text.trim()}'}',
+      });
       if (mounted) {
         _error('Account created. It is pending admin verification.');
         Navigator.pop(context);
@@ -281,6 +287,15 @@ class _SignupScreenState extends State<SignupScreen> {
       }
       await _api.register(role: _role, data: data);
       final login = await _api.login(_email.text, _password.text);
+      // The registration serializers differ by role. Persist the common
+      // location fields after authentication so client and company accounts
+      // receive the same profile data as technicians.
+      await _api.updateProfile({
+        'country': _country,
+        'city': _city.text.trim(),
+        'address':
+            '${_city.text.trim()}${_region.text.trim().isEmpty ? '' : ', ${_region.text.trim()}'}',
+      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
