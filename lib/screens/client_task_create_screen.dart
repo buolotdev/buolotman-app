@@ -33,7 +33,7 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
   String urgency = 'standard', serviceType = 'onsite', deadline = '';
   Set<String> contacts = {'in-app'};
   bool materials = false, saving = false, verified = false, checking = true;
-  String? loadError;
+  String? loadError, categoryError;
   @override
   void initState() {
     super.initState();
@@ -70,8 +70,16 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
       List<dynamic> list = const [];
       try {
         list = await api.serviceCategories();
-      } catch (_) {
-        // The form can still open; category loading can be retried separately.
+        if (mounted) setState(() => categoryError = null);
+      } catch (error) {
+        if (mounted) {
+          setState(
+            () => categoryError = error
+                .toString()
+                .replaceFirst('Exception: ', '')
+                .trim(),
+          );
+        }
       }
       if (mounted)
         setState(() {
@@ -333,6 +341,20 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
         ),
       );
     }
+    final categoryItems = categories
+        .whereType<Map>()
+        .map((x) {
+          final id = x['id'] is int
+              ? x['id'] as int
+              : int.tryParse('${x['id'] ?? ''}');
+          final name = '${x['name'] ?? x['title'] ?? ''}'.trim();
+          return (id: id, name: name);
+        })
+        .where((x) => x.id != null && x.name.isNotEmpty)
+        .toList();
+    final selectedCategory = categoryItems.any((x) => x.id == category)
+        ? category
+        : null;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Post a task'),
@@ -365,20 +387,24 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
                 _field(description, 'Describe the work', lines: 5),
                 DropdownButtonFormField<int>(
                   isExpanded: true,
-                  initialValue: category,
-                  decoration: _dec('Category'),
-                  items: categories
+                  initialValue: selectedCategory,
+                  decoration: _dec('Category').copyWith(
+                    helperText: categoryError == null && categoryItems.isEmpty
+                        ? 'No categories are available yet.'
+                        : categoryError,
+                    helperStyle: const TextStyle(color: muted, fontSize: 12),
+                  ),
+                  items: categoryItems
                       .map(
                         (x) => DropdownMenuItem<int>(
-                          value: x is Map ? x['id'] as int? : null,
-                          child: Text(
-                            '${x is Map ? x['name'] ?? '' : x}',
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          value: x.id,
+                          child: Text(x.name, overflow: TextOverflow.ellipsis),
                         ),
                       )
                       .toList(),
-                  onChanged: (v) => setState(() => category = v),
+                  onChanged: categoryItems.isEmpty
+                      ? null
+                      : (v) => setState(() => category = v),
                 ),
                 const SizedBox(height: 12),
                 _field(skills, 'Required skills (comma separated)'),
