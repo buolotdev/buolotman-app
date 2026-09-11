@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/api_service.dart';
 import 'login_screen.dart';
 import 'client_task_create_screen.dart';
+import '../verification_utils.dart';
 import 'client_navigation_screens.dart';
 import 'client_task_management_screen.dart';
 import 'client_projects_screen.dart';
@@ -233,7 +234,7 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
     ],
   );
   Widget _hero() {
-    final verified = profile['is_verified'] == true;
+    final verified = isVerifiedProfile(profile);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(

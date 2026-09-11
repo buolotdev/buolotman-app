@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
 import '../core/api_service.dart';
+import '../verification_utils.dart';
 import 'login_screen.dart';
 import 'client_dashboard_screen.dart';
 import 'client_task_management_screen.dart';
@@ -1316,7 +1317,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
             FutureBuilder<Map<String, dynamic>>(
               future: api.profile(),
               builder: (context, snapshot) {
-                final verified = snapshot.data?['is_verified'] == true;
+                final verified = isVerifiedProfile(snapshot.data);
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(
@@ -2248,7 +2249,7 @@ class _ClientVerificationState extends State<ClientVerificationScreen> {
       final p = await api.profile();
       if (mounted)
         setState(() {
-          verified = p['is_verified'] == true;
+          verified = isVerifiedProfile(p);
           loading = false;
         });
     } catch (_) {

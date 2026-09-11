@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/api_service.dart';
+import '../verification_utils.dart';
 import 'client_location_picker_screen.dart';
 
 class ClientTaskCreateScreen extends StatefulWidget {
@@ -68,7 +69,7 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
           : const [];
       if (mounted)
         setState(() {
-          verified = p['is_verified'] == true;
+          verified = isVerifiedProfile(p);
           categories = list;
           checking = false;
         });
