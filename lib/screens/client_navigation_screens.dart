@@ -612,6 +612,27 @@ class _ClientProfileState extends State<ClientProfileScreen> {
     'Senegal',
   ];
 
+  String _normalizeCountry(String value) {
+    final raw = value.trim();
+    final exact = countries.where(
+      (item) => item.toLowerCase() == raw.toLowerCase(),
+    );
+    if (exact.isNotEmpty) return exact.first;
+    const codes = {
+      'BJ': 'Benin',
+      'NG': 'Nigeria',
+      'RW': 'Rwanda',
+      'KE': 'Kenya',
+      'GH': 'Ghana',
+      'ZA': 'South Africa',
+      'CI': 'Ivory Coast',
+      'TG': 'Togo',
+      'CM': 'Cameroon',
+      'SN': 'Senegal',
+    };
+    return codes[raw.toUpperCase()] ?? raw;
+  }
+
   void _previewAvatar() {
     final url = api.resolveImageUrl(avatar);
     if (url.isEmpty) return;
@@ -696,7 +717,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       );
       final signupCountry = prefs.getString('signup_country') ?? '';
       final signupCity = prefs.getString('signup_city') ?? '';
-      final apiCountry = '${p['country'] ?? ''}'.trim();
+      final apiCountry = _normalizeCountry('${p['country'] ?? ''}');
       final apiCity = '${p['city'] ?? p['address'] ?? ''}'.trim();
       final apiHasOnlyDefaultCountry =
           apiCountry == 'Benin' &&
@@ -910,26 +931,33 @@ class _ClientProfileState extends State<ClientProfileScreen> {
 
   Future<void> _pickBanner() async => _showMediaActions(true);
 
-  InputDecoration _dec(String label, {IconData? icon, String? prefixText}) =>
-      InputDecoration(
-        labelText: label,
-        prefixIcon: icon == null ? null : Icon(icon, color: clientMuted),
-        prefixText: prefixText,
-        prefixStyle: const TextStyle(
-          color: clientNavy,
-          fontWeight: FontWeight.w700,
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: clientOrange, width: 1.5),
-        ),
-      );
+  String get _selectedDialCode => countryPhoneRules[country]?.dial ?? '';
+
+  InputDecoration _dec(
+    String label, {
+    IconData? icon,
+    String? prefixText,
+    Widget? prefix,
+  }) => InputDecoration(
+    labelText: label,
+    prefixIcon: icon == null ? null : Icon(icon, color: clientMuted),
+    prefixText: prefixText,
+    prefix: prefix,
+    prefixStyle: const TextStyle(
+      color: clientNavy,
+      fontWeight: FontWeight.w700,
+    ),
+    filled: true,
+    fillColor: Colors.white,
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide.none,
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: clientOrange, width: 1.5),
+    ),
+  );
   Widget _section(String title, List<Widget> children) => Card(
     elevation: 0,
     margin: const EdgeInsets.only(bottom: 12),
@@ -966,6 +994,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
     bool enabled = true,
     List<TextInputFormatter>? formatters,
     String? prefixText,
+    Widget? prefix,
   }) => Padding(
     padding: EdgeInsets.zero,
     child: TextField(
@@ -974,7 +1003,12 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       keyboardType: type,
       inputFormatters: formatters,
       maxLines: maxLines,
-      decoration: _dec(label, icon: icon, prefixText: prefixText),
+      decoration: _dec(
+        label,
+        icon: icon,
+        prefixText: prefixText,
+        prefix: prefix,
+      ),
     ),
   );
   Widget _switch(String label, bool value, ValueChanged<bool> onChanged) =>
@@ -1102,7 +1136,13 @@ class _ClientProfileState extends State<ClientProfileScreen> {
               'Phone number',
               icon: Icons.phone_outlined,
               type: TextInputType.phone,
-              prefixText: '${countryPhoneRules[country]?.dial ?? ''} ',
+              prefix: Text(
+                '$_selectedDialCode ',
+                style: const TextStyle(
+                  color: clientNavy,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               formatters: [phoneInputFormatter(country)],
             ),
             DropdownButtonFormField<String>(
@@ -1168,7 +1208,13 @@ class _ClientProfileState extends State<ClientProfileScreen> {
                 'Business phone',
                 icon: Icons.phone,
                 type: TextInputType.phone,
-                prefixText: '${countryPhoneRules[country]?.dial ?? ''} ',
+                prefix: Text(
+                  '$_selectedDialCode ',
+                  style: const TextStyle(
+                    color: clientNavy,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 formatters: [phoneInputFormatter(country)],
               ),
               _text(
