@@ -690,7 +690,10 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       first.text = '${p['first_name'] ?? ''}';
       last.text = '${p['last_name'] ?? ''}';
       email.text = '${p['email'] ?? ''}';
-      phone.text = '${p['phone'] ?? ''}';
+      phone.text = nationalPhoneDigits(
+        '${p['phone'] ?? ''}',
+        '${p['country'] ?? 'Benin'}',
+      );
       final signupCountry = prefs.getString('signup_country') ?? '';
       final signupCity = prefs.getString('signup_city') ?? '';
       final apiCountry = '${p['country'] ?? ''}'.trim();
@@ -716,7 +719,10 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       industry = prefs.getString('client_industry') ?? industry;
       businessName.text = prefs.getString('client_business_name') ?? '';
       businessEmail.text = prefs.getString('client_business_email') ?? '';
-      businessPhone.text = prefs.getString('client_business_phone') ?? '';
+      businessPhone.text = nationalPhoneDigits(
+        prefs.getString('client_business_phone') ?? '',
+        country,
+      );
       taxId.text = prefs.getString('client_tax_id') ?? '';
       representative.text = prefs.getString('client_representative') ?? '';
       website.text = prefs.getString('client_website') ?? '';
@@ -784,7 +790,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       await api.updateProfile({
         'first_name': first.text.trim(),
         'last_name': last.text.trim(),
-        'phone': phone.text.trim(),
+        'phone': internationalPhone(phone.text, country),
         'country': country,
         'city': city.text.trim(),
         'address': address.text.trim().isEmpty
@@ -801,7 +807,10 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       await prefs.setString('client_industry', industry);
       await prefs.setString('client_business_name', businessName.text.trim());
       await prefs.setString('client_business_email', businessEmail.text.trim());
-      await prefs.setString('client_business_phone', businessPhone.text.trim());
+      await prefs.setString(
+        'client_business_phone',
+        internationalPhone(businessPhone.text, country),
+      );
       await prefs.setString('client_tax_id', taxId.text.trim());
       await prefs.setString(
         'client_representative',
@@ -901,20 +910,26 @@ class _ClientProfileState extends State<ClientProfileScreen> {
 
   Future<void> _pickBanner() async => _showMediaActions(true);
 
-  InputDecoration _dec(String label, {IconData? icon}) => InputDecoration(
-    labelText: label,
-    prefixIcon: icon == null ? null : Icon(icon, color: clientMuted),
-    filled: true,
-    fillColor: Colors.white,
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide.none,
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: clientOrange, width: 1.5),
-    ),
-  );
+  InputDecoration _dec(String label, {IconData? icon, String? prefixText}) =>
+      InputDecoration(
+        labelText: label,
+        prefixIcon: icon == null ? null : Icon(icon, color: clientMuted),
+        prefixText: prefixText,
+        prefixStyle: const TextStyle(
+          color: clientNavy,
+          fontWeight: FontWeight.w700,
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: clientOrange, width: 1.5),
+        ),
+      );
   Widget _section(String title, List<Widget> children) => Card(
     elevation: 0,
     margin: const EdgeInsets.only(bottom: 12),
@@ -950,6 +965,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
     int maxLines = 1,
     bool enabled = true,
     List<TextInputFormatter>? formatters,
+    String? prefixText,
   }) => Padding(
     padding: EdgeInsets.zero,
     child: TextField(
@@ -958,7 +974,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       keyboardType: type,
       inputFormatters: formatters,
       maxLines: maxLines,
-      decoration: _dec(label, icon: icon),
+      decoration: _dec(label, icon: icon, prefixText: prefixText),
     ),
   );
   Widget _switch(String label, bool value, ValueChanged<bool> onChanged) =>
@@ -1086,6 +1102,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
               'Phone number',
               icon: Icons.phone_outlined,
               type: TextInputType.phone,
+              prefixText: '${countryPhoneRules[country]?.dial ?? ''} ',
               formatters: [phoneInputFormatter(country)],
             ),
             DropdownButtonFormField<String>(
@@ -1151,6 +1168,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
                 'Business phone',
                 icon: Icons.phone,
                 type: TextInputType.phone,
+                prefixText: '${countryPhoneRules[country]?.dial ?? ''} ',
                 formatters: [phoneInputFormatter(country)],
               ),
               _text(

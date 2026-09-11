@@ -31,6 +31,22 @@ bool validPhoneForCountry(String value, String country) {
   return !RegExp(r'^(\d)\1+$').hasMatch(national);
 }
 
+String nationalPhoneDigits(String value, String country) {
+  final digits = value.replaceAll(RegExp(r'\D'), '');
+  final dial = countryPhoneRules[country]?.dial.replaceAll('+', '') ?? '';
+  if (dial.isNotEmpty && digits.startsWith(dial)) {
+    return digits.substring(dial.length);
+  }
+  return digits.startsWith('0') ? digits.substring(1) : digits;
+}
+
+String internationalPhone(String value, String country) {
+  final rule = countryPhoneRules[country];
+  final national = nationalPhoneDigits(value, country);
+  if (national.isEmpty) return '';
+  return rule == null ? value.trim() : '${rule.dial}$national';
+}
+
 TextInputFormatter phoneInputFormatter(String country) {
   final rule = countryPhoneRules[country];
   final maxDigits = rule == null
