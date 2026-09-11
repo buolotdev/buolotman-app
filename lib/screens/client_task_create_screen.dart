@@ -64,16 +64,15 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
       });
     }
     try {
-      final v = await Future.wait<dynamic>([
-        api.profile(),
-        api.serviceCategories(),
-      ]);
-      final p = v[0] is Map ? v[0] as Map : {};
-      final list = v[1] is List
-          ? v[1] as List
-          : v[1] is Map && v[1]['results'] is List
-          ? v[1]['results'] as List
-          : const [];
+      // Verification comes from /auth/me/. A secondary categories failure
+      // must never be presented as an account-verification failure.
+      final p = await api.profile();
+      List<dynamic> list = const [];
+      try {
+        list = await api.serviceCategories();
+      } catch (_) {
+        // The form can still open; category loading can be retried separately.
+      }
       if (mounted)
         setState(() {
           verified = isVerifiedProfile(p);
