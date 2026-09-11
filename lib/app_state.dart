@@ -210,6 +210,13 @@ class AppState extends GetxController {
         if ((city ?? '').trim().isNotEmpty) 'city': city!.trim(),
         if ((city ?? '').trim().isNotEmpty) 'address': city!.trim(),
       });
+      final prefs = await SharedPreferences.getInstance();
+      if ((country ?? '').trim().isNotEmpty) {
+        await prefs.setString('signup_country', country!.trim());
+      }
+      if ((city ?? '').trim().isNotEmpty) {
+        await prefs.setString('signup_city', city!.trim());
+      }
       await syncAll();
     }
   }

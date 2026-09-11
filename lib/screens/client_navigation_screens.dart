@@ -695,9 +695,15 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       final signupCity = prefs.getString('signup_city') ?? '';
       final apiCountry = '${p['country'] ?? ''}'.trim();
       final apiCity = '${p['city'] ?? p['address'] ?? ''}'.trim();
-      country = apiCountry.isNotEmpty
-          ? apiCountry
-          : (signupCountry.isNotEmpty ? signupCountry : 'Benin');
+      final apiHasOnlyDefaultCountry =
+          apiCountry == 'Benin' &&
+          signupCountry.isNotEmpty &&
+          signupCountry != 'Benin';
+      country =
+          signupCountry.isNotEmpty &&
+              (apiCountry.isEmpty || apiHasOnlyDefaultCountry)
+          ? signupCountry
+          : (apiCountry.isNotEmpty ? apiCountry : 'Benin');
       city.text = apiCity.isNotEmpty ? apiCity : signupCity;
       address.text = '${p['address'] ?? p['city'] ?? ''}';
       language = '${p['language_preference'] ?? 'en'}';
