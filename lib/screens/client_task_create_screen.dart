@@ -33,6 +33,7 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
   String urgency = 'standard', serviceType = 'onsite', deadline = '';
   Set<String> contacts = {'in-app'};
   bool materials = false, saving = false, verified = false, checking = true;
+  String? loadError;
   @override
   void initState() {
     super.initState();
@@ -56,6 +57,12 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
   }
 
   Future<void> _load() async {
+    if (mounted) {
+      setState(() {
+        checking = true;
+        loadError = null;
+      });
+    }
     try {
       final v = await Future.wait<dynamic>([
         api.profile(),
@@ -72,9 +79,16 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
           verified = isVerifiedProfile(p);
           categories = list;
           checking = false;
+          loadError = null;
         });
-    } catch (_) {
-      if (mounted) setState(() => checking = false);
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          checking = false;
+          verified = false;
+          loadError = error.toString().replaceFirst('Exception: ', '').trim();
+        });
+      }
     }
   }
 
@@ -274,6 +288,52 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
         body: Center(child: CircularProgressIndicator(color: orange)),
       );
     final money = [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))];
+    if (loadError != null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Post a task'),
+          foregroundColor: navy,
+          backgroundColor: Colors.white,
+          actions: [
+            IconButton(
+              tooltip: 'Retry',
+              onPressed: _load,
+              icon: const Icon(Icons.refresh),
+            ),
+          ],
+        ),
+        backgroundColor: bg,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.cloud_off, color: orange, size: 36),
+                const SizedBox(height: 12),
+                const Text(
+                  'We could not load your account verification status.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: muted, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  loadError!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: muted, fontSize: 12),
+                ),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: _load,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Post a task'),
