@@ -10,7 +10,7 @@ import GoogleMaps
   ) -> Bool {
     // google_maps_flutter requires the iOS Maps SDK to be initialized before
     // the first GoogleMap widget is created.
-    GMSServices.provideAPIKey("REDACTED_GOOGLE_KEY")
+    GMSServices.provideAPIKey("REDACTED_MAPS_KEY")
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
