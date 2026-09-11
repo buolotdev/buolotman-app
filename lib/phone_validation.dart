@@ -49,9 +49,9 @@ String internationalPhone(String value, String country) {
 
 TextInputFormatter phoneInputFormatter(String country) {
   final rule = countryPhoneRules[country];
-  final maxDigits = rule == null
-      ? 15
-      : rule.length + rule.dial.replaceAll('+', '').length;
+  // The country code is rendered as a separate, non-editable prefix in the
+  // profile field. Only allow the country's national digits in the controller.
+  final maxDigits = rule?.length ?? 15;
   return TextInputFormatter.withFunction((oldValue, newValue) {
     final cleaned = newValue.text.replaceAll(RegExp(r'[^0-9+()\s-]'), '');
     if (cleaned.replaceAll(RegExp(r'\D'), '').length > maxDigits) {
