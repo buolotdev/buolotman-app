@@ -692,7 +692,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       email.text = '${p['email'] ?? ''}';
       phone.text = '${p['phone'] ?? ''}';
       country = '${p['country'] ?? 'Benin'}';
-      city.text = '${p['city'] ?? ''}';
+      city.text = '${p['city'] ?? p['address'] ?? ''}';
       address.text = '${p['address'] ?? p['city'] ?? ''}';
       language = '${p['language_preference'] ?? 'en'}';
       avatar = api.resolveImageUrl(p['avatar_url'] as String?);
@@ -1072,20 +1072,18 @@ class _ClientProfileState extends State<ClientProfileScreen> {
               'Phone number',
               icon: Icons.phone_outlined,
               type: TextInputType.phone,
-              formatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9+()\s\-]')),
-              ],
+              formatters: [phoneInputFormatter(country)],
             ),
             DropdownButtonFormField<String>(
               value: countries.contains(country) ? country : null,
-              decoration: _dec('Operating country', icon: Icons.public),
+              decoration: _dec('Country', icon: Icons.public),
               items: countries
                   .map((x) => DropdownMenuItem(value: x, child: Text(x)))
                   .toList(),
               onChanged: (x) => setState(() => country = x ?? country),
             ),
             const SizedBox(height: 12),
-            _text(city, 'Operating city', icon: Icons.location_city),
+            _text(city, 'City / Town', icon: Icons.location_city),
             _text(
               address,
               'Default address / neighborhood',
@@ -1139,9 +1137,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
                 'Business phone',
                 icon: Icons.phone,
                 type: TextInputType.phone,
-                formatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+()\s\-]')),
-                ],
+                formatters: [phoneInputFormatter(country)],
               ),
               _text(
                 taxId,
@@ -1224,14 +1220,18 @@ class _ClientProfileState extends State<ClientProfileScreen> {
                 color: clientOrange,
               ),
               title: Text(
-                'Verification is reviewed by an administrator.',
+                'Admin-reviewed verification',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: clientNavy,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               subtitle: Text(
-                'The current status is shown below.',
+                'Status shown below.',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: clientMuted),
               ),
             ),

@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart';
+
 const countryPhoneRules = <String, ({String dial, int length})>{
   'Benin': (dial: '+229', length: 8),
   'Nigeria': (dial: '+234', length: 10),
@@ -14,10 +16,34 @@ const countryPhoneRules = <String, ({String dial, int length})>{
 bool validPhoneForCountry(String value, String country) {
   final digits = value.replaceAll(RegExp(r'\D'), '');
   final rule = countryPhoneRules[country];
-  if (rule == null) return digits.length >= 7 && digits.length <= 15;
+  if (rule == null) {
+    return digits.length >= 7 &&
+        digits.length <= 15 &&
+        RegExp(r'[1-9]').hasMatch(digits);
+  }
   final dialDigits = rule.dial.replaceAll('+', '');
   final national = digits.startsWith(dialDigits)
       ? digits.substring(dialDigits.length)
       : digits;
-  return national.length == rule.length;
+  if (national.length != rule.length || !RegExp(r'[1-9]').hasMatch(national)) {
+    return false;
+  }
+  return !RegExp(r'^(\d)\1+$').hasMatch(national);
+}
+
+TextInputFormatter phoneInputFormatter(String country) {
+  final rule = countryPhoneRules[country];
+  final maxDigits = rule == null
+      ? 15
+      : rule.length + rule.dial.replaceAll('+', '').length;
+  return TextInputFormatter.withFunction((oldValue, newValue) {
+    final cleaned = newValue.text.replaceAll(RegExp(r'[^0-9+()\s-]'), '');
+    if (cleaned.replaceAll(RegExp(r'\D'), '').length > maxDigits) {
+      return oldValue;
+    }
+    return newValue.copyWith(
+      text: cleaned,
+      selection: TextSelection.collapsed(offset: cleaned.length),
+    );
+  });
 }

@@ -140,6 +140,8 @@ class _SignupScreenState extends State<SignupScreen> {
         password: _passwordController.text.trim(),
         phone: _phoneNumber.trim(),
         role: role,
+        country: _selectedCountry!.name,
+        city: _cityController.text.trim(),
         // Optional fields originally used for Company are ignored here per new progressive flow
       );
 

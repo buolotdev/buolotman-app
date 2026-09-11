@@ -175,6 +175,8 @@ class AppState extends GetxController {
     required String password,
     required String phone,
     required String role,
+    String? country,
+    String? city,
   }) async {
     if (role == 'Client') {
       await ApiService.instance.registerClient(
@@ -202,6 +204,14 @@ class AppState extends GetxController {
     }
     // Auto-login after successful registration
     await loginUser(email, password);
+    if ((country ?? '').trim().isNotEmpty || (city ?? '').trim().isNotEmpty) {
+      await ApiService.instance.updateProfile({
+        if ((country ?? '').trim().isNotEmpty) 'country': country!.trim(),
+        if ((city ?? '').trim().isNotEmpty) 'city': city!.trim(),
+        if ((city ?? '').trim().isNotEmpty) 'address': city!.trim(),
+      });
+      await syncAll();
+    }
   }
 
   Future<Map<String, dynamic>> registerUser({
