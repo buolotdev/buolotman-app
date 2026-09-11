@@ -135,7 +135,7 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
     ),
   );
   Widget _verificationCard() {
-    final verified = profile['is_verified'] == true;
+    final verified = isVerifiedProfile(profile);
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 14),

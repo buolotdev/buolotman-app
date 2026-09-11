@@ -279,6 +279,13 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
         title: const Text('Post a task'),
         foregroundColor: navy,
         backgroundColor: Colors.white,
+        actions: [
+          IconButton(
+            tooltip: 'Refresh verification status',
+            onPressed: _load,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
       ),
       backgroundColor: bg,
       body: !verified
