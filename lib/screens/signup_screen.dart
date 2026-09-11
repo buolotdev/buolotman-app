@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/api_service.dart';
 
 const supportedCountries = [
@@ -148,6 +149,9 @@ class _SignupScreenState extends State<SignupScreen> {
             '${_city.text.trim()}${_region.text.trim().isEmpty ? '' : ', ${_region.text.trim()}'}',
       });
       _verifySavedLocation(location, googleSignup: true);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('signup_country', _country);
+      await prefs.setString('signup_city', _city.text.trim());
       if (mounted) {
         _error('Account created. It is pending admin verification.');
         Navigator.pop(context);
@@ -302,6 +306,9 @@ class _SignupScreenState extends State<SignupScreen> {
             '${_city.text.trim()}${_region.text.trim().isEmpty ? '' : ', ${_region.text.trim()}'}',
       });
       _verifySavedLocation(location);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('signup_country', _country);
+      await prefs.setString('signup_city', _city.text.trim());
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

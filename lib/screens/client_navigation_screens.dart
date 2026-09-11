@@ -691,8 +691,14 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       last.text = '${p['last_name'] ?? ''}';
       email.text = '${p['email'] ?? ''}';
       phone.text = '${p['phone'] ?? ''}';
-      country = '${p['country'] ?? 'Benin'}';
-      city.text = '${p['city'] ?? p['address'] ?? ''}';
+      final signupCountry = prefs.getString('signup_country') ?? '';
+      final signupCity = prefs.getString('signup_city') ?? '';
+      final apiCountry = '${p['country'] ?? ''}'.trim();
+      final apiCity = '${p['city'] ?? p['address'] ?? ''}'.trim();
+      country = apiCountry.isNotEmpty
+          ? apiCountry
+          : (signupCountry.isNotEmpty ? signupCountry : 'Benin');
+      city.text = apiCity.isNotEmpty ? apiCity : signupCity;
       address.text = '${p['address'] ?? p['city'] ?? ''}';
       language = '${p['language_preference'] ?? 'en'}';
       avatar = api.resolveImageUrl(p['avatar_url'] as String?);
@@ -783,6 +789,8 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       });
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('client_about', about.text.trim());
+      await prefs.setString('signup_country', country);
+      await prefs.setString('signup_city', city.text.trim());
       await prefs.setString('client_type', clientType);
       await prefs.setString('client_industry', industry);
       await prefs.setString('client_business_name', businessName.text.trim());

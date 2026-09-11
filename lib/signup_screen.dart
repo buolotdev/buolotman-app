@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:country_picker/country_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'app_state.dart';
@@ -144,6 +145,9 @@ class _SignupScreenState extends State<SignupScreen> {
         city: _cityController.text.trim(),
         // Optional fields originally used for Company are ignored here per new progressive flow
       );
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('signup_country', _selectedCountry!.name);
+      await prefs.setString('signup_city', _cityController.text.trim());
 
       if (mounted) {
         Navigator.of(context).pop(); // dismiss loading
