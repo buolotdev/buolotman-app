@@ -20,7 +20,7 @@
       ],
       "api_key": [
         {
-          "current_key": "REDACTED_GOOGLE_KEY"
+          "current_key": "__FIREBASE_API_KEY__"
         }
       ],
       "services": {
