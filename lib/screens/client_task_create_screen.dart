@@ -27,8 +27,9 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
       skills = TextEditingController(),
       schedule = TextEditingController();
   List<dynamic> categories = [];
+  List<dynamic> subcategories = [];
   List<PlatformFile> attachments = [];
-  int? category;
+  int? category, subcategory;
   double? latitude, longitude;
   String urgency = 'standard', serviceType = 'onsite', deadline = '';
   Set<String> contacts = {'in-app'};
@@ -158,6 +159,19 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
         'Only JPG, PNG, WEBP, GIF, or PDF files up to 25 MB are allowed.',
       );
     setState(() => attachments = [...attachments, ...valid]);
+  }
+
+  void _selectCategory(int? value) {
+    final selected = categories.whereType<Map>().cast<Map?>().firstWhere(
+      (item) => item?['id']?.toString() == value?.toString(),
+      orElse: () => null,
+    );
+    final nested = selected?['subcategories'];
+    setState(() {
+      category = value;
+      subcategory = null;
+      subcategories = nested is List ? nested : const [];
+    });
   }
 
   Future<void> _save() async {
@@ -402,9 +416,36 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
                         ),
                       )
                       .toList(),
-                  onChanged: categoryItems.isEmpty
+                  onChanged: _selectCategory,
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<int>(
+                  isExpanded: true,
+                  initialValue: subcategory,
+                  decoration: _dec('Subcategory').copyWith(
+                    helperText: category == null
+                        ? 'Select a category first.'
+                        : subcategories.isEmpty
+                        ? 'No subcategories are available for this category.'
+                        : null,
+                  ),
+                  items: subcategories
+                      .whereType<Map>()
+                      .map((x) {
+                        final id = x['id'] is int
+                            ? x['id'] as int
+                            : int.tryParse('${x['id'] ?? ''}');
+                        final name = '${x['name'] ?? x['title'] ?? ''}'.trim();
+                        return DropdownMenuItem<int>(
+                          value: id,
+                          child: Text(name, overflow: TextOverflow.ellipsis),
+                        );
+                      })
+                      .where((item) => item.value != null)
+                      .toList(),
+                  onChanged: category == null || subcategories.isEmpty
                       ? null
-                      : (v) => setState(() => category = v),
+                      : (value) => setState(() => subcategory = value),
                 ),
                 const SizedBox(height: 12),
                 _field(skills, 'Required skills (comma separated)'),
