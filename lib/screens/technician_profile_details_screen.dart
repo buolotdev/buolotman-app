@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../core/api_service.dart';
+import '../core/username_utils.dart';
 import 'technician_profile_screen.dart';
 import 'onboarding_screen.dart';
 import 'technician_portfolio_screen.dart';
@@ -100,6 +101,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
   String? avatarUrl, bannerUrl;
   final first = TextEditingController(),
       last = TextEditingController(),
+      username = TextEditingController(),
       displayName = TextEditingController(),
       phone = TextEditingController(),
       country = TextEditingController(),
@@ -128,6 +130,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
   bool availableNow = false, negotiable = false;
   String availability = 'available';
   bool hydrated = false;
+  String _initialUsername = '';
   List<dynamic> savedPortfolio = [];
   @override
   void initState() {
@@ -173,6 +176,8 @@ class _State extends State<TechnicianProfileDetailsScreen> {
             bannerUrl = _imageUrl(user['banner_url'] as String?);
           first.text = '${user['first_name'] ?? ''}';
           last.text = '${user['last_name'] ?? ''}';
+          username.text = normalizeUsername('${user['username'] ?? ''}');
+          _initialUsername = username.text;
           country.text = countries.contains('${user['country'] ?? ''}')
               ? '${user['country'] ?? ''}'
               : countries.first;
@@ -298,6 +303,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
             if (savedPortfolio.isNotEmpty) _portfolioGallery(),
             const SizedBox(height: 16),
             _section('Personal information', [
+              _input('Username', username),
               _input('First name', first),
               _input('Last name', last),
               _input('Display / privacy name', displayName),
@@ -881,6 +887,30 @@ class _State extends State<TechnicianProfileDetailsScreen> {
       ? value
       : '';
   Future<void> _save() async {
+    final normalizedUsername = normalizeUsername(username.text);
+    final usernameError = validateUsername(normalizedUsername);
+    if (usernameError != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(usernameError)));
+      return;
+    }
+    if (normalizedUsername != _initialUsername) {
+      try {
+        final result = await api.checkUsernameAvailability(normalizedUsername);
+        if (result['available'] != true) {
+          throw Exception('That username is already taken.');
+        }
+      } catch (e) {
+        if (mounted)
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceFirst('Exception: ', '')),
+            ),
+          );
+        return;
+      }
+    }
     final digits = _nationalDigits(phone.text, country.text);
     final expected = phoneLengths[country.text] ?? 10;
     if (digits.length != expected) {
@@ -903,6 +933,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
     setState(() => saving = true);
     try {
       await api.updateProfile({
+        'username': normalizedUsername,
         'first_name': first.text.trim(),
         'last_name': last.text.trim(),
         'phone': '${dialCodes[country.text]}$digits',

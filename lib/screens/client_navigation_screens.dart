@@ -12,6 +12,7 @@ import 'client_messaging_screen.dart';
 import 'client_payment_screen.dart';
 import '../browse_professionals_screen.dart';
 import '../profile_media_actions.dart';
+import '../core/username_utils.dart';
 import '../phone_validation.dart';
 
 const clientNavy = Color(0xFF001F3F),
@@ -573,6 +574,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
   final api = ApiService();
   final first = TextEditingController(),
       last = TextEditingController(),
+      username = TextEditingController(),
       email = TextEditingController(),
       phone = TextEditingController(),
       city = TextEditingController(),
@@ -600,6 +602,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       saving = false,
       uploading = false;
   String? avatar, banner;
+  String _initialUsername = '';
   static const countries = [
     'Benin',
     'Nigeria',
@@ -685,6 +688,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
     for (final c in [
       first,
       last,
+      username,
       email,
       phone,
       city,
@@ -711,6 +715,8 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       final prefs = await SharedPreferences.getInstance();
       first.text = '${p['first_name'] ?? ''}';
       last.text = '${p['last_name'] ?? ''}';
+      username.text = normalizeUsername('${p['username'] ?? ''}');
+      _initialUsername = username.text;
       email.text = '${p['email'] ?? ''}';
       phone.text = nationalPhoneDigits(
         '${p['phone'] ?? ''}',
@@ -770,6 +776,24 @@ class _ClientProfileState extends State<ClientProfileScreen> {
         ),
       );
   Future<void> _save() async {
+    final normalizedUsername = normalizeUsername(username.text);
+    final usernameError = validateUsername(normalizedUsername);
+    if (usernameError != null) {
+      _snack(usernameError, error: true);
+      return;
+    }
+    if (normalizedUsername != _initialUsername) {
+      try {
+        final result = await api.checkUsernameAvailability(normalizedUsername);
+        if (result['available'] != true) {
+          _snack('That username is already taken.', error: true);
+          return;
+        }
+      } catch (_) {
+        _snack('We could not verify username availability.', error: true);
+        return;
+      }
+    }
     final site = website.text.trim().isEmpty
         ? ''
         : (website.text.trim().startsWith(RegExp(r'https?://'))
@@ -810,6 +834,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
     setState(() => saving = true);
     try {
       await api.updateProfile({
+        'username': normalizedUsername,
         'first_name': first.text.trim(),
         'last_name': last.text.trim(),
         'phone': internationalPhone(phone.text, country),
@@ -1124,6 +1149,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
             ),
           ]),
           _section('Personal details & contact', [
+            _text(username, 'Username', icon: Icons.alternate_email),
             _text(first, 'First name', icon: Icons.person_outline),
             _text(last, 'Last name', icon: Icons.person_outline),
             _text(

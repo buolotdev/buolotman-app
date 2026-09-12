@@ -169,6 +169,27 @@ class ApiService {
     return data;
   }
 
+  /// Checks the username against the same production account endpoint used
+  /// by the website. The server remains the final authority for uniqueness.
+  Future<Map<String, dynamic>> checkUsernameAvailability(
+    String username,
+  ) async {
+    final value = username.trim().toLowerCase();
+    final response = await http.get(
+      Uri.parse(
+        '$_apiBase/auth/check-username/',
+      ).replace(queryParameters: {'username': value}),
+    );
+    final data = _decode(response);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        _message(data, 'Unable to check username availability.'),
+        response.statusCode,
+      );
+    }
+    return data;
+  }
+
   Future<dynamic> publicUserProfile(dynamic userId) async =>
       _getAny('auth/users/$userId/');
 
@@ -721,14 +742,33 @@ class ApiService {
       _postAny('wallet/campay/collect/', values);
   Future<dynamic> campayCheckStatus(String reference) async =>
       _getAny('wallet/campay/status/$reference/');
-  Future<dynamic> campayGetBalance() async =>
-      _getAny('wallet/campay/balance/');
+  Future<dynamic> campayGetBalance() async => _getAny('wallet/campay/balance/');
   Future<dynamic> upgradeSubscriptionPlan(Map<String, dynamic> values) async =>
       _postAny('wallet/upgrade-plan/', values);
   Future<dynamic> technicianServices() async =>
       _getAny('auth/technician-services/');
-  Future<List<dynamic>> serviceCategories() async =>
-      _getList('tasks/categories/');
+  Future<List<dynamic>> serviceCategories() async {
+    final current = await _getList('tasks/categories/');
+    if (current.isNotEmpty) return current;
+    // The website still serves the legacy category route. Keep it as a
+    // compatibility path when the newer route is valid but has no records.
+    try {
+      return await _getList('tasks-categories/');
+    } catch (_) {
+      return current;
+    }
+  }
+
+  Future<List<dynamic>> serviceSubcategories(dynamic categoryId) async {
+    try {
+      final current = await _getList(
+        'tasks/categories/$categoryId/subcategories/',
+      );
+      if (current.isNotEmpty) return current;
+    } catch (_) {}
+    return _getList('tasks-categories/$categoryId/subcategories/');
+  }
+
   Future<dynamic> createTechnicianService(Map<String, dynamic> values) async =>
       _postAny('auth/technician-services/', values);
   Future<dynamic> updateTechnicianService(
@@ -1083,7 +1123,9 @@ class ApiService {
           }
         }
       } else if (raw is String && raw.trim().isNotEmpty) {
-        messages.add(field == 'non_field_errors' ? raw.trim() : '$field: ${raw.trim()}');
+        messages.add(
+          field == 'non_field_errors' ? raw.trim() : '$field: ${raw.trim()}',
+        );
       }
     });
     return messages.isEmpty ? fallback : messages.join('\n');

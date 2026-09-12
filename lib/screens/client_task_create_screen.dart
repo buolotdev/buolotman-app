@@ -161,7 +161,7 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
     setState(() => attachments = [...attachments, ...valid]);
   }
 
-  void _selectCategory(int? value) {
+  Future<void> _selectCategory(int? value) async {
     final selected = categories.whereType<Map>().cast<Map?>().firstWhere(
       (item) => item?['id']?.toString() == value?.toString(),
       orElse: () => null,
@@ -172,6 +172,16 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
       subcategory = null;
       subcategories = nested is List ? nested : const [];
     });
+    if (value == null || subcategories.isNotEmpty) return;
+    try {
+      final loaded = await api.serviceSubcategories(value);
+      if (mounted && category == value) {
+        setState(() => subcategories = loaded);
+      }
+    } catch (_) {
+      // The category remains selectable even when its optional child request
+      // is unavailable; the backend contract does not support a fake fallback.
+    }
   }
 
   Future<void> _save() async {

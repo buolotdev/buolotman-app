@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../core/api_service.dart';
+import '../core/username_utils.dart';
 
 class CompanyProfileScreen extends StatefulWidget {
   const CompanyProfileScreen({super.key});
@@ -15,6 +16,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       bg = Color(0xFFF5F7FA),
       muted = Color(0xFF64748B);
   final api = ApiService();
+  final username = TextEditingController();
   final form = <String, TextEditingController>{};
   bool loading = true,
       saving = false,
@@ -23,6 +25,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
   Map<String, dynamic> profile = {};
   List<dynamic> documents = [];
   String? logoUrl, coverUrl;
+  String _initialUsername = '';
 
   final fields = const [
     ('company_name', 'Company name', TextInputType.text),
@@ -63,6 +66,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     for (final c in form.values) {
       c.dispose();
     }
+    username.dispose();
     super.dispose();
   }
 
@@ -71,10 +75,14 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       final values = await Future.wait<dynamic>([
         api.companyProfile(),
         api.companyVerificationDocuments(),
+        api.profile(),
       ]);
       final data = Map<String, dynamic>.from(values[0] as Map);
       if (!mounted) return;
       profile = data;
+      final account = Map<String, dynamic>.from(values[2] as Map);
+      username.text = normalizeUsername('${account['username'] ?? ''}');
+      _initialUsername = username.text;
       for (final f in fields) {
         form[f.$1]!.text = data[f.$1]?.toString() ?? '';
       }
@@ -158,6 +166,24 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
   }
 
   Future<void> _save() async {
+    final normalizedUsername = normalizeUsername(username.text);
+    final usernameError = validateUsername(normalizedUsername);
+    if (usernameError != null) {
+      _snack(usernameError);
+      return;
+    }
+    if (normalizedUsername != _initialUsername) {
+      try {
+        final result = await api.checkUsernameAvailability(normalizedUsername);
+        if (result['available'] != true) {
+          _snack('That username is already taken.');
+          return;
+        }
+      } catch (_) {
+        _snack('We could not verify username availability.');
+        return;
+      }
+    }
     setState(() => saving = true);
     try {
       final data = <String, dynamic>{};
@@ -174,6 +200,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       data['business_hours'] = _comma(profile['business_hours']);
       if (logoUrl != null) data['logo_url'] = logoUrl;
       if (coverUrl != null) data['cover_url'] = coverUrl;
+      await api.updateProfile({'username': normalizedUsername});
       final saved = await api.updateCompanyProfile(data);
       profile = saved;
       if (mounted) _snack('Company profile saved.');
@@ -273,10 +300,10 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 _branding(),
-                _section(
-                  'Company information',
-                  fields.map((f) => _field(f.$1, f.$2, f.$3)).toList(),
-                ),
+                _section('Company information', [
+                  _accountField('Username', username),
+                  ...fields.map((f) => _field(f.$1, f.$2, f.$3)),
+                ]),
                 _arraySection('Services offered', 'services_offered'),
                 _arraySection('Areas of expertise', 'areas_of_expertise'),
                 _arraySection('Business hours', 'business_hours'),
@@ -409,6 +436,22 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       ),
     ),
   );
+
+  Widget _accountField(String label, TextEditingController controller) =>
+      Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: TextFormField(
+          controller: controller,
+          keyboardType: TextInputType.text,
+          decoration: InputDecoration(
+            labelText: label,
+            prefixIcon: const Icon(Icons.alternate_email),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      );
   Widget _arraySection(String label, String key) => _section(label, [
     TextFormField(
       initialValue: _array(key).join(', '),
