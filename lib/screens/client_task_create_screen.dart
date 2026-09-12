@@ -197,6 +197,20 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
       return _notice('Enter a title, description, and select a category.');
     if (min == null || min <= 0 || max == null || max < min)
       return _notice('Enter a valid budget range.');
+    final selectedSubcategoryName = subcategories
+        .whereType<Map>()
+        .where((item) => item['id']?.toString() == subcategory?.toString())
+        .map((item) => '${item['name'] ?? item['title'] ?? ''}'.trim())
+        .firstWhere((name) => name.isNotEmpty, orElse: () => '');
+    final requestedSkills = skills.text
+        .split(',')
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toList();
+    if (selectedSubcategoryName.isNotEmpty &&
+        !requestedSkills.contains(selectedSubcategoryName)) {
+      requestedSkills.insert(0, selectedSubcategoryName);
+    }
     setState(() => saving = true);
     try {
       final r = await api.createTask({
@@ -216,11 +230,9 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
         'deadline': deadline.isEmpty ? null : deadline,
         'materials_provided': materials,
         'contact_methods': contacts.toList(),
-        'skills': skills.text
-            .split(',')
-            .map((v) => v.trim())
-            .where((v) => v.isNotEmpty)
-            .toList(),
+        // The website persists the selected subcategory as a skill under the
+        // selected category. Keep that same contract for mobile-created tasks.
+        'skills': requestedSkills,
         'status': 'open',
       });
       final id = r is Map ? int.tryParse('${r['id']}') : null;
