@@ -6,6 +6,7 @@ import 'client_task_management_screen.dart';
 import 'client_navigation_screens.dart';
 import '../core/realtime_chat.dart';
 import '../attachment_actions.dart';
+import '../chat_contact_profile_screen.dart';
 
 const messageNavy = Color(0xFF001F3F),
     messageOrange = Color(0xFFFF4500),
@@ -140,20 +141,51 @@ class _ClientMessagesState extends State<ClientMessagesScreen> {
                 ),
               ),
             )
-          : Row(
-              children: [
-                SizedBox(width: 145, child: _conversationList()),
-                Expanded(
-                  child: activeId == null
-                      ? const Center(
-                          child: Text(
-                            'Select a conversation',
-                            style: TextStyle(color: messageMuted),
-                          ),
-                        )
-                      : ClientConversationScreen(conversationId: activeId),
-                ),
-              ],
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final compact = constraints.maxWidth < 600;
+                if (compact && activeId != null) {
+                  return Column(
+                    children: [
+                      Container(
+                        color: Colors.white,
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          onPressed: () => setState(() => activeId = null),
+                          icon: const Icon(Icons.arrow_back),
+                          label: const Text('All conversations'),
+                        ),
+                      ),
+                      Expanded(
+                        child: ClientConversationScreen(
+                          conversationId: activeId,
+                        ),
+                      ),
+                    ],
+                  );
+                }
+                return Row(
+                  children: [
+                    SizedBox(
+                      width: compact ? double.infinity : 145,
+                      child: _conversationList(),
+                    ),
+                    if (!compact)
+                      Expanded(
+                        child: activeId == null
+                            ? const Center(
+                                child: Text(
+                                  'Select a conversation',
+                                  style: TextStyle(color: messageMuted),
+                                ),
+                              )
+                            : ClientConversationScreen(
+                                conversationId: activeId,
+                              ),
+                      ),
+                  ],
+                );
+              },
             ),
       bottomNavigationBar: widget.withBottomNavigation
           ? _bottomNavigation(context)
@@ -300,6 +332,12 @@ class _ClientConversationState extends State<ClientConversationScreen> {
   }
 
   void _receiveRealtimeMessage(Map<String, dynamic> event) {
+    if (event['type'] == 'message_status' ||
+        event['type'] == 'message_read' ||
+        event['type'] == 'read_receipt') {
+      _applyReceipt(event);
+      return;
+    }
     if (!mounted || event['type'] != 'message' || event['message'] is! Map)
       return;
     final incoming = Map<String, dynamic>.from(event['message'] as Map);
@@ -309,6 +347,24 @@ class _ClientConversationState extends State<ClientConversationScreen> {
       return;
     setState(() => messages = [...messages, incoming]);
     ApiService().markConversationRead(widget.conversationId);
+  }
+
+  void _applyReceipt(Map<String, dynamic> event) {
+    final id = event['message_id'] ?? event['id'];
+    if (!mounted || id == null) return;
+    final status = '${event['status'] ?? ''}'.toLowerCase();
+    final timestamp = event['timestamp'] ?? DateTime.now().toIso8601String();
+    setState(() {
+      messages = messages.map((raw) {
+        if (raw is! Map || '${raw['id']}' != '$id') return raw;
+        return {
+          ...raw,
+          if (status == 'delivered' || status == 'read')
+            'delivered_at': event['delivered_at'] ?? timestamp,
+          if (status == 'read') 'read_at': event['read_at'] ?? timestamp,
+        };
+      }).toList();
+    });
   }
 
   @override
@@ -465,14 +521,37 @@ class _ClientConversationState extends State<ClientConversationScreen> {
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
           child: Row(
             children: [
-              CircleAvatar(
-                backgroundColor: const Color(0xFFFFE8E0),
-                child: Text(
-                  '${other is Map ? other['initials'] ?? '?' : '?'}',
-                  style: const TextStyle(
-                    color: messageOrange,
-                    fontWeight: FontWeight.w800,
-                  ),
+              GestureDetector(
+                onTap: otherMap['id'] == null
+                    ? null
+                    : () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              ChatContactProfileScreen(userId: otherMap['id']),
+                        ),
+                      ),
+                child: CircleAvatar(
+                  backgroundColor: const Color(0xFFFFE8E0),
+                  backgroundImage:
+                      api
+                          .resolveImageUrl(otherMap['avatar_url'] as String?)
+                          .isEmpty
+                      ? null
+                      : NetworkImage(
+                          api.resolveImageUrl(
+                            otherMap['avatar_url'] as String?,
+                          ),
+                        ),
+                  child: '${otherMap['avatar_url'] ?? ''}'.isEmpty
+                      ? Text(
+                          '${other is Map ? other['initials'] ?? '?' : '?'}',
+                          style: const TextStyle(
+                            color: messageOrange,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        )
+                      : null,
                 ),
               ),
               const SizedBox(width: 9),
@@ -487,10 +566,16 @@ class _ClientConversationState extends State<ClientConversationScreen> {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
+                    if ('${otherMap['username'] ?? ''}'.trim().isNotEmpty)
+                      Text(
+                        '@${otherMap['username']}',
+                        style: const TextStyle(
+                          color: messageMuted,
+                          fontSize: 11,
+                        ),
+                      ),
                     Text(
-                      online
-                          ? 'Online'
-                          : '${otherMap['last_seen_display'] ?? 'Offline'}',
+                      online ? 'Online' : _lastSeen(otherMap),
                       style: TextStyle(
                         color: online ? Colors.green.shade700 : messageMuted,
                         fontSize: 11,
@@ -598,6 +683,15 @@ class _ClientConversationState extends State<ClientConversationScreen> {
     final text = '${m['text'] ?? ''}';
     final attachmentUrl = '${m['attachment_url'] ?? ''}';
     final attachmentName = '${m['attachment_name'] ?? ''}';
+    final read =
+        m['read_at'] != null ||
+        m['is_read'] == true ||
+        '${m['status']}'.toLowerCase() == 'read';
+    final delivered =
+        read ||
+        m['delivered_at'] != null ||
+        m['is_delivered'] == true ||
+        '${m['status']}'.toLowerCase() == 'delivered';
     return Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -658,9 +752,9 @@ class _ClientConversationState extends State<ClientConversationScreen> {
                 if (mine) ...[
                   const SizedBox(width: 4),
                   Icon(
-                    m['read_at'] == null ? Icons.done : Icons.done_all,
+                    delivered ? Icons.done_all : Icons.done,
                     size: 13,
-                    color: m['read_at'] == null ? messageMuted : messageOrange,
+                    color: read ? messageOrange : messageMuted,
                   ),
                 ],
               ],
@@ -677,4 +771,7 @@ class _ClientConversationState extends State<ClientConversationScreen> {
         ? ''
         : '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
+
+  String _lastSeen(Map other) =>
+      '${other['last_seen_display'] ?? other['last_seen_at'] ?? other['last_seen'] ?? 'Offline'}';
 }

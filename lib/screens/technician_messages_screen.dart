@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/api_service.dart';
 import '../core/realtime_chat.dart';
 import '../attachment_actions.dart';
+import '../chat_contact_profile_screen.dart';
 import 'technician_navigation.dart';
 
 class TechnicianMessagesScreen extends StatefulWidget {
@@ -171,7 +172,15 @@ class _ConversationState extends State<TechnicianConversationScreen> {
   }
 
   void _receiveRealtimeMessage(Map<String, dynamic> event) {
-    if (!mounted || event['type'] != 'message') return;
+    if (!mounted) return;
+    if (event['type'] != 'message') {
+      if (event['type'] == 'message_status' ||
+          event['type'] == 'message_read' ||
+          event['type'] == 'read_receipt') {
+        setState(() => future = api.conversation(widget.conversationId));
+      }
+      return;
+    }
     setState(() => future = api.conversation(widget.conversationId));
     api.markConversationRead(widget.conversationId);
   }
@@ -271,6 +280,9 @@ class _ConversationState extends State<TechnicianConversationScreen> {
 
   void _notice(String s) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s)));
+
+  String _lastSeen(Map other) =>
+      '${other['last_seen_display'] ?? other['last_seen_at'] ?? other['last_seen'] ?? 'Offline'}';
   @override
   Widget build(BuildContext context) => Scaffold(
     bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: 0),
@@ -311,14 +323,81 @@ class _ConversationState extends State<TechnicianConversationScreen> {
               width: double.infinity,
               color: Colors.white,
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
-              child: Text(
-                online
-                    ? 'Online'
-                    : '${otherMap['last_seen_display'] ?? 'Offline'}',
-                style: TextStyle(
-                  color: online ? Colors.green : muted,
-                  fontSize: 12,
-                ),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: otherMap['id'] == null
+                        ? null
+                        : () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ChatContactProfileScreen(
+                                userId: otherMap['id'],
+                              ),
+                            ),
+                          ),
+                    child: CircleAvatar(
+                      backgroundColor: const Color(0xFFE2E8F0),
+                      backgroundImage:
+                          api
+                              .resolveImageUrl(
+                                otherMap['avatar_url'] as String?,
+                              )
+                              .isEmpty
+                          ? null
+                          : NetworkImage(
+                              api.resolveImageUrl(
+                                otherMap['avatar_url'] as String?,
+                              ),
+                            ),
+                      child: '${otherMap['avatar_url'] ?? ''}'.isEmpty
+                          ? Text('${otherMap['initials'] ?? '?'}')
+                          : null,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: otherMap['id'] == null
+                          ? null
+                          : () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ChatContactProfileScreen(
+                                  userId: otherMap['id'],
+                                ),
+                              ),
+                            ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${otherMap['name'] ?? otherMap['email'] ?? 'Conversation'}',
+                            style: const TextStyle(
+                              color: navy,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          if ('${otherMap['username'] ?? ''}'.trim().isNotEmpty)
+                            Text(
+                              '@${otherMap['username']}',
+                              style: const TextStyle(
+                                color: muted,
+                                fontSize: 11,
+                              ),
+                            ),
+                          Text(
+                            online ? 'Online' : _lastSeen(otherMap),
+                            style: TextStyle(
+                              color: online ? Colors.green : muted,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             Expanded(
@@ -337,6 +416,15 @@ class _ConversationState extends State<TechnicianConversationScreen> {
                         final mine = '${m['sender']}' == '$currentUserId';
                         final text = '${m['text'] ?? ''}';
                         final url = '${m['attachment_url'] ?? ''}';
+                        final read =
+                            m['read_at'] != null ||
+                            m['is_read'] == true ||
+                            '${m['status']}'.toLowerCase() == 'read';
+                        final delivered =
+                            read ||
+                            m['delivered_at'] != null ||
+                            m['is_delivered'] == true ||
+                            '${m['status']}'.toLowerCase() == 'delivered';
                         return Align(
                           alignment: mine
                               ? Alignment.centerRight
@@ -373,13 +461,12 @@ class _ConversationState extends State<TechnicianConversationScreen> {
                                     ),
                                   ),
                                 const SizedBox(height: 3),
-                                Text(
-                                  '${m['read_at'] != null && mine ? 'Read' : ''}',
-                                  style: TextStyle(
-                                    color: mine ? Colors.white70 : muted,
-                                    fontSize: 10,
+                                if (mine)
+                                  Icon(
+                                    delivered ? Icons.done_all : Icons.done,
+                                    size: 14,
+                                    color: read ? Colors.white : Colors.white70,
                                   ),
-                                ),
                               ],
                             ),
                           ),

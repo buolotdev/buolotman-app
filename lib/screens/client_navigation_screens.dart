@@ -456,6 +456,12 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
                 _section('Personal information', [
                   _row('First name', _value('first_name')),
                   _row('Last name', _value('last_name')),
+                  _row(
+                    'Username',
+                    _value('username').isEmpty
+                        ? 'Not set'
+                        : '@${_value('username')}',
+                  ),
                   _row('Phone', _value('phone')),
                   _row('Country', _value('country')),
                   _row('City', _value('city')),
