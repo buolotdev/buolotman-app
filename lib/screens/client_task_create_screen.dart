@@ -6,6 +6,7 @@ import '../core/api_service.dart';
 import '../verification_utils.dart';
 import 'client_location_picker_screen.dart';
 import '../discard_changes.dart';
+import '../attachment_actions.dart';
 
 class ClientTaskCreateScreen extends StatefulWidget {
   const ClientTaskCreateScreen({super.key});
@@ -166,6 +167,48 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
       _dirty = true;
     });
   }
+
+  Future<void> _takeTaskPhoto() async {
+    final file = await AttachmentActions.takePhoto(
+      context,
+      label: 'task attachment',
+    );
+    if (file == null || !mounted) return;
+    if (file.size > 25 * 1024 * 1024) {
+      _notice('Files must be 25 MB or smaller.');
+      return;
+    }
+    setState(() {
+      attachments = [...attachments, file];
+      _dirty = true;
+    });
+  }
+
+  Future<void> _pickTaskGallery() async {
+    final file = await AttachmentActions.pickGallery();
+    if (file == null || !mounted) return;
+    if (file.size > 25 * 1024 * 1024) {
+      _notice('Files must be 25 MB or smaller.');
+      return;
+    }
+    setState(() {
+      attachments = [...attachments, file];
+      _dirty = true;
+    });
+  }
+
+  Future<void> _showAttachmentActions() => AttachmentActions.show(
+    context,
+    label: 'task attachment',
+    hasAttachment: attachments.isNotEmpty,
+    onDevice: _pickAttachments,
+    onGallery: _pickTaskGallery,
+    onCamera: _takeTaskPhoto,
+    onRemove: () => setState(() {
+      attachments.clear();
+      _dirty = true;
+    }),
+  );
 
   Future<void> _selectCategory(int? value) async {
     final selected = categories.whereType<Map>().cast<Map?>().firstWhere(
@@ -633,7 +676,7 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
                   ),
                   const SizedBox(height: 16),
                   OutlinedButton.icon(
-                    onPressed: _pickAttachments,
+                    onPressed: _showAttachmentActions,
                     icon: const Icon(Icons.attach_file),
                     label: const Text('Attach files'),
                     style: OutlinedButton.styleFrom(

@@ -8,6 +8,7 @@ import 'client_messaging_screen.dart';
 import 'client_location_picker_screen.dart';
 import 'client_dashboard_screen.dart';
 import 'client_navigation_screens.dart';
+import '../attachment_actions.dart';
 
 const taskNavy = Color(0xFF001F3F),
     taskOrange = Color(0xFFFF4500),
@@ -904,6 +905,39 @@ class _ClientTaskEditState extends State<ClientTaskEditScreen> {
     setState(() => attachments = [...attachments, ...valid]);
   }
 
+  Future<void> _pickAttachmentGallery() async {
+    final file = await AttachmentActions.pickGallery();
+    if (file == null || !mounted) return;
+    if (file.size <= 25 * 1024 * 1024) {
+      setState(() => attachments = [...attachments, file]);
+    } else {
+      _notice('Files must be 25 MB or smaller.');
+    }
+  }
+
+  Future<void> _pickAttachmentCamera() async {
+    final file = await AttachmentActions.takePhoto(
+      context,
+      label: 'task attachment',
+    );
+    if (file == null || !mounted) return;
+    if (file.size <= 25 * 1024 * 1024) {
+      setState(() => attachments = [...attachments, file]);
+    } else {
+      _notice('Files must be 25 MB or smaller.');
+    }
+  }
+
+  Future<void> _showAttachmentActions() => AttachmentActions.show(
+    context,
+    label: 'task attachment',
+    hasAttachment: attachments.isNotEmpty,
+    onDevice: _pickAttachments,
+    onGallery: _pickAttachmentGallery,
+    onCamera: _pickAttachmentCamera,
+    onRemove: () => setState(() => attachments.clear()),
+  );
+
   Future<void> _save() async {
     final low = double.tryParse(min.text.trim()),
         high = double.tryParse(max.text.trim());
@@ -1154,7 +1188,7 @@ class _ClientTaskEditState extends State<ClientTaskEditScreen> {
           ),
         ],
         OutlinedButton.icon(
-          onPressed: _pickAttachments,
+          onPressed: _showAttachmentActions,
           icon: const Icon(Icons.attach_file),
           label: const Text('Add attachments'),
           style: OutlinedButton.styleFrom(

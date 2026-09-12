@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../core/api_service.dart';
+import '../attachment_actions.dart';
 
 class TechnicianPortfolioScreen extends StatefulWidget {
   const TechnicianPortfolioScreen({super.key});
@@ -145,7 +146,7 @@ class _State extends State<TechnicianPortfolioScreen> {
       ),
     ),
   );
-  Future<void> _pick() async {
+  Future<void> _pickFromDevice() async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
@@ -154,6 +155,31 @@ class _State extends State<TechnicianPortfolioScreen> {
     if (!mounted || result == null || result.files.single.bytes == null) return;
     setState(() => preview = result.files.single);
   }
+
+  Future<void> _pickFromGallery() async {
+    final file = await AttachmentActions.pickGallery();
+    if (!mounted || file == null) return;
+    setState(() => preview = file);
+  }
+
+  Future<void> _pickFromCamera() async {
+    final file = await AttachmentActions.takePhoto(
+      context,
+      label: 'project image',
+    );
+    if (!mounted || file == null) return;
+    setState(() => preview = file);
+  }
+
+  Future<void> _pick() => AttachmentActions.show(
+    context,
+    label: 'project image',
+    hasAttachment: preview != null,
+    onDevice: _pickFromDevice,
+    onGallery: _pickFromGallery,
+    onCamera: _pickFromCamera,
+    onRemove: () => setState(() => preview = null),
+  );
 
   Widget _project(dynamic item) {
     final image = '${item['image_url'] ?? ''}';

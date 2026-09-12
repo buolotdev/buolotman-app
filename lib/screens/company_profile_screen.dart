@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../core/api_service.dart';
 import '../core/username_utils.dart';
 import '../discard_changes.dart';
+import '../attachment_actions.dart';
 
 class CompanyProfileScreen extends StatefulWidget {
   const CompanyProfileScreen({super.key});
@@ -115,6 +116,14 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       _snack('Documents must be 25 MB or smaller.');
       return;
     }
+    await _uploadDocumentFile(title, type, file);
+  }
+
+  Future<void> _uploadDocumentFile(
+    String title,
+    String type,
+    PlatformFile file,
+  ) async {
     try {
       final upload = await api.uploadCompanyVerificationDocumentBytes(
         bytes: file.bytes!,
@@ -133,6 +142,37 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
         _snack(e is ApiException ? e.message : 'Document upload failed.');
     }
   }
+
+  Future<void> _uploadDocumentFromGallery(String title, String type) async {
+    final file = await AttachmentActions.pickGallery();
+    if (file == null || !mounted) return;
+    if (file.size > 25 * 1024 * 1024) {
+      _snack('Documents must be 25 MB or smaller.');
+      return;
+    }
+    await _uploadDocumentFile(title, type, file);
+  }
+
+  Future<void> _uploadDocumentFromCamera(String title, String type) async {
+    final file = await AttachmentActions.takePhoto(context, label: 'document');
+    if (file == null || !mounted) return;
+    if (file.size > 25 * 1024 * 1024) {
+      _snack('Documents must be 25 MB or smaller.');
+      return;
+    }
+    await _uploadDocumentFile(title, type, file);
+  }
+
+  Future<void> _showDocumentActions(String title, String type) =>
+      AttachmentActions.show(
+        context,
+        label: 'document',
+        hasAttachment: false,
+        onDevice: () => _uploadDocument(title, type),
+        onGallery: () => _uploadDocumentFromGallery(title, type),
+        onCamera: () => _uploadDocumentFromCamera(title, type),
+        onRemove: () {},
+      );
 
   Future<void> _deleteDocument(dynamic id) async {
     try {
@@ -581,7 +621,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       ),
       subtitle: Text(subtitle, style: const TextStyle(color: muted)),
       trailing: OutlinedButton(
-        onPressed: () => _uploadDocument(title, type),
+        onPressed: () => _showDocumentActions(title, type),
         child: const Text('Upload'),
       ),
     ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../core/api_service.dart';
+import '../attachment_actions.dart';
 import 'login_screen.dart';
 import 'technician_navigation.dart';
 
@@ -1057,14 +1058,38 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
               ),
               _field(notes, 'Completion notes', lines: 3),
               OutlinedButton.icon(
-                onPressed: () async {
-                  final result = await FilePicker.pickFiles(
-                    type: FileType.any,
-                    withData: true,
-                  );
-                  if (result != null && result.files.single.bytes != null)
-                    setDialog(() => evidence = result.files.single);
-                },
+                onPressed: () => AttachmentActions.show(
+                  context,
+                  label: 'evidence',
+                  hasAttachment: evidence != null,
+                  onDevice: () async {
+                    final result = await FilePicker.pickFiles(
+                      type: FileType.any,
+                      withData: true,
+                    );
+                    if (result != null &&
+                        result.files.single.bytes != null &&
+                        result.files.single.size <= 25 * 1024 * 1024) {
+                      setDialog(() => evidence = result.files.single);
+                    }
+                  },
+                  onGallery: () async {
+                    final file = await AttachmentActions.pickGallery();
+                    if (file != null && file.size <= 25 * 1024 * 1024) {
+                      setDialog(() => evidence = file);
+                    }
+                  },
+                  onCamera: () async {
+                    final file = await AttachmentActions.takePhoto(
+                      context,
+                      label: 'evidence',
+                    );
+                    if (file != null && file.size <= 25 * 1024 * 1024) {
+                      setDialog(() => evidence = file);
+                    }
+                  },
+                  onRemove: () => setDialog(() => evidence = null),
+                ),
                 icon: const Icon(Icons.attach_file),
                 label: Text(
                   evidence == null ? 'Attach evidence' : evidence!.name,

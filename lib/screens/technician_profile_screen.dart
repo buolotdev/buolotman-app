@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../core/api_service.dart';
 import '../discard_changes.dart';
+import '../attachment_actions.dart';
 import 'technician_navigation.dart';
 
 class TechnicianProfileScreen extends StatefulWidget {
@@ -87,7 +88,7 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
   ].contains(name.toLowerCase().split('.').last);
   void _notice(String text) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
-  Future<void> _pick(String key) async {
+  Future<void> _pickFromDevice(String key) async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp', 'gif', 'pdf'],
@@ -112,6 +113,53 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
       _dirty = true;
     });
   }
+
+  Future<void> _pickFromCamera(String key) async {
+    final file = await AttachmentActions.takePhoto(context, label: 'document');
+    if (!mounted || file == null) return;
+    if (key == 'selfie' && !_image(file.name)) {
+      _notice('Selfie verification must be an image.');
+      return;
+    }
+    if (file.size > maxBytes) {
+      _notice('This file is too large. The maximum is 25 MB.');
+      return;
+    }
+    setState(() {
+      selected[key] = file;
+      _dirty = true;
+    });
+  }
+
+  Future<void> _pickFromGallery(String key) async {
+    final file = await AttachmentActions.pickGallery();
+    if (!mounted || file == null) return;
+    if (key == 'selfie' && !_image(file.name)) {
+      _notice('Selfie verification must be an image.');
+      return;
+    }
+    if (file.size > maxBytes) {
+      _notice('This file is too large. The maximum is 25 MB.');
+      return;
+    }
+    setState(() {
+      selected[key] = file;
+      _dirty = true;
+    });
+  }
+
+  Future<void> _pick(String key) => AttachmentActions.show(
+    context,
+    label: 'document',
+    hasAttachment: selected.containsKey(key),
+    onDevice: () => _pickFromDevice(key),
+    onGallery: () => _pickFromGallery(key),
+    onCamera: () => _pickFromCamera(key),
+    onRemove: () => setState(() {
+      selected.remove(key);
+      _dirty = true;
+    }),
+  );
 
   Future<void> _submit() async {
     if (selected.isEmpty) {

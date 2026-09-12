@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../core/api_service.dart';
 import '../core/realtime_chat.dart';
+import '../attachment_actions.dart';
 import 'technician_navigation.dart';
 
 class TechnicianMessagesScreen extends StatefulWidget {
@@ -191,7 +192,7 @@ class _ConversationState extends State<TechnicianConversationScreen> {
     super.dispose();
   }
 
-  Future<void> _pick() async {
+  Future<void> _pickFromDevice() async {
     final r = await FilePicker.pickFiles(type: FileType.any, withData: true);
     if (!mounted || r == null || r.files.single.bytes == null) return;
     if (r.files.single.bytes!.length > 25 * 1024 * 1024) {
@@ -200,6 +201,39 @@ class _ConversationState extends State<TechnicianConversationScreen> {
     }
     setState(() => attachment = r.files.single);
   }
+
+  Future<void> _pickFromGallery() async {
+    final file = await AttachmentActions.pickGallery();
+    if (file == null || !mounted) return;
+    if (file.size > 25 * 1024 * 1024) {
+      _notice('Attachment must be 25 MB or smaller.');
+      return;
+    }
+    setState(() => attachment = file);
+  }
+
+  Future<void> _pickFromCamera() async {
+    final file = await AttachmentActions.takePhoto(
+      context,
+      label: 'attachment',
+    );
+    if (file == null || !mounted) return;
+    if (file.size > 25 * 1024 * 1024) {
+      _notice('Attachment must be 25 MB or smaller.');
+      return;
+    }
+    setState(() => attachment = file);
+  }
+
+  Future<void> _pick() => AttachmentActions.show(
+    context,
+    label: 'attachment',
+    hasAttachment: attachment != null,
+    onDevice: _pickFromDevice,
+    onGallery: _pickFromGallery,
+    onCamera: _pickFromCamera,
+    onRemove: () => setState(() => attachment = null),
+  );
 
   Future<void> _send() async {
     if (draft.text.trim().isEmpty && attachment == null) return;

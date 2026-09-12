@@ -5,6 +5,7 @@ import 'client_dashboard_screen.dart';
 import 'client_task_management_screen.dart';
 import 'client_navigation_screens.dart';
 import '../core/realtime_chat.dart';
+import '../attachment_actions.dart';
 
 const messageNavy = Color(0xFF001F3F),
     messageOrange = Color(0xFFFF4500),
@@ -339,7 +340,7 @@ class _ClientConversationState extends State<ClientConversationScreen> {
     }
   }
 
-  Future<void> _pick() async {
+  Future<void> _pickFromDevice() async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: [
@@ -364,6 +365,39 @@ class _ClientConversationState extends State<ClientConversationScreen> {
     }
     setState(() => attachment = file);
   }
+
+  Future<void> _pickFromGallery() async {
+    final file = await AttachmentActions.pickGallery();
+    if (file == null || !mounted) return;
+    if (file.size > 25 * 1024 * 1024) {
+      _notice('Files must be 25 MB or smaller.');
+      return;
+    }
+    setState(() => attachment = file);
+  }
+
+  Future<void> _pickFromCamera() async {
+    final file = await AttachmentActions.takePhoto(
+      context,
+      label: 'attachment',
+    );
+    if (file == null || !mounted) return;
+    if (file.size > 25 * 1024 * 1024) {
+      _notice('Files must be 25 MB or smaller.');
+      return;
+    }
+    setState(() => attachment = file);
+  }
+
+  Future<void> _pick() => AttachmentActions.show(
+    context,
+    label: 'attachment',
+    hasAttachment: attachment != null,
+    onDevice: _pickFromDevice,
+    onGallery: _pickFromGallery,
+    onCamera: _pickFromCamera,
+    onRemove: () => setState(() => attachment = null),
+  );
 
   Future<void> _send() async {
     final text = draft.text.trim();
