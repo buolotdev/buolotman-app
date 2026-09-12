@@ -31,6 +31,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Configure Maps key
+        env:
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+        run: echo "GOOGLE_MAPS_API_KEY = $GOOGLE_MAPS_API_KEY" > ios/Flutter/Secrets.xcconfig
+
       - name: Set iOS deployment target
         run: |
           # Generate Flutter's Podfile before CocoaPods runs, then ensure it
@@ -53,7 +58,7 @@ jobs:
           echo "DEVELOPMENT_TEAM = XXXXXXXXXX" >> ios/Flutter/Release.xcconfig
 
       - name: Build iOS App (No Code Sign)
-        run: flutter build ios --release --no-codesign
+        run: flutter build ios --release --no-codesign --dart-define=GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
 
       - name: Package Unsigned IPA
         run: |

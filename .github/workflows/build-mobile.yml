@@ -20,7 +20,7 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - run: flutter build apk --release
+      - run: flutter build apk --release --dart-define=GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
       - uses: actions/upload-artifact@v4
         with:
           name: boulotman-android-apk
@@ -37,7 +37,11 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - run: flutter build ipa --release --no-codesign
+      - name: Configure Maps key
+        env:
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+        run: echo "GOOGLE_MAPS_API_KEY = $GOOGLE_MAPS_API_KEY" > ios/Flutter/Secrets.xcconfig
+      - run: flutter build ipa --release --no-codesign --dart-define=GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
       - uses: actions/upload-artifact@v4
         with:
           name: boulotman-ios-ipa-unsigned
