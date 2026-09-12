@@ -1,9 +1,11 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'app_state.dart';
 import 'core/api_service.dart' as core_api;
 import 'profile_media_actions.dart';
+import 'discard_changes.dart';
 
 class EditCompanyProfileScreen extends StatefulWidget {
   const EditCompanyProfileScreen({super.key});
@@ -19,6 +21,9 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
   bool _mediaBusy = false;
   String? _logoUrl;
   String? _coverUrl;
+  Uint8List? _pendingLogo, _pendingCover;
+  String? _pendingLogoName, _pendingCoverName;
+  bool _removeLogo = false, _removeCover = false, _dirty = false;
 
   late TextEditingController _companyNameCtrl;
   late TextEditingController _aboutCtrl;
@@ -64,6 +69,20 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
         ? offered.join(', ')
         : offered?.toString() ?? '';
     _servicesOfferedCtrl = TextEditingController(text: offeredStr);
+    for (final controller in [
+      _companyNameCtrl,
+      _aboutCtrl,
+      _headquartersCtrl,
+      _websiteCtrl,
+      _companySizeCtrl,
+      _industryCtrl,
+      _servicesOfferedCtrl,
+      _capabilitiesCtrl,
+    ]) {
+      controller.addListener(() {
+        if (mounted) setState(() => _dirty = true);
+      });
+    }
   }
 
   @override
@@ -113,7 +132,25 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
         'capabilities': capsList,
       };
 
+      if (_pendingLogo != null) {
+        data['logo_url'] = await core_api.ApiService().uploadAvatarBytes(
+          bytes: _pendingLogo!,
+          filename: _pendingLogoName ?? 'logo.jpg',
+        );
+      } else if (_removeLogo) {
+        data['logo_url'] = '';
+      }
+      if (_pendingCover != null) {
+        data['cover_url'] = await core_api.ApiService().uploadBannerBytes(
+          bytes: _pendingCover!,
+          filename: _pendingCoverName ?? 'cover.jpg',
+        );
+      } else if (_removeCover) {
+        data['cover_url'] = '';
+      }
+
       await AppStateScope.of(context).updateCompanyProfile(data);
+      _dirty = false;
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -151,18 +188,18 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
   }
 
   Future<void> _clearMedia(bool isCover) async {
-    setState(() => _mediaBusy = true);
-    try {
-      await AppStateScope.of(
-        context,
-      ).updateCompanyProfile({(isCover ? 'cover_url' : 'logo_url'): ''});
-      if (!mounted) return;
-      setState(() => isCover ? _coverUrl = null : _logoUrl = null);
-    } catch (e) {
-      if (mounted) _showError('Could not update company media.');
-    } finally {
-      if (mounted) setState(() => _mediaBusy = false);
-    }
+    setState(() {
+      _dirty = true;
+      if (isCover) {
+        _coverUrl = null;
+        _pendingCover = null;
+        _removeCover = true;
+      } else {
+        _logoUrl = null;
+        _pendingLogo = null;
+        _removeLogo = true;
+      }
+    });
   }
 
   Future<void> _uploadMedia(bool isCover, ImageSource source) async {
@@ -182,27 +219,18 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
       if (mounted) _showError(validation);
       return;
     }
-    setState(() => _mediaBusy = true);
-    try {
-      final url = isCover
-          ? await core_api.ApiService().uploadBannerBytes(
-              bytes: bytes,
-              filename: file.name,
-            )
-          : await core_api.ApiService().uploadAvatarBytes(
-              bytes: bytes,
-              filename: file.name,
-            );
-      await AppStateScope.of(
-        context,
-      ).updateCompanyProfile({(isCover ? 'cover_url' : 'logo_url'): url});
-      if (!mounted) return;
-      setState(() => isCover ? _coverUrl = url : _logoUrl = url);
-    } catch (_) {
-      if (mounted) _showError('Could not upload company media.');
-    } finally {
-      if (mounted) setState(() => _mediaBusy = false);
-    }
+    setState(() {
+      _dirty = true;
+      if (isCover) {
+        _pendingCover = bytes;
+        _pendingCoverName = file.name;
+        _removeCover = false;
+      } else {
+        _pendingLogo = bytes;
+        _pendingLogoName = file.name;
+        _removeLogo = false;
+      }
+    });
   }
 
   void _showError(String message) => ScaffoldMessenger.of(context).showSnackBar(
@@ -211,223 +239,232 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF001F3F),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Edit Company Profile',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+    return PopScope(
+      canPop: !_dirty && !_isSaving,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop || _isSaving || !_dirty) return;
+        if (await confirmDiscardChanges(context) && context.mounted) {
+          Navigator.of(context).pop(result);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF001F3F),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          title: const Text(
+            'Edit Company Profile',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          actions: [
+            if (_isSaving)
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                ),
+              )
+            else
+              TextButton(
+                onPressed: _save,
+                child: const Text(
+                  'Save',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+          ],
         ),
-        actions: [
-          if (_isSaving)
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
+        body: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  onTap: _mediaBusy ? null : () => _mediaMenu(true),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 150,
+                      child: _coverUrl?.isNotEmpty == true
+                          ? Image.network(_coverUrl!, fit: BoxFit.cover)
+                          : Container(
+                              color: const Color(0xFF001F3F),
+                              alignment: Alignment.center,
+                              child: const Icon(
+                                Icons.image_outlined,
+                                color: Colors.white54,
+                                size: 42,
+                              ),
+                            ),
+                    ),
+                  ),
                 ),
-              ),
-            )
-          else
-            TextButton(
-              onPressed: _save,
-              child: const Text(
-                'Save',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _mediaBusy ? null : () => _mediaMenu(false),
+                        icon: const Icon(Icons.business_outlined),
+                        label: const Text('Company logo'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _mediaBusy ? null : () => _mediaMenu(true),
+                        icon: const Icon(Icons.panorama_outlined),
+                        label: const Text('Cover photo'),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ),
-        ],
-      ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: _mediaBusy ? null : () => _mediaMenu(true),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 150,
-                    child: _coverUrl?.isNotEmpty == true
-                        ? Image.network(_coverUrl!, fit: BoxFit.cover)
-                        : Container(
-                            color: const Color(0xFF001F3F),
-                            alignment: Alignment.center,
-                            child: const Icon(
-                              Icons.image_outlined,
-                              color: Colors.white54,
-                              size: 42,
+                const SizedBox(height: 22),
+                // ── BASIC INFO ──────────────────────────────────────────────
+                _sectionLabel('Basic Information'),
+                const SizedBox(height: 12),
+                _field(
+                  controller: _companyNameCtrl,
+                  label: 'Company Name',
+                  icon: Icons.business,
+                  validator: (v) =>
+                      v == null || v.trim().isEmpty ? 'Required' : null,
+                ),
+                const SizedBox(height: 14),
+                _field(
+                  controller: _industryCtrl,
+                  label: 'Industry',
+                  icon: Icons.category_outlined,
+                  hint: 'e.g. Real Estate, HVAC, Tech',
+                ),
+                const SizedBox(height: 14),
+                _field(
+                  controller: _headquartersCtrl,
+                  label: 'Headquarters / City',
+                  icon: Icons.location_on_outlined,
+                  hint: 'e.g. Lagos, Nigeria',
+                ),
+                const SizedBox(height: 14),
+                _field(
+                  controller: _websiteCtrl,
+                  label: 'Website',
+                  icon: Icons.language_outlined,
+                  hint: 'yourcompany.com',
+                  keyboardType: TextInputType.url,
+                ),
+                const SizedBox(height: 14),
+                _field(
+                  controller: _companySizeCtrl,
+                  label: 'Company Size',
+                  icon: Icons.group_outlined,
+                  hint: 'e.g. 1-10 employees',
+                ),
+                const SizedBox(height: 28),
+
+                // ── ABOUT ────────────────────────────────────────────────────
+                _sectionLabel('About Company'),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _aboutCtrl,
+                  minLines: 4,
+                  maxLines: 8,
+                  decoration: _inputDecoration(
+                    label: 'Company Description',
+                    icon: Icons.description_outlined,
+                    hint:
+                        'Tell clients what your company does, your values, and your experience...',
+                  ),
+                ),
+                const SizedBox(height: 28),
+
+                // ── SERVICES ─────────────────────────────────────────────────
+                _sectionLabel('Services Offered'),
+                const SizedBox(height: 6),
+                const Text(
+                  'Enter services separated by commas',
+                  style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _servicesOfferedCtrl,
+                  minLines: 2,
+                  maxLines: 4,
+                  decoration: _inputDecoration(
+                    label: 'Services',
+                    icon: Icons.home_repair_service_outlined,
+                    hint: 'e.g. Plumbing, Electrical, HVAC, Painting',
+                  ),
+                ),
+                const SizedBox(height: 28),
+
+                // ── CAPABILITIES ─────────────────────────────────────────────
+                _sectionLabel('Capabilities & Infrastructure'),
+                const SizedBox(height: 6),
+                const Text(
+                  'Enter capabilities separated by commas',
+                  style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _capabilitiesCtrl,
+                  minLines: 2,
+                  maxLines: 4,
+                  decoration: _inputDecoration(
+                    label: 'Capabilities',
+                    icon: Icons.precision_manufacturing_outlined,
+                    hint: 'e.g. 24/7 Support, Fleet of 10 vans, Certified team',
+                  ),
+                ),
+                const SizedBox(height: 40),
+
+                // ── SAVE BUTTON ──────────────────────────────────────────────
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isSaving ? null : _save,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF4500),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'Save Changes',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
                             ),
                           ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _mediaBusy ? null : () => _mediaMenu(false),
-                      icon: const Icon(Icons.business_outlined),
-                      label: const Text('Company logo'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _mediaBusy ? null : () => _mediaMenu(true),
-                      icon: const Icon(Icons.panorama_outlined),
-                      label: const Text('Cover photo'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 22),
-              // ── BASIC INFO ──────────────────────────────────────────────
-              _sectionLabel('Basic Information'),
-              const SizedBox(height: 12),
-              _field(
-                controller: _companyNameCtrl,
-                label: 'Company Name',
-                icon: Icons.business,
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Required' : null,
-              ),
-              const SizedBox(height: 14),
-              _field(
-                controller: _industryCtrl,
-                label: 'Industry',
-                icon: Icons.category_outlined,
-                hint: 'e.g. Real Estate, HVAC, Tech',
-              ),
-              const SizedBox(height: 14),
-              _field(
-                controller: _headquartersCtrl,
-                label: 'Headquarters / City',
-                icon: Icons.location_on_outlined,
-                hint: 'e.g. Lagos, Nigeria',
-              ),
-              const SizedBox(height: 14),
-              _field(
-                controller: _websiteCtrl,
-                label: 'Website',
-                icon: Icons.language_outlined,
-                hint: 'yourcompany.com',
-                keyboardType: TextInputType.url,
-              ),
-              const SizedBox(height: 14),
-              _field(
-                controller: _companySizeCtrl,
-                label: 'Company Size',
-                icon: Icons.group_outlined,
-                hint: 'e.g. 1-10 employees',
-              ),
-              const SizedBox(height: 28),
-
-              // ── ABOUT ────────────────────────────────────────────────────
-              _sectionLabel('About Company'),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _aboutCtrl,
-                minLines: 4,
-                maxLines: 8,
-                decoration: _inputDecoration(
-                  label: 'Company Description',
-                  icon: Icons.description_outlined,
-                  hint:
-                      'Tell clients what your company does, your values, and your experience...',
-                ),
-              ),
-              const SizedBox(height: 28),
-
-              // ── SERVICES ─────────────────────────────────────────────────
-              _sectionLabel('Services Offered'),
-              const SizedBox(height: 6),
-              const Text(
-                'Enter services separated by commas',
-                style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _servicesOfferedCtrl,
-                minLines: 2,
-                maxLines: 4,
-                decoration: _inputDecoration(
-                  label: 'Services',
-                  icon: Icons.home_repair_service_outlined,
-                  hint: 'e.g. Plumbing, Electrical, HVAC, Painting',
-                ),
-              ),
-              const SizedBox(height: 28),
-
-              // ── CAPABILITIES ─────────────────────────────────────────────
-              _sectionLabel('Capabilities & Infrastructure'),
-              const SizedBox(height: 6),
-              const Text(
-                'Enter capabilities separated by commas',
-                style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _capabilitiesCtrl,
-                minLines: 2,
-                maxLines: 4,
-                decoration: _inputDecoration(
-                  label: 'Capabilities',
-                  icon: Icons.precision_manufacturing_outlined,
-                  hint: 'e.g. 24/7 Support, Fleet of 10 vans, Certified team',
-                ),
-              ),
-              const SizedBox(height: 40),
-
-              // ── SAVE BUTTON ──────────────────────────────────────────────
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isSaving ? null : _save,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF4500),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isSaving
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          'Save Changes',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 40),
-            ],
+                const SizedBox(height: 40),
+              ],
+            ),
           ),
         ),
       ),

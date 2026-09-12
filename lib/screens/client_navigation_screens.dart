@@ -14,6 +14,7 @@ import '../browse_professionals_screen.dart';
 import '../profile_media_actions.dart';
 import '../core/username_utils.dart';
 import '../phone_validation.dart';
+import '../discard_changes.dart';
 
 const clientNavy = Color(0xFF001F3F),
     clientOrange = Color(0xFFFF4500),
@@ -602,6 +603,9 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       saving = false,
       uploading = false;
   String? avatar, banner;
+  Uint8List? _pendingAvatar, _pendingBanner;
+  String? _pendingAvatarName, _pendingBannerName;
+  bool _removeAvatar = false, _removeBanner = false, _dirty = false;
   String _initialUsername = '';
   static const countries = [
     'Benin',
@@ -875,6 +879,29 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       );
       await prefs.setString('client_location_access', accessNotes.text.trim());
       await prefs.setString('client_location_category', locationCategory);
+      if (_pendingAvatar != null) {
+        final url = await api.uploadAvatarBytes(
+          bytes: _pendingAvatar!,
+          filename: _pendingAvatarName ?? 'profile.jpg',
+        );
+        await api.updateProfile({'avatar_url': url});
+      } else if (_removeAvatar) {
+        await api.updateProfile({'avatar_url': ''});
+      }
+      if (_pendingBanner != null) {
+        final url = await api.uploadBannerBytes(
+          bytes: _pendingBanner!,
+          filename: _pendingBannerName ?? 'cover.jpg',
+        );
+        await api.updateProfile({'banner_url': url});
+      } else if (_removeBanner) {
+        await api.updateProfile({'banner_url': ''});
+      }
+      _pendingAvatar = null;
+      _pendingBanner = null;
+      _removeAvatar = false;
+      _removeBanner = false;
+      _dirty = false;
       if (mounted) _snack('Profile saved successfully.');
     } catch (_) {
       if (mounted)
@@ -901,17 +928,20 @@ class _ClientProfileState extends State<ClientProfileScreen> {
   }
 
   Future<void> _clearMedia(bool isBanner) async {
-    setState(() => uploading = true);
-    try {
-      await api.updateProfile({(isBanner ? 'banner_url' : 'avatar_url'): ''});
-      if (!mounted) return;
-      setState(() => isBanner ? banner = null : avatar = null);
-      _snack('${isBanner ? 'Cover' : 'Profile'} photo removed.');
-    } catch (_) {
-      if (mounted) _snack('We could not update your photo.', error: true);
-    } finally {
-      if (mounted) setState(() => uploading = false);
-    }
+    setState(() {
+      _dirty = true;
+      if (isBanner) {
+        _pendingBanner = null;
+        _pendingBannerName = null;
+        _removeBanner = true;
+        banner = null;
+      } else {
+        _pendingAvatar = null;
+        _pendingAvatarName = null;
+        _removeAvatar = true;
+        avatar = null;
+      }
+    });
   }
 
   Future<void> _uploadMedia(bool isBanner, ImageSource source) async {
@@ -931,28 +961,18 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       if (mounted) _snack(validation, error: true);
       return;
     }
-    setState(() => uploading = true);
-    try {
-      final url = isBanner
-          ? await api.uploadBannerBytes(bytes: bytes, filename: file.name)
-          : await api.uploadAvatarBytes(bytes: bytes, filename: file.name);
-      await api.updateProfile({(isBanner ? 'banner_url' : 'avatar_url'): url});
-      if (mounted) {
-        setState(
-          () => isBanner
-              ? banner = api.resolveImageUrl(url)
-              : avatar = api.resolveImageUrl(url),
-        );
-        _snack('${isBanner ? 'Cover' : 'Profile'} photo updated.');
+    setState(() {
+      _dirty = true;
+      if (isBanner) {
+        _pendingBanner = bytes;
+        _pendingBannerName = file.name;
+        _removeBanner = false;
+      } else {
+        _pendingAvatar = bytes;
+        _pendingAvatarName = file.name;
+        _removeAvatar = false;
       }
-    } catch (_) {
-      if (mounted)
-        _snack(
-          'We could not upload your ${isBanner ? 'cover' : 'profile'} photo.',
-          error: true,
-        );
-    }
-    if (mounted) setState(() => uploading = false);
+    });
   }
 
   Future<void> _pickBanner() async => _showMediaActions(true);
@@ -1028,6 +1048,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       enabled: enabled,
       keyboardType: type,
       inputFormatters: formatters,
+      onChanged: (_) => setState(() => _dirty = true),
       maxLines: maxLines,
       decoration: _dec(
         label,
@@ -1058,182 +1079,118 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator(color: clientOrange)),
       );
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Client profile'),
-        foregroundColor: clientNavy,
-        backgroundColor: Colors.white,
-      ),
-      backgroundColor: clientBg,
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
-        children: [
-          _section('Cover image', [
-            if (banner != null && banner!.isNotEmpty)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  banner!,
+    return PopScope(
+      canPop: !_dirty && !saving && !uploading,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop || saving || uploading || !_dirty) return;
+        if (await confirmDiscardChanges(context) && context.mounted) {
+          Navigator.of(context).pop(result);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Client profile'),
+          foregroundColor: clientNavy,
+          backgroundColor: Colors.white,
+        ),
+        backgroundColor: clientBg,
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
+          children: [
+            _section('Cover image', [
+              if (banner != null && banner!.isNotEmpty)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    banner!,
+                    width: double.infinity,
+                    height: 140,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              else
+                Container(
                   width: double.infinity,
                   height: 140,
-                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
+                  color: const Color(0xFFE2E8F0),
+                  child: const Text('No cover image yet'),
                 ),
-              )
-            else
-              Container(
-                width: double.infinity,
-                height: 140,
-                alignment: Alignment.center,
-                color: const Color(0xFFE2E8F0),
-                child: const Text('No cover image yet'),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: uploading ? null : _pickBanner,
+                icon: const Icon(Icons.image_outlined),
+                label: Text(uploading ? 'Uploading...' : 'Choose cover image'),
               ),
-            const SizedBox(height: 10),
-            OutlinedButton.icon(
-              onPressed: uploading ? null : _pickBanner,
-              icon: const Icon(Icons.image_outlined),
-              label: Text(uploading ? 'Uploading...' : 'Choose cover image'),
-            ),
-          ]),
-          _section('Profile photo', [
-            Center(
-              child: GestureDetector(
-                onTap: uploading ? null : _pickAvatar,
-                onLongPress: avatar == null ? null : _previewAvatar,
-                child: Stack(
-                  alignment: Alignment.bottomRight,
-                  children: [
-                    CircleAvatar(
-                      radius: 48,
-                      backgroundColor: const Color(0xFFFFE8E0),
-                      backgroundImage: avatar == null
-                          ? null
-                          : NetworkImage(avatar!),
-                      child: avatar == null
-                          ? const Icon(
-                              Icons.person,
-                              color: clientOrange,
-                              size: 48,
-                            )
-                          : null,
-                    ),
-                    CircleAvatar(
-                      radius: 17,
-                      backgroundColor: clientOrange,
-                      child: uploading
-                          ? const SizedBox(
-                              width: 15,
-                              height: 15,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
+            ]),
+            _section('Profile photo', [
+              Center(
+                child: GestureDetector(
+                  onTap: uploading ? null : _pickAvatar,
+                  onLongPress: avatar == null ? null : _previewAvatar,
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      CircleAvatar(
+                        radius: 48,
+                        backgroundColor: const Color(0xFFFFE8E0),
+                        backgroundImage: avatar == null
+                            ? null
+                            : NetworkImage(avatar!),
+                        child: avatar == null
+                            ? const Icon(
+                                Icons.person,
+                                color: clientOrange,
+                                size: 48,
+                              )
+                            : null,
+                      ),
+                      CircleAvatar(
+                        radius: 17,
+                        backgroundColor: clientOrange,
+                        child: uploading
+                            ? const SizedBox(
+                                width: 15,
+                                height: 15,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Icon(
+                                avatar == null
+                                    ? Icons.camera_alt
+                                    : Icons.open_in_full,
                                 color: Colors.white,
+                                size: 17,
                               ),
-                            )
-                          : Icon(
-                              avatar == null
-                                  ? Icons.camera_alt
-                                  : Icons.open_in_full,
-                              color: Colors.white,
-                              size: 17,
-                            ),
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            const Center(
-              child: Text(
-                'Tap photo to choose or replace it; long-press to preview full screen',
-                style: TextStyle(color: clientMuted),
-              ),
-            ),
-          ]),
-          _section('Personal details & contact', [
-            _text(username, 'Username', icon: Icons.alternate_email),
-            _text(first, 'First name', icon: Icons.person_outline),
-            _text(last, 'Last name', icon: Icons.person_outline),
-            _text(
-              email,
-              'Email address',
-              icon: Icons.email_outlined,
-              enabled: false,
-            ),
-            _text(
-              phone,
-              'Phone number',
-              icon: Icons.phone_outlined,
-              type: TextInputType.phone,
-              prefix: Text(
-                '$_selectedDialCode ',
-                style: const TextStyle(
-                  color: clientNavy,
-                  fontWeight: FontWeight.w700,
+              const SizedBox(height: 8),
+              const Center(
+                child: Text(
+                  'Tap photo to choose or replace it; long-press to preview full screen',
+                  style: TextStyle(color: clientMuted),
                 ),
               ),
-              formatters: [phoneInputFormatter(country)],
-            ),
-            DropdownButtonFormField<String>(
-              value: countries.contains(country) ? country : null,
-              decoration: _dec('Country', icon: Icons.public),
-              items: countries
-                  .map((x) => DropdownMenuItem(value: x, child: Text(x)))
-                  .toList(),
-              onChanged: (x) => setState(() => country = x ?? country),
-            ),
-            const SizedBox(height: 12),
-            _text(city, 'City / Town', icon: Icons.location_city),
-            _text(
-              address,
-              'Default address / neighborhood',
-              icon: Icons.location_on_outlined,
-            ),
-            _text(
-              about,
-              'About you / note for technicians',
-              icon: Icons.notes,
-              maxLines: 3,
-            ),
-          ]),
-          _section('Client type & business', [
-            DropdownButtonFormField<String>(
-              value: clientType,
-              decoration: _dec('How you hire'),
-              items: const [
-                DropdownMenuItem(
-                  value: 'household',
-                  child: Text('Individual / Household'),
-                ),
-                DropdownMenuItem(
-                  value: 'business',
-                  child: Text('Business Client'),
-                ),
-                DropdownMenuItem(
-                  value: 'ngo',
-                  child: Text('Organization / NGO'),
-                ),
-                DropdownMenuItem(
-                  value: 'property_manager',
-                  child: Text('Property Manager / Landlord'),
-                ),
-              ],
-              onChanged: (x) => setState(() => clientType = x ?? clientType),
-            ),
-            if (clientType != 'household') ...[
+            ]),
+            _section('Personal details & contact', [
+              _text(username, 'Username', icon: Icons.alternate_email),
+              _text(first, 'First name', icon: Icons.person_outline),
+              _text(last, 'Last name', icon: Icons.person_outline),
               _text(
-                businessName,
-                'Company / organization name',
-                icon: Icons.business,
+                email,
+                'Email address',
+                icon: Icons.email_outlined,
+                enabled: false,
               ),
               _text(
-                businessEmail,
-                'Corporate billing email',
-                icon: Icons.alternate_email,
-                type: TextInputType.emailAddress,
-              ),
-              _text(
-                businessPhone,
-                'Business phone',
-                icon: Icons.phone,
+                phone,
+                'Phone number',
+                icon: Icons.phone_outlined,
                 type: TextInputType.phone,
                 prefix: Text(
                   '$_selectedDialCode ',
@@ -1244,219 +1201,320 @@ class _ClientProfileState extends State<ClientProfileScreen> {
                 ),
                 formatters: [phoneInputFormatter(country)],
               ),
-              _text(
-                taxId,
-                'Business registration / tax ID',
-                icon: Icons.receipt_long,
-              ),
-              _text(
-                representative,
-                'Authorized representative',
-                icon: Icons.person_pin,
-              ),
-              _text(
-                website,
-                'Company website',
-                icon: Icons.language,
-                type: TextInputType.url,
-              ),
               DropdownButtonFormField<String>(
-                value: industry,
-                decoration: _dec('Industry / sector'),
-                items:
-                    const [
-                          'Hospitality & Services',
-                          'Real Estate & Facilities',
-                          'Retail & Commercial',
-                          'Construction & Engineering',
-                          'Logistics & Transport',
-                          'Healthcare & Education',
-                          'NGO & Non-Profit',
-                          'Corporate / Tech',
-                        ]
-                        .map((x) => DropdownMenuItem(value: x, child: Text(x)))
-                        .toList(),
-                onChanged: (x) => setState(() => industry = x ?? industry),
+                value: countries.contains(country) ? country : null,
+                decoration: _dec('Country', icon: Icons.public),
+                items: countries
+                    .map((x) => DropdownMenuItem(value: x, child: Text(x)))
+                    .toList(),
+                onChanged: (x) => setState(() {
+                  country = x ?? country;
+                  _dirty = true;
+                }),
               ),
-            ],
-          ]),
-          _section('Saved service locations', [
-            _text(locationLabel, 'Location label', icon: Icons.bookmark_border),
-            DropdownButtonFormField<String>(
-              value: locationCategory,
-              decoration: _dec('Location type', icon: Icons.category_outlined),
-              items: const [
-                DropdownMenuItem(value: 'home', child: Text('Home')),
-                DropdownMenuItem(value: 'office', child: Text('Office')),
-                DropdownMenuItem(
-                  value: 'site',
-                  child: Text('Construction site'),
-                ),
-                DropdownMenuItem(
-                  value: 'rental',
-                  child: Text('Rental property'),
-                ),
-                DropdownMenuItem(value: 'other', child: Text('Other')),
-              ],
-              onChanged: (x) =>
-                  setState(() => locationCategory = x ?? locationCategory),
-            ),
-            _text(
-              neighborhood,
-              'Neighborhood / street details',
-              icon: Icons.location_on_outlined,
-            ),
-            _text(
-              accessNotes,
-              'Access notes',
-              icon: Icons.info_outline,
-              maxLines: 2,
-            ),
-            const Text(
-              'Exact service addresses are shared only with the assigned professional after confirmation.',
-              style: TextStyle(color: clientMuted, fontSize: 12, height: 1.35),
-            ),
-          ]),
-          _section('Identity & escrow trust', [
-            const ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(
-                Icons.admin_panel_settings_outlined,
-                color: clientOrange,
+              const SizedBox(height: 12),
+              _text(city, 'City / Town', icon: Icons.location_city),
+              _text(
+                address,
+                'Default address / neighborhood',
+                icon: Icons.location_on_outlined,
               ),
-              title: Text(
-                'Admin-reviewed verification',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: clientNavy,
-                  fontWeight: FontWeight.w700,
-                ),
+              _text(
+                about,
+                'About you / note for technicians',
+                icon: Icons.notes,
+                maxLines: 3,
               ),
-              subtitle: Text(
-                'Status shown below.',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: clientMuted),
-              ),
-            ),
-            FutureBuilder<Map<String, dynamic>>(
-              future: api.profile(),
-              builder: (context, snapshot) {
-                final verified = isVerifiedProfile(snapshot.data);
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(
-                    verified ? Icons.verified : Icons.pending_actions,
-                    color: verified ? Colors.green : clientOrange,
+            ]),
+            _section('Client type & business', [
+              DropdownButtonFormField<String>(
+                value: clientType,
+                decoration: _dec('How you hire'),
+                items: const [
+                  DropdownMenuItem(
+                    value: 'household',
+                    child: Text('Individual / Household'),
                   ),
-                  title: Text(
-                    verified ? 'Verified client' : 'Verification pending',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  DropdownMenuItem(
+                    value: 'business',
+                    child: Text('Business Client'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'ngo',
+                    child: Text('Organization / NGO'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'property_manager',
+                    child: Text('Property Manager / Landlord'),
+                  ),
+                ],
+                onChanged: (x) => setState(() {
+                  clientType = x ?? clientType;
+                  _dirty = true;
+                }),
+              ),
+              if (clientType != 'household') ...[
+                _text(
+                  businessName,
+                  'Company / organization name',
+                  icon: Icons.business,
+                ),
+                _text(
+                  businessEmail,
+                  'Corporate billing email',
+                  icon: Icons.alternate_email,
+                  type: TextInputType.emailAddress,
+                ),
+                _text(
+                  businessPhone,
+                  'Business phone',
+                  icon: Icons.phone,
+                  type: TextInputType.phone,
+                  prefix: Text(
+                    '$_selectedDialCode ',
                     style: const TextStyle(
                       color: clientNavy,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  trailing: TextButton(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const ClientVerificationScreen(),
+                  formatters: [phoneInputFormatter(country)],
+                ),
+                _text(
+                  taxId,
+                  'Business registration / tax ID',
+                  icon: Icons.receipt_long,
+                ),
+                _text(
+                  representative,
+                  'Authorized representative',
+                  icon: Icons.person_pin,
+                ),
+                _text(
+                  website,
+                  'Company website',
+                  icon: Icons.language,
+                  type: TextInputType.url,
+                ),
+                DropdownButtonFormField<String>(
+                  value: industry,
+                  decoration: _dec('Industry / sector'),
+                  items:
+                      const [
+                            'Hospitality & Services',
+                            'Real Estate & Facilities',
+                            'Retail & Commercial',
+                            'Construction & Engineering',
+                            'Logistics & Transport',
+                            'Healthcare & Education',
+                            'NGO & Non-Profit',
+                            'Corporate / Tech',
+                          ]
+                          .map(
+                            (x) => DropdownMenuItem(value: x, child: Text(x)),
+                          )
+                          .toList(),
+                  onChanged: (x) => setState(() {
+                    industry = x ?? industry;
+                    _dirty = true;
+                  }),
+                ),
+              ],
+            ]),
+            _section('Saved service locations', [
+              _text(
+                locationLabel,
+                'Location label',
+                icon: Icons.bookmark_border,
+              ),
+              DropdownButtonFormField<String>(
+                value: locationCategory,
+                decoration: _dec(
+                  'Location type',
+                  icon: Icons.category_outlined,
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'home', child: Text('Home')),
+                  DropdownMenuItem(value: 'office', child: Text('Office')),
+                  DropdownMenuItem(
+                    value: 'site',
+                    child: Text('Construction site'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'rental',
+                    child: Text('Rental property'),
+                  ),
+                  DropdownMenuItem(value: 'other', child: Text('Other')),
+                ],
+                onChanged: (x) =>
+                    setState(() => locationCategory = x ?? locationCategory),
+              ),
+              _text(
+                neighborhood,
+                'Neighborhood / street details',
+                icon: Icons.location_on_outlined,
+              ),
+              _text(
+                accessNotes,
+                'Access notes',
+                icon: Icons.info_outline,
+                maxLines: 2,
+              ),
+              const Text(
+                'Exact service addresses are shared only with the assigned professional after confirmation.',
+                style: TextStyle(
+                  color: clientMuted,
+                  fontSize: 12,
+                  height: 1.35,
+                ),
+              ),
+            ]),
+            _section('Identity & escrow trust', [
+              const ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  Icons.admin_panel_settings_outlined,
+                  color: clientOrange,
+                ),
+                title: Text(
+                  'Admin-reviewed verification',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: clientNavy,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                subtitle: Text(
+                  'Status shown below.',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: clientMuted),
+                ),
+              ),
+              FutureBuilder<Map<String, dynamic>>(
+                future: api.profile(),
+                builder: (context, snapshot) {
+                  final verified = isVerifiedProfile(snapshot.data);
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      verified ? Icons.verified : Icons.pending_actions,
+                      color: verified ? Colors.green : clientOrange,
+                    ),
+                    title: Text(
+                      verified ? 'Verified client' : 'Verification pending',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: clientNavy,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    child: const Text('View status'),
+                    trailing: TextButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ClientVerificationScreen(),
+                        ),
+                      ),
+                      child: const Text('View status'),
+                    ),
+                  );
+                },
+              ),
+            ]),
+            _section('Privacy & preferences', [
+              DropdownButtonFormField<String>(
+                value: privacy,
+                decoration: _dec('Public name format'),
+                items: const [
+                  DropdownMenuItem(
+                    value: 'initial',
+                    child: Text(
+                      'Show last-name initial',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                );
-              },
-            ),
-          ]),
-          _section('Privacy & preferences', [
-            DropdownButtonFormField<String>(
-              value: privacy,
-              decoration: _dec('Public name format'),
-              items: const [
-                DropdownMenuItem(
-                  value: 'initial',
-                  child: Text(
-                    'Show last-name initial',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  DropdownMenuItem(
+                    value: 'full',
+                    child: Text(
+                      'Show full name',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-                DropdownMenuItem(
-                  value: 'full',
-                  child: Text(
-                    'Show full name',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                ],
+                onChanged: (x) => setState(() {
+                  privacy = x ?? privacy;
+                  _dirty = true;
+                }),
+              ),
+              DropdownButtonFormField<String>(
+                value: language,
+                decoration: _dec('Language'),
+                items: const [
+                  DropdownMenuItem(
+                    value: 'en',
+                    child: Text(
+                      'English',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-              ],
-              onChanged: (x) => setState(() => privacy = x ?? privacy),
-            ),
-            DropdownButtonFormField<String>(
-              value: language,
-              decoration: _dec('Language'),
-              items: const [
-                DropdownMenuItem(
-                  value: 'en',
-                  child: Text(
-                    'English',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  DropdownMenuItem(
+                    value: 'fr',
+                    child: Text(
+                      'Français',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-                DropdownMenuItem(
-                  value: 'fr',
-                  child: Text(
-                    'Français',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-              onChanged: (x) => setState(() => language = x ?? language),
+                ],
+                onChanged: (x) => setState(() {
+                  language = x ?? language;
+                  _dirty = true;
+                }),
+              ),
+              _switch(
+                'Allow direct offers',
+                allowOffers,
+                (x) => setState(() => allowOffers = x),
+              ),
+              _switch(
+                'Email notifications',
+                emailNotifications,
+                (x) => setState(() => emailNotifications = x),
+              ),
+              _switch(
+                'SMS notifications',
+                smsNotifications,
+                (x) => setState(() => smsNotifications = x),
+              ),
+            ]),
+          ],
+        ),
+        bottomNavigationBar: SafeArea(
+          top: false,
+          minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: ElevatedButton.icon(
+            onPressed: saving ? null : _save,
+            icon: saving
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.save_outlined),
+            label: Text(saving ? 'Saving...' : 'Save profile'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: clientOrange,
+              foregroundColor: Colors.white,
+              minimumSize: const Size.fromHeight(52),
             ),
-            _switch(
-              'Allow direct offers',
-              allowOffers,
-              (x) => setState(() => allowOffers = x),
-            ),
-            _switch(
-              'Email notifications',
-              emailNotifications,
-              (x) => setState(() => emailNotifications = x),
-            ),
-            _switch(
-              'SMS notifications',
-              smsNotifications,
-              (x) => setState(() => smsNotifications = x),
-            ),
-          ]),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-        child: ElevatedButton.icon(
-          onPressed: saving ? null : _save,
-          icon: saving
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : const Icon(Icons.save_outlined),
-          label: Text(saving ? 'Saving...' : 'Save profile'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: clientOrange,
-            foregroundColor: Colors.white,
-            minimumSize: const Size.fromHeight(52),
           ),
         ),
       ),

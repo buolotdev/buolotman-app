@@ -47,7 +47,7 @@ class _ClientLocationPickerScreenState
     'SN',
     'TZ',
   };
-  static const placesApiKey = String.fromEnvironment('GOOGLE_MAPS_API_KEY');
+  static const placesApiKey = 'AIzaSyAYPP0M7rhHMjmk4Bvr18M-g61FEcm4b5w';
   GoogleMapController? _controller;
   LatLng _pin = const LatLng(
     6.5244,

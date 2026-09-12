@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../core/api_service.dart';
 import '../verification_utils.dart';
 import 'client_location_picker_screen.dart';
+import '../discard_changes.dart';
 
 class ClientTaskCreateScreen extends StatefulWidget {
   const ClientTaskCreateScreen({super.key});
@@ -35,6 +36,7 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
   Set<String> contacts = {'in-app'};
   bool materials = false, saving = false, verified = false, checking = true;
   String? loadError, categoryError;
+  bool _dirty = false;
   @override
   void initState() {
     super.initState();
@@ -118,10 +120,11 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
       initialDate: DateTime.now(),
     );
     if (d != null)
-      setState(
-        () => deadline =
-            '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}',
-      );
+      setState(() {
+        deadline =
+            '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+        _dirty = true;
+      });
   }
 
   Future<void> _pickMapLocation() async {
@@ -158,7 +161,10 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
       _notice(
         'Only JPG, PNG, WEBP, GIF, or PDF files up to 25 MB are allowed.',
       );
-    setState(() => attachments = [...attachments, ...valid]);
+    setState(() {
+      attachments = [...attachments, ...valid];
+      _dirty = true;
+    });
   }
 
   Future<void> _selectCategory(int? value) async {
@@ -171,6 +177,7 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
       category = value;
       subcategory = null;
       subcategories = nested is List ? nested : const [];
+      _dirty = true;
     });
     if (value == null || subcategories.isNotEmpty) return;
     try {
@@ -278,6 +285,7 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
       maxLines: lines,
       keyboardType: keyboard,
       inputFormatters: formatters,
+      onChanged: (_) => setState(() => _dirty = true),
       decoration: _dec(label),
     ),
   );
@@ -289,6 +297,7 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
       selectedColor: const Color(0xFFFFE0D6),
       checkmarkColor: orange,
       onSelected: (v) => setState(() {
+        _dirty = true;
         if (v)
           contacts.add(value);
         else if (contacts.length > 1)
@@ -391,236 +400,264 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
     final selectedCategory = categoryItems.any((x) => x.id == category)
         ? category
         : null;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Post a task'),
-        foregroundColor: navy,
-        backgroundColor: Colors.white,
-        actions: [
-          IconButton(
-            tooltip: 'Refresh verification status',
-            onPressed: _load,
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
-      backgroundColor: bg,
-      body: !verified
-          ? const Center(
-              child: Padding(
-                padding: EdgeInsets.all(28),
-                child: Text(
-                  'Task posting unlocks after your account is verified by an administrator.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: muted, fontSize: 16),
-                ),
-              ),
-            )
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
-              children: [
-                _field(title, 'Task title'),
-                _field(description, 'Describe the work', lines: 5),
-                DropdownButtonFormField<int>(
-                  isExpanded: true,
-                  initialValue: selectedCategory,
-                  decoration: _dec('Category').copyWith(
-                    helperText: categoryError == null && categoryItems.isEmpty
-                        ? 'No categories are available yet.'
-                        : categoryError,
-                    helperStyle: const TextStyle(color: muted, fontSize: 12),
-                  ),
-                  items: categoryItems
-                      .map(
-                        (x) => DropdownMenuItem<int>(
-                          value: x.id,
-                          child: Text(x.name, overflow: TextOverflow.ellipsis),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: _selectCategory,
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<int>(
-                  isExpanded: true,
-                  initialValue: subcategory,
-                  decoration: _dec('Subcategory').copyWith(
-                    helperText: category == null
-                        ? 'Select a category first.'
-                        : subcategories.isEmpty
-                        ? 'No subcategories are available for this category.'
-                        : null,
-                  ),
-                  items: subcategories
-                      .whereType<Map>()
-                      .map((x) {
-                        final id = x['id'] is int
-                            ? x['id'] as int
-                            : int.tryParse('${x['id'] ?? ''}');
-                        final name = '${x['name'] ?? x['title'] ?? ''}'.trim();
-                        return DropdownMenuItem<int>(
-                          value: id,
-                          child: Text(name, overflow: TextOverflow.ellipsis),
-                        );
-                      })
-                      .where((item) => item.value != null)
-                      .toList(),
-                  onChanged: category == null || subcategories.isEmpty
-                      ? null
-                      : (value) => setState(() => subcategory = value),
-                ),
-                const SizedBox(height: 12),
-                _field(skills, 'Required skills (comma separated)'),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _field(
-                        budgetMin,
-                        'Minimum budget',
-                        keyboard: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        formatters: money,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _field(
-                        budgetMax,
-                        'Maximum budget',
-                        keyboard: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        formatters: money,
-                      ),
-                    ),
-                  ],
-                ),
-                DropdownButtonFormField<String>(
-                  isExpanded: true,
-                  initialValue: urgency,
-                  decoration: _dec('Urgency'),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'standard',
-                      child: Text('Standard / Flexible'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'urgent',
-                      child: Text('Urgent (within 24 hours)'),
-                    ),
-                  ],
-                  onChanged: (v) => setState(() => urgency = v ?? urgency),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  isExpanded: true,
-                  initialValue: serviceType,
-                  decoration: _dec('Service type'),
-                  items: const [
-                    DropdownMenuItem(value: 'onsite', child: Text('On-site')),
-                    DropdownMenuItem(value: 'remote', child: Text('Remote')),
-                    DropdownMenuItem(value: 'hybrid', child: Text('Hybrid')),
-                  ],
-                  onChanged: (v) =>
-                      setState(() => serviceType = v ?? serviceType),
-                ),
-                const SizedBox(height: 12),
-                _field(city, 'City'),
-                OutlinedButton.icon(
-                  onPressed: _pickMapLocation,
-                  icon: const Icon(Icons.pin_drop_outlined),
-                  label: Text(
-                    latitude == null
-                        ? 'Choose exact location on map'
-                        : 'Location pinned',
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: orange,
-                    side: const BorderSide(color: orange),
-                    minimumSize: const Size.fromHeight(48),
-                  ),
-                ),
-                if (latitude != null && location.text.trim().isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10, bottom: 12),
-                    child: TextField(
-                      controller: location,
-                      readOnly: true,
-                      decoration: _dec('Exact pinned location').copyWith(
-                        prefixIcon: const Icon(Icons.location_on_outlined),
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 12),
-                _field(schedule, 'Time preference / schedule'),
-                OutlinedButton.icon(
-                  onPressed: _pickDate,
-                  icon: const Icon(Icons.event),
-                  label: Text(
-                    deadline.isEmpty
-                        ? 'Choose deadline'
-                        : 'Deadline: $deadline',
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: orange,
-                    side: const BorderSide(color: orange),
-                    minimumSize: const Size.fromHeight(48),
-                  ),
-                ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text(
-                    'Materials provided by client',
-                    style: TextStyle(color: navy),
-                  ),
-                  value: materials,
-                  activeThumbColor: orange,
-                  onChanged: (v) => setState(() => materials = v),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Contact preferences',
-                  style: TextStyle(
-                    color: navy,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    _contact('in-app', 'In-app messaging'),
-                    _contact('phone', 'Phone call'),
-                    _contact('whatsapp', 'WhatsApp'),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: _pickAttachments,
-                  icon: const Icon(Icons.attach_file),
-                  label: const Text('Attach files'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: orange,
-                    side: const BorderSide(color: orange),
-                    minimumSize: const Size.fromHeight(48),
-                  ),
-                ),
-                ...attachments.map(_attachment),
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: saving ? null : _save,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: orange,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: Text(saving ? 'Posting...' : 'Post task'),
-                  ),
-                ),
-              ],
+    return PopScope(
+      canPop: !_dirty && !saving,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop || saving || !_dirty) return;
+        if (await confirmDiscardChanges(
+              context,
+              message: 'Your task draft will be lost if you leave this page.',
+            ) &&
+            context.mounted) {
+          Navigator.of(context).pop(result);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Post a task'),
+          foregroundColor: navy,
+          backgroundColor: Colors.white,
+          actions: [
+            IconButton(
+              tooltip: 'Refresh verification status',
+              onPressed: _load,
+              icon: const Icon(Icons.refresh),
             ),
+          ],
+        ),
+        backgroundColor: bg,
+        body: !verified
+            ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(28),
+                  child: Text(
+                    'Task posting unlocks after your account is verified by an administrator.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: muted, fontSize: 16),
+                  ),
+                ),
+              )
+            : ListView(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+                children: [
+                  _field(title, 'Task title'),
+                  _field(description, 'Describe the work', lines: 5),
+                  DropdownButtonFormField<int>(
+                    isExpanded: true,
+                    initialValue: selectedCategory,
+                    decoration: _dec('Category').copyWith(
+                      helperText: categoryError == null && categoryItems.isEmpty
+                          ? 'No categories are available yet.'
+                          : categoryError,
+                      helperStyle: const TextStyle(color: muted, fontSize: 12),
+                    ),
+                    items: categoryItems
+                        .map(
+                          (x) => DropdownMenuItem<int>(
+                            value: x.id,
+                            child: Text(
+                              x.name,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: _selectCategory,
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<int>(
+                    isExpanded: true,
+                    initialValue: subcategory,
+                    decoration: _dec('Subcategory').copyWith(
+                      helperText: category == null
+                          ? 'Select a category first.'
+                          : subcategories.isEmpty
+                          ? 'No subcategories are available for this category.'
+                          : null,
+                    ),
+                    items: subcategories
+                        .whereType<Map>()
+                        .map((x) {
+                          final id = x['id'] is int
+                              ? x['id'] as int
+                              : int.tryParse('${x['id'] ?? ''}');
+                          final name = '${x['name'] ?? x['title'] ?? ''}'
+                              .trim();
+                          return DropdownMenuItem<int>(
+                            value: id,
+                            child: Text(name, overflow: TextOverflow.ellipsis),
+                          );
+                        })
+                        .where((item) => item.value != null)
+                        .toList(),
+                    onChanged: category == null || subcategories.isEmpty
+                        ? null
+                        : (value) => setState(() {
+                            subcategory = value;
+                            _dirty = true;
+                          }),
+                  ),
+                  const SizedBox(height: 12),
+                  _field(skills, 'Required skills (comma separated)'),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _field(
+                          budgetMin,
+                          'Minimum budget',
+                          keyboard: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          formatters: money,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _field(
+                          budgetMax,
+                          'Maximum budget',
+                          keyboard: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          formatters: money,
+                        ),
+                      ),
+                    ],
+                  ),
+                  DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    initialValue: urgency,
+                    decoration: _dec('Urgency'),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'standard',
+                        child: Text('Standard / Flexible'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'urgent',
+                        child: Text('Urgent (within 24 hours)'),
+                      ),
+                    ],
+                    onChanged: (v) => setState(() {
+                      urgency = v ?? urgency;
+                      _dirty = true;
+                    }),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    initialValue: serviceType,
+                    decoration: _dec('Service type'),
+                    items: const [
+                      DropdownMenuItem(value: 'onsite', child: Text('On-site')),
+                      DropdownMenuItem(value: 'remote', child: Text('Remote')),
+                      DropdownMenuItem(value: 'hybrid', child: Text('Hybrid')),
+                    ],
+                    onChanged: (v) => setState(() {
+                      serviceType = v ?? serviceType;
+                      _dirty = true;
+                    }),
+                  ),
+                  const SizedBox(height: 12),
+                  _field(city, 'City'),
+                  OutlinedButton.icon(
+                    onPressed: _pickMapLocation,
+                    icon: const Icon(Icons.pin_drop_outlined),
+                    label: Text(
+                      latitude == null
+                          ? 'Choose exact location on map'
+                          : 'Location pinned',
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: orange,
+                      side: const BorderSide(color: orange),
+                      minimumSize: const Size.fromHeight(48),
+                    ),
+                  ),
+                  if (latitude != null && location.text.trim().isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10, bottom: 12),
+                      child: TextField(
+                        controller: location,
+                        readOnly: true,
+                        decoration: _dec('Exact pinned location').copyWith(
+                          prefixIcon: const Icon(Icons.location_on_outlined),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 12),
+                  _field(schedule, 'Time preference / schedule'),
+                  OutlinedButton.icon(
+                    onPressed: _pickDate,
+                    icon: const Icon(Icons.event),
+                    label: Text(
+                      deadline.isEmpty
+                          ? 'Choose deadline'
+                          : 'Deadline: $deadline',
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: orange,
+                      side: const BorderSide(color: orange),
+                      minimumSize: const Size.fromHeight(48),
+                    ),
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text(
+                      'Materials provided by client',
+                      style: TextStyle(color: navy),
+                    ),
+                    value: materials,
+                    activeThumbColor: orange,
+                    onChanged: (v) => setState(() {
+                      materials = v;
+                      _dirty = true;
+                    }),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Contact preferences',
+                    style: TextStyle(
+                      color: navy,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      _contact('in-app', 'In-app messaging'),
+                      _contact('phone', 'Phone call'),
+                      _contact('whatsapp', 'WhatsApp'),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: _pickAttachments,
+                    icon: const Icon(Icons.attach_file),
+                    label: const Text('Attach files'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: orange,
+                      side: const BorderSide(color: orange),
+                      minimumSize: const Size.fromHeight(48),
+                    ),
+                  ),
+                  ...attachments.map(_attachment),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: saving ? null : _save,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: orange,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: Text(saving ? 'Posting...' : 'Post task'),
+                    ),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../core/api_service.dart';
+import '../discard_changes.dart';
 import 'technician_navigation.dart';
 
 class TechnicianProfileScreen extends StatefulWidget {
@@ -18,7 +19,7 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
   final api = ApiService();
   final Map<String, PlatformFile> selected = {};
   List<dynamic> documents = [];
-  bool loading = true, submitting = false;
+  bool loading = true, submitting = false, _dirty = false;
   final slots = const [
     (
       'front',
@@ -106,7 +107,10 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
       _notice('This file is too large. The maximum is 25 MB.');
       return;
     }
-    setState(() => selected[key] = file);
+    setState(() {
+      selected[key] = file;
+      _dirty = true;
+    });
   }
 
   Future<void> _submit() async {
@@ -136,6 +140,7 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
         );
       }
       selected.clear();
+      _dirty = false;
       documents = await api.technicianDocuments();
       if (mounted) {
         setState(() {});
@@ -185,56 +190,69 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xFFF4F6F8),
-    bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: 3),
-    appBar: AppBar(
-      title: const Text('Verification'),
-      backgroundColor: Colors.white,
-      foregroundColor: navy,
-      elevation: 0,
+  Widget build(BuildContext context) => PopScope(
+    canPop: !_dirty && !submitting,
+    onPopInvokedWithResult: (didPop, result) async {
+      if (didPop || submitting || !_dirty) return;
+      if (await confirmDiscardChanges(
+            context,
+            message: 'Selected verification files have not been submitted.',
+          ) &&
+          context.mounted) {
+        Navigator.of(context).pop(result);
+      }
+    },
+    child: Scaffold(
+      backgroundColor: const Color(0xFFF4F6F8),
+      bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: 3),
+      appBar: AppBar(
+        title: const Text('Verification'),
+        backgroundColor: Colors.white,
+        foregroundColor: navy,
+        elevation: 0,
+      ),
+      body: loading
+          ? const Center(child: CircularProgressIndicator(color: orange))
+          : ListView(
+              padding: const EdgeInsets.all(18),
+              children: [
+                _status(),
+                const SizedBox(height: 18),
+                const Text(
+                  'Verification documents',
+                  style: TextStyle(
+                    color: navy,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Each document is reviewed separately by an administrator.',
+                  style: TextStyle(color: muted),
+                ),
+                const SizedBox(height: 14),
+                ...slots.map(_slot),
+                const SizedBox(height: 8),
+                FilledButton(
+                  onPressed: submitting ? null : _submit,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: orange,
+                    minimumSize: const Size.fromHeight(52),
+                  ),
+                  child: Text(
+                    submitting ? 'Submitting...' : 'Submit for admin review',
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  'Accepted: JPG, JPEG, PNG, WEBP, GIF, PDF • Maximum 25 MB per file',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: muted, fontSize: 12),
+                ),
+              ],
+            ),
     ),
-    body: loading
-        ? const Center(child: CircularProgressIndicator(color: orange))
-        : ListView(
-            padding: const EdgeInsets.all(18),
-            children: [
-              _status(),
-              const SizedBox(height: 18),
-              const Text(
-                'Verification documents',
-                style: TextStyle(
-                  color: navy,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Each document is reviewed separately by an administrator.',
-                style: TextStyle(color: muted),
-              ),
-              const SizedBox(height: 14),
-              ...slots.map(_slot),
-              const SizedBox(height: 8),
-              FilledButton(
-                onPressed: submitting ? null : _submit,
-                style: FilledButton.styleFrom(
-                  backgroundColor: orange,
-                  minimumSize: const Size.fromHeight(52),
-                ),
-                child: Text(
-                  submitting ? 'Submitting...' : 'Submit for admin review',
-                ),
-              ),
-              const SizedBox(height: 18),
-              const Text(
-                'Accepted: JPG, JPEG, PNG, WEBP, GIF, PDF • Maximum 25 MB per file',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: muted, fontSize: 12),
-              ),
-            ],
-          ),
   );
   Widget _status() {
     return FutureBuilder<Map<String, dynamic>>(

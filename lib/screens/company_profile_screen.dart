@@ -1,8 +1,10 @@
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../core/api_service.dart';
 import '../core/username_utils.dart';
+import '../discard_changes.dart';
 
 class CompanyProfileScreen extends StatefulWidget {
   const CompanyProfileScreen({super.key});
@@ -25,6 +27,9 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
   Map<String, dynamic> profile = {};
   List<dynamic> documents = [];
   String? logoUrl, coverUrl;
+  Uint8List? _pendingLogo, _pendingCover;
+  String? _pendingLogoName, _pendingCoverName;
+  bool _removeLogo = false, _removeCover = false, _dirty = false;
   String _initialUsername = '';
 
   final fields = const [
@@ -198,11 +203,34 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       data['services_offered'] = _comma(profile['services_offered']);
       data['areas_of_expertise'] = _comma(profile['areas_of_expertise']);
       data['business_hours'] = _comma(profile['business_hours']);
-      if (logoUrl != null) data['logo_url'] = logoUrl;
-      if (coverUrl != null) data['cover_url'] = coverUrl;
+      if (_pendingLogo != null) {
+        data['logo_url'] = await api.uploadAvatarBytes(
+          bytes: _pendingLogo!,
+          filename: _pendingLogoName ?? 'logo.jpg',
+        );
+      } else if (_removeLogo) {
+        data['logo_url'] = '';
+      } else if (logoUrl != null) {
+        data['logo_url'] = logoUrl;
+      }
+      if (_pendingCover != null) {
+        data['cover_url'] = await api.uploadBannerBytes(
+          bytes: _pendingCover!,
+          filename: _pendingCoverName ?? 'cover.jpg',
+        );
+      } else if (_removeCover) {
+        data['cover_url'] = '';
+      } else if (coverUrl != null) {
+        data['cover_url'] = coverUrl;
+      }
       await api.updateProfile({'username': normalizedUsername});
       final saved = await api.updateCompanyProfile(data);
       profile = saved;
+      _pendingLogo = null;
+      _pendingCover = null;
+      _removeLogo = false;
+      _removeCover = false;
+      _dirty = false;
       if (mounted) _snack('Company profile saved.');
     } catch (e) {
       if (mounted)
@@ -236,36 +264,22 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       return;
     }
     setState(() {
-      if (cover)
-        uploadingCover = true;
-      else
-        uploadingLogo = true;
+      _dirty = true;
+      if (cover) {
+        _pendingCover = bytes;
+        _pendingCoverName = image.name;
+        _removeCover = false;
+      } else {
+        _pendingLogo = bytes;
+        _pendingLogoName = image.name;
+        _removeLogo = false;
+      }
     });
-    try {
-      final url = cover
-          ? await api.uploadBannerBytes(bytes: bytes, filename: image.name)
-          : await api.uploadAvatarBytes(bytes: bytes, filename: image.name);
-      await api.updateCompanyProfile({(cover ? 'cover_url' : 'logo_url'): url});
-      if (mounted)
-        setState(() {
-          if (cover)
-            coverUrl = url;
-          else
-            logoUrl = url;
-        });
-      _snack(cover ? 'Company banner updated.' : 'Company logo updated.');
-    } catch (e) {
-      if (mounted)
-        _snack(e is ApiException ? e.message : 'Image upload failed.');
-    } finally {
-      if (mounted)
-        setState(() {
-          if (cover)
-            uploadingCover = false;
-          else
-            uploadingLogo = false;
-        });
-    }
+    _snack(
+      cover
+          ? 'Cover image added to your draft. Press Save to upload it.'
+          : 'Logo added to your draft. Press Save to upload it.',
+    );
   }
 
   void _snack(String text) =>
@@ -275,53 +289,62 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bg,
-      appBar: AppBar(
-        backgroundColor: navy,
-        foregroundColor: Colors.white,
-        title: const Text('Company profile'),
-        actions: [
-          TextButton(
-            onPressed: saving ? null : _save,
-            child: Text(
-              saving ? 'Saving...' : 'Save',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
+    return PopScope(
+      canPop: !_dirty && !saving,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop || saving || !_dirty) return;
+        if (await confirmDiscardChanges(context) && context.mounted) {
+          Navigator.of(context).pop(result);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: bg,
+        appBar: AppBar(
+          backgroundColor: navy,
+          foregroundColor: Colors.white,
+          title: const Text('Company profile'),
+          actions: [
+            TextButton(
+              onPressed: saving ? null : _save,
+              child: Text(
+                saving ? 'Saving...' : 'Save',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      body: loading
-          ? const Center(child: CircularProgressIndicator(color: orange))
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _branding(),
-                _section('Company information', [
-                  _accountField('Username', username),
-                  ...fields.map((f) => _field(f.$1, f.$2, f.$3)),
-                ]),
-                _arraySection('Services offered', 'services_offered'),
-                _arraySection('Areas of expertise', 'areas_of_expertise'),
-                _arraySection('Business hours', 'business_hours'),
-                _verification(),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: saving ? null : _save,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: orange,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+          ],
+        ),
+        body: loading
+            ? const Center(child: CircularProgressIndicator(color: orange))
+            : ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _branding(),
+                  _section('Company information', [
+                    _accountField('Username', username),
+                    ...fields.map((f) => _field(f.$1, f.$2, f.$3)),
+                  ]),
+                  _arraySection('Services offered', 'services_offered'),
+                  _arraySection('Areas of expertise', 'areas_of_expertise'),
+                  _arraySection('Business hours', 'business_hours'),
+                  _verification(),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: saving ? null : _save,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: orange,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: const Text('Save company profile'),
                     ),
-                    child: const Text('Save company profile'),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+      ),
     );
   }
 
@@ -428,6 +451,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     child: TextFormField(
       controller: form[key],
       keyboardType: type,
+      onChanged: (_) => setState(() => _dirty = true),
       decoration: InputDecoration(
         labelText: label,
         filled: true,
@@ -443,6 +467,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
         child: TextFormField(
           controller: controller,
           keyboardType: TextInputType.text,
+          onChanged: (_) => setState(() => _dirty = true),
           decoration: InputDecoration(
             labelText: label,
             prefixIcon: const Icon(Icons.alternate_email),
@@ -456,11 +481,14 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     TextFormField(
       initialValue: _array(key).join(', '),
       maxLines: key == 'business_hours' ? 3 : 2,
-      onChanged: (v) => profile[key] = v
-          .split(',')
-          .map((x) => x.trim())
-          .where((x) => x.isNotEmpty)
-          .toList(),
+      onChanged: (v) => setState(() {
+        _dirty = true;
+        profile[key] = v
+            .split(',')
+            .map((x) => x.trim())
+            .where((x) => x.isNotEmpty)
+            .toList();
+      }),
       decoration: InputDecoration(
         labelText: key == 'business_hours'
             ? 'Add hours separated by commas'
