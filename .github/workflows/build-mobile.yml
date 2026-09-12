@@ -22,7 +22,18 @@ jobs:
       - name: Configure Firebase key
         env:
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
-        run: sed -i "s/__FIREBASE_API_KEY__/$FIREBASE_API_KEY/g" android/app/google-services.json
+        run: |
+          if [ -z "${FIREBASE_API_KEY:-}" ]; then
+            echo "FIREBASE_API_KEY GitHub secret is missing. Add it under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          path = Path("android/app/google-services.json")
+          text = path.read_text()
+          path.write_text(text.replace("__FIREBASE_API_KEY__", os.environ["FIREBASE_API_KEY"]))
+          PY
       - run: flutter pub get
       - run: flutter build apk --release --dart-define=GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
       - uses: actions/upload-artifact@v4
@@ -43,7 +54,18 @@ jobs:
       - name: Configure Firebase key
         env:
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
-        run: sed -i "s/__FIREBASE_API_KEY__/$FIREBASE_API_KEY/g" ios/Runner/GoogleService-Info.plist
+        run: |
+          if [ -z "${FIREBASE_API_KEY:-}" ]; then
+            echo "FIREBASE_API_KEY GitHub secret is missing. Add it under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          path = Path("ios/Runner/GoogleService-Info.plist")
+          text = path.read_text()
+          path.write_text(text.replace("__FIREBASE_API_KEY__", os.environ["FIREBASE_API_KEY"]))
+          PY
       - run: flutter pub get
       - name: Configure Maps key
         env:
