@@ -54,7 +54,7 @@
 	<key>GIDClientID</key>
 	<string>1090108678391-nb89l4orlsf8kpvj52gunjs2c437t7ia.apps.googleusercontent.com</string>
 	<key>GOOGLE_MAPS_API_KEY</key>
-	<string>$(GOOGLE_MAPS_API_KEY)</string>
+	<string>AIzaSyAYPP0M7rhHMjmk4Bvr18M-g61FEcm4b5w</string>
 	<key>GIDServerClientID</key>
 	<string>1090108678391-00u5aomsoh2gu7rqk2vnfldt9cs4fovq.apps.googleusercontent.com</string>
 	<key>CFBundleURLTypes</key>

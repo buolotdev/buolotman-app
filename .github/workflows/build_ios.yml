@@ -31,26 +31,6 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Configure Firebase key
-        env:
-          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
-        run: |
-          if [ -z "${FIREBASE_API_KEY:-}" ]; then
-            echo "FIREBASE_API_KEY GitHub secret is missing. Add it under Settings > Secrets and variables > Actions."
-            exit 1
-          fi
-          python3 - <<'PY'
-          import os
-          from pathlib import Path
-          path = Path("ios/Runner/GoogleService-Info.plist")
-          text = path.read_text()
-          path.write_text(text.replace("__FIREBASE_API_KEY__", os.environ["FIREBASE_API_KEY"]))
-          PY
-
-      - name: Configure Maps key
-        env:
-          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
-        run: echo "GOOGLE_MAPS_API_KEY = $GOOGLE_MAPS_API_KEY" > ios/Flutter/Secrets.xcconfig
 
       - name: Set iOS deployment target
         run: |
@@ -74,7 +54,7 @@ jobs:
           echo "DEVELOPMENT_TEAM = XXXXXXXXXX" >> ios/Flutter/Release.xcconfig
 
       - name: Build iOS App (No Code Sign)
-        run: flutter build ios --release --no-codesign --dart-define=GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
+        run: flutter build ios --release --no-codesign
 
       - name: Package Unsigned IPA
         run: |
