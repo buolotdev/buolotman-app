@@ -753,11 +753,77 @@ class ApiService {
     // The website still serves the legacy category route. Keep it as a
     // compatibility path when the newer route is valid but has no records.
     try {
-      return await _getList('tasks-categories/');
+      final legacy = await _getList('tasks-categories/');
+      if (legacy.isNotEmpty) return legacy;
     } catch (_) {
-      return current;
+      // Continue to the same fallback used by the website when its category
+      // feed has not been populated yet.
     }
+    return _websiteCategoryFallback;
   }
+
+  static const List<Map<String, dynamic>> _websiteCategoryFallback = [
+    {
+      'id': 26,
+      'name': 'Plumbing & Repair',
+      'subcategories': [
+        {'id': 2601, 'name': 'Leak Repair'},
+        {'id': 2602, 'name': 'Pipe Installation'},
+        {'id': 2603, 'name': 'Water Heater'},
+        {'id': 2604, 'name': 'Drain Cleaning'},
+        {'id': 2605, 'name': 'Toilet Repair'},
+        {'id': 2606, 'name': 'Faucet Install'},
+      ],
+    },
+    {
+      'id': 25,
+      'name': 'Electrical',
+      'subcategories': [
+        {'id': 2501, 'name': 'Wiring & Rewiring'},
+        {'id': 2502, 'name': 'Switchboard Repair'},
+        {'id': 2503, 'name': 'Fan / AC Installation'},
+        {'id': 2504, 'name': 'Generator Setup'},
+        {'id': 2505, 'name': 'Light Fixtures'},
+        {'id': 2506, 'name': 'Electrical Inspection'},
+      ],
+    },
+    {
+      'id': 32,
+      'name': 'Cleaning',
+      'subcategories': [
+        {'id': 3201, 'name': 'Home Deep Clean'},
+        {'id': 3202, 'name': 'Office Cleaning'},
+        {'id': 3203, 'name': 'Carpet & Upholstery'},
+        {'id': 3204, 'name': 'Post-Construction Clean'},
+        {'id': 3205, 'name': 'Window Cleaning'},
+        {'id': 3206, 'name': 'Disinfection'},
+      ],
+    },
+    {
+      'id': 28,
+      'name': 'Carpentry',
+      'subcategories': [
+        {'id': 2801, 'name': 'Furniture Assembly'},
+        {'id': 2802, 'name': 'Door & Window Frames'},
+        {'id': 2803, 'name': 'Custom Shelving'},
+        {'id': 2804, 'name': 'Cabinet Making'},
+        {'id': 2805, 'name': 'Wood Repair'},
+        {'id': 2806, 'name': 'Flooring'},
+      ],
+    },
+    {
+      'id': 29,
+      'name': 'Painting',
+      'subcategories': [
+        {'id': 2901, 'name': 'Interior Painting'},
+        {'id': 2902, 'name': 'Exterior Painting'},
+        {'id': 2903, 'name': 'Wallpaper'},
+        {'id': 2904, 'name': 'Surface Prep & Sanding'},
+        {'id': 2905, 'name': 'Texture Coating'},
+        {'id': 2906, 'name': 'Graffiti Removal'},
+      ],
+    },
+  ];
 
   Future<List<dynamic>> serviceSubcategories(dynamic categoryId) async {
     try {
