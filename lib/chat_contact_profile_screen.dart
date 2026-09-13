@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'core/api_service.dart';
+import 'app_state.dart';
 import 'technician_public_profile_screen.dart';
 
 class ChatContactProfileScreen extends StatefulWidget {
@@ -33,12 +35,18 @@ class _ChatContactProfileState extends State<ChatContactProfileScreen> {
           body: Center(child: Text('Unable to load this profile.')),
         );
       }
-      final p = Map<String, dynamic>.from(snapshot.data as Map);
+      final rawProfile = Map<String, dynamic>.from(snapshot.data as Map);
+      final nestedUser = rawProfile['user'] is Map
+          ? Map<String, dynamic>.from(rawProfile['user'] as Map)
+          : const <String, dynamic>{};
+      final p = <String, dynamic>{...rawProfile, ...nestedUser};
       final name =
           '${p['name'] ?? '${p['first_name'] ?? ''} ${p['last_name'] ?? ''}'}'
               .trim();
       final username = '${p['username'] ?? ''}'.trim();
-      final role = '${p['role'] ?? p['user_type'] ?? 'Member'}'.trim();
+      final role =
+          '${p['role'] ?? p['user_type'] ?? p['account_type'] ?? p['user_role'] ?? p['type'] ?? 'Member'}'
+              .trim();
       final avatar = api.resolveImageUrl(p['avatar_url'] as String?);
       final normalizedRole = role.toLowerCase();
 
@@ -47,6 +55,9 @@ class _ChatContactProfileState extends State<ChatContactProfileScreen> {
       // Chat used to open only this generic contact summary, which hid all
       // of those fields.
       if (normalizedRole.contains('technician') || normalizedRole == 'tech') {
+        if (!Get.isRegistered<AppState>()) {
+          Get.put(AppState());
+        }
         final displaySkill =
             (p['primary_occupation'] ??
                     p['professional_title'] ??

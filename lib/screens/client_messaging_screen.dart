@@ -468,9 +468,11 @@ class _ClientConversationState extends State<ClientConversationScreen> {
           bytes: file.bytes!,
           filename: file.name,
         );
-      final attachmentUrl = uploaded == null
+      final uploadedFile = uploaded?['file'];
+      final uploadedUrl = uploaded == null
           ? ''
-          : '${uploaded['url'] ?? uploaded['file_url'] ?? uploaded['attachment_url'] ?? ''}';
+          : '${uploaded['url'] ?? uploaded['file_url'] ?? uploaded['attachment_url'] ?? (uploadedFile is Map ? uploadedFile['url'] ?? uploadedFile['file_url'] : '')}';
+      final attachmentUrl = api.resolveImageUrl(uploadedUrl);
       if (file != null && attachmentUrl.isEmpty) {
         throw const ApiException('The attachment upload returned no URL.', 500);
       }

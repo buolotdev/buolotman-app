@@ -255,9 +255,11 @@ class _ConversationState extends State<TechnicianConversationScreen> {
           bytes: attachment!.bytes!,
           filename: attachment!.name,
         );
-      final attachmentUrl = attachment == null
+      final uploadedFile = uploaded['file'];
+      final uploadedUrl = attachment == null
           ? ''
-          : '${uploaded['url'] ?? uploaded['file_url'] ?? uploaded['attachment_url'] ?? ''}';
+          : '${uploaded['url'] ?? uploaded['file_url'] ?? uploaded['attachment_url'] ?? (uploadedFile is Map ? uploadedFile['url'] ?? uploadedFile['file_url'] : '')}';
+      final attachmentUrl = api.resolveImageUrl(uploadedUrl);
       if (attachment != null && attachmentUrl.isEmpty) {
         throw const ApiException('The attachment upload returned no URL.', 500);
       }
