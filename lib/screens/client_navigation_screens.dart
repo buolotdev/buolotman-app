@@ -1104,7 +1104,17 @@ class _ClientProfileState extends State<ClientProfileScreen> {
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
           children: [
             _section('Cover image', [
-              if (banner != null && banner!.isNotEmpty)
+              if (_pendingBanner != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.memory(
+                    _pendingBanner!,
+                    width: double.infinity,
+                    height: 140,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              else if (banner != null && banner!.isNotEmpty)
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: Image.network(
@@ -1140,10 +1150,12 @@ class _ClientProfileState extends State<ClientProfileScreen> {
                       CircleAvatar(
                         radius: 48,
                         backgroundColor: const Color(0xFFFFE8E0),
-                        backgroundImage: avatar == null
+                        backgroundImage: _pendingAvatar != null
+                            ? MemoryImage(_pendingAvatar!)
+                            : avatar == null
                             ? null
                             : NetworkImage(avatar!),
-                        child: avatar == null
+                        child: _pendingAvatar == null && avatar == null
                             ? const Icon(
                                 Icons.person,
                                 color: clientOrange,

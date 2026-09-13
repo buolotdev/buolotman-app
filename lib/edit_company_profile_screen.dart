@@ -298,7 +298,9 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
                     child: SizedBox(
                       width: double.infinity,
                       height: 150,
-                      child: _coverUrl?.isNotEmpty == true
+                      child: _pendingCover != null
+                          ? Image.memory(_pendingCover!, fit: BoxFit.cover)
+                          : _coverUrl?.isNotEmpty == true
                           ? Image.network(_coverUrl!, fit: BoxFit.cover)
                           : Container(
                               color: const Color(0xFF001F3F),
@@ -310,6 +312,25 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
                               ),
                             ),
                     ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Center(
+                  child: CircleAvatar(
+                    radius: 42,
+                    backgroundColor: const Color(0xFFFFE8E0),
+                    backgroundImage: _pendingLogo != null
+                        ? MemoryImage(_pendingLogo!)
+                        : _logoUrl?.isNotEmpty == true
+                        ? NetworkImage(_logoUrl!)
+                        : null,
+                    child: _pendingLogo == null && _logoUrl?.isNotEmpty != true
+                        ? const Icon(
+                            Icons.business_outlined,
+                            color: Color(0xFFFF4500),
+                            size: 38,
+                          )
+                        : null,
                   ),
                 ),
                 const SizedBox(height: 10),
