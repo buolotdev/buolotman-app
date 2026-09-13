@@ -17,7 +17,17 @@ class PushNotificationService {
     try {
       await Firebase.initializeApp();
       final messaging = FirebaseMessaging.instance;
+      await messaging.setAutoInitEnabled(true);
       await messaging.requestPermission(alert: true, badge: true, sound: true);
+
+      // iOS must have an APNs token before FCM can reliably create the FCM
+      // registration token used for delivery while the app is terminated.
+      if (Platform.isIOS) {
+        for (var attempt = 0; attempt < 10; attempt++) {
+          if (await messaging.getAPNSToken() != null) break;
+          await Future<void>.delayed(const Duration(milliseconds: 300));
+        }
+      }
 
       FirebaseMessaging.onMessage.listen((message) async {
         final notification = message.notification;
