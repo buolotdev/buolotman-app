@@ -54,7 +54,7 @@ class _TechnicianPublicProfileScreenState
     try {
       final String techId = widget.rawData['id']?.toString() ?? '';
       if (techId.isNotEmpty) {
-        final response = await ApiService.instance.get('/auth/users/\$techId/');
+        final response = await ApiService.instance.get('/auth/users/$techId/');
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           if (mounted) {
@@ -67,7 +67,7 @@ class _TechnicianPublicProfileScreenState
         }
       }
     } catch (e) {
-      debugPrint('Error fetching full profile: \$e');
+      debugPrint('Error fetching full profile: $e');
     }
     if (mounted) {
       setState(() {
@@ -117,7 +117,7 @@ class _TechnicianPublicProfileScreenState
     final String ratingStr = ratingVal > 0
         ? ratingVal.toStringAsFixed(1)
         : '0.0';
-    final String ratingText = '\$ratingStr (\$reviewsVal)';
+    final String ratingText = '$ratingStr ($reviewsVal)';
 
     final double startingPriceVal =
         double.tryParse(dataMap['starting_price']?.toString() ?? '') ?? 0.0;
@@ -144,10 +144,10 @@ class _TechnicianPublicProfileScreenState
 
     final String priceText = _isLoading
         ? (hourlyRateVal > 0
-              ? '\$\${hourlyRateVal.toStringAsFixed(0)}/hr'
+              ? '\$${hourlyRateVal.toStringAsFixed(0)}/hr'
               : '...')
         : (hourlyRateVal > 0
-              ? '\$\${hourlyRateVal.toStringAsFixed(0)}/hr'
+              ? '\$${hourlyRateVal.toStringAsFixed(0)}/hr'
               : 'Rate not set');
 
     final String avatarUrl =
@@ -224,8 +224,8 @@ class _TechnicianPublicProfileScreenState
                     SnackBar(
                       content: Text(
                         !isSaved
-                            ? 'Added \${widget.name} to saved professionals.'
-                            : 'Removed \${widget.name} from saved professionals.',
+                            ? 'Added ${widget.name} to saved professionals.'
+                            : 'Removed ${widget.name} from saved professionals.',
                       ),
                       duration: const Duration(seconds: 2),
                     ),
@@ -326,7 +326,7 @@ class _TechnicianPublicProfileScreenState
                           _buildPersonalDetailRow(
                             Icons.access_time_outlined,
                             "Experience",
-                            '\$yearsExp years',
+                            '$yearsExp years',
                           ),
                         ],
                         if (languages.isNotEmpty) ...[
@@ -617,7 +617,7 @@ class _TechnicianPublicProfileScreenState
                                     _buildPersonalDetailRow(
                                       Icons.monetization_on_outlined,
                                       "Starting Price",
-                                      "\$\${startingPriceVal.toStringAsFixed(2)}",
+                                      "\$${startingPriceVal.toStringAsFixed(2)}",
                                     ),
                                   if (startingPriceVal > 0)
                                     const SizedBox(height: 8),
@@ -625,7 +625,7 @@ class _TechnicianPublicProfileScreenState
                                     _buildPersonalDetailRow(
                                       Icons.payments_outlined,
                                       "Hourly Rate",
-                                      "\$\${hourlyRateVal.toStringAsFixed(2)}",
+                                      "\$${hourlyRateVal.toStringAsFixed(2)}",
                                     ),
                                   if (hourlyRateVal > 0)
                                     const SizedBox(height: 8),
@@ -633,7 +633,7 @@ class _TechnicianPublicProfileScreenState
                                     _buildPersonalDetailRow(
                                       Icons.calendar_today_outlined,
                                       "Daily Rate",
-                                      "\$\${dailyRateVal.toStringAsFixed(2)}",
+                                      "\$${dailyRateVal.toStringAsFixed(2)}",
                                     ),
                                   if (dailyRateVal > 0)
                                     const SizedBox(height: 8),
@@ -641,7 +641,7 @@ class _TechnicianPublicProfileScreenState
                                     _buildPersonalDetailRow(
                                       Icons.handshake_outlined,
                                       "Fixed Price",
-                                      "\$\${fixedPriceVal.toStringAsFixed(2)}",
+                                      "\$${fixedPriceVal.toStringAsFixed(2)}",
                                     ),
                                   if (fixedPriceVal > 0)
                                     const SizedBox(height: 8),
@@ -649,7 +649,7 @@ class _TechnicianPublicProfileScreenState
                                     _buildPersonalDetailRow(
                                       Icons.search_outlined,
                                       "Inspection Fee",
-                                      "\$\${inspectionFeeVal.toStringAsFixed(2)}",
+                                      "\$${inspectionFeeVal.toStringAsFixed(2)}",
                                     ),
                                   if (startingPriceVal == 0 &&
                                       hourlyRateVal == 0 &&
@@ -978,7 +978,7 @@ class _TechnicianPublicProfileScreenState
                     ),
                   ),
                   content: Text(
-                    "Do you want to send a job offer invitation to \${widget.name}? they will receive a notification to connect with you.",
+                    "Do you want to send a job offer invitation to ${widget.name}? they will receive a notification to connect with you.",
                   ),
                   actions: [
                     TextButton(
@@ -991,7 +991,7 @@ class _TechnicianPublicProfileScreenState
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              "Hiring invitation sent successfully to \${widget.name}!",
+                              "Hiring invitation sent successfully to ${widget.name}!",
                             ),
                           ),
                         );
@@ -1299,7 +1299,7 @@ class _TechnicianPublicProfileScreenState
               ),
               const SizedBox(height: 4),
               Text(
-                '\${s["category_name"]} > \${s["subcategory_name"]}',
+                '${s["category_name"]} > ${s["subcategory_name"]}',
                 style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
               ),
             ],

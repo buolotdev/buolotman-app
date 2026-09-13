@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'core/api_service.dart';
+import 'technician_public_profile_screen.dart';
 
 class ChatContactProfileScreen extends StatefulWidget {
   const ChatContactProfileScreen({super.key, required this.userId});
@@ -33,13 +34,41 @@ class _ChatContactProfileState extends State<ChatContactProfileScreen> {
         if (snapshot.hasError || snapshot.data is! Map) {
           return const Center(child: Text('Unable to load this profile.'));
         }
-        final p = snapshot.data as Map;
+        final p = Map<String, dynamic>.from(snapshot.data as Map);
         final name =
             '${p['name'] ?? '${p['first_name'] ?? ''} ${p['last_name'] ?? ''}'}'
                 .trim();
         final username = '${p['username'] ?? ''}'.trim();
         final role = '${p['role'] ?? p['user_type'] ?? 'Member'}'.trim();
         final avatar = api.resolveImageUrl(p['avatar_url'] as String?);
+        final normalizedRole = role.toLowerCase();
+
+        // Technicians already have a complete public-profile experience with
+        // tabs for services, portfolio, reviews, availability and rates.
+        // Chat used to open only this generic contact summary, which hid all
+        // of those fields.
+        if (normalizedRole.contains('technician') || normalizedRole == 'tech') {
+          final displaySkill =
+              (p['primary_occupation'] ??
+                      p['professional_title'] ??
+                      p['specialization'] ??
+                      p['trade'] ??
+                      'Technician')
+                  .toString();
+          final displayPrice =
+              (p['hourly_rate'] ?? p['starting_price'] ?? p['price'] ?? '')
+                  .toString();
+          final displayRating = (p['average_rating'] ?? p['rating'] ?? '0')
+              .toString();
+          return TechnicianPublicProfileScreen(
+            name: name.isEmpty ? 'Technician' : name,
+            skill: displaySkill,
+            avatar: avatar,
+            price: displayPrice,
+            rating: displayRating,
+            rawData: p,
+          );
+        }
         final banner = api.resolveImageUrl(
           (p['banner_url'] ?? p['cover_url']) as String?,
         );
