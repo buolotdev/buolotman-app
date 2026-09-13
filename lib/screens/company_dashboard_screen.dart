@@ -171,15 +171,13 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
     },
     child: Scaffold(
       backgroundColor: bg,
-      body: SafeArea(
-        child: tab == 0
-            ? _home()
-            : tab == 1
-            ? _projects()
-            : tab == 2
-            ? _messages()
-            : _profile(),
-      ),
+      body: tab == 0
+          ? SafeArea(child: _home())
+          : tab == 1
+          ? _projects()
+          : tab == 2
+          ? _messages()
+          : _profile(),
       bottomNavigationBar: _bottom(),
     ),
   );

@@ -154,15 +154,13 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
     drawerEnableOpenDragGesture: true,
     drawerEdgeDragWidth: 36,
     drawerScrimColor: Colors.black54,
-    body: SafeArea(
-      child: tab == 2
-          ? const TechnicianWalletScreen()
-          : tab == 3
-          ? const TechnicianProfileDetailsScreen()
-          : tab == 1
-          ? const TechnicianBidsManagementScreen()
-          : _feed(),
-    ),
+    body: tab == 0
+        ? SafeArea(child: _feed())
+        : tab == 2
+        ? const TechnicianWalletScreen()
+        : tab == 3
+        ? const TechnicianProfileDetailsScreen()
+        : const TechnicianBidsManagementScreen(),
     drawer: _drawer(context),
     bottomNavigationBar: TechnicianBottomNavigation(selectedIndex: tab),
   );

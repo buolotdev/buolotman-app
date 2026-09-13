@@ -83,15 +83,13 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
     drawer: Builder(builder: (drawerContext) => _drawer(drawerContext)),
     drawerEnableOpenDragGesture: true,
     backgroundColor: bg,
-    body: SafeArea(
-      child: tab == 0
-          ? _home()
-          : tab == 1
-          ? _tasks()
-          : tab == 2
-          ? _messages()
-          : _profile(),
-    ),
+    body: tab == 0
+        ? SafeArea(child: _home())
+        : tab == 1
+        ? _tasks()
+        : tab == 2
+        ? _messages()
+        : _profile(),
     // Keep one navigation shell mounted for every client tab. Messages must
     // not push its own Scaffold/bottom bar onto the route stack; doing that
     // makes the whole page slide and leaves later tabs inside that transition.

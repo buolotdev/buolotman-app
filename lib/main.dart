@@ -28,7 +28,31 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false, home: SplashScreen());
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFF5F7FA),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: Color(0xFF001F3F),
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          centerTitle: true,
+          toolbarHeight: 64,
+          titleTextStyle: TextStyle(
+            color: Color(0xFF001F3F),
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+          ),
+          iconTheme: IconThemeData(color: Color(0xFF001F3F), size: 25),
+          actionsIconTheme: IconThemeData(color: Color(0xFF001F3F), size: 25),
+          surfaceTintColor: Colors.transparent,
+          shape: Border(bottom: BorderSide(color: Color(0xFFE8EDF3), width: 1)),
+        ),
+      ),
+      home: const SplashScreen(),
+    );
   }
 }
 
