@@ -474,22 +474,20 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
               if (status == 'open' ||
                   status == 'draft' ||
                   status == 'in_progress')
-                OutlinedButton.icon(
+                _statusAction(
+                  label: 'Cancel task',
+                  icon: Icons.close_rounded,
                   onPressed: acting ? null : _cancel,
-                  icon: const Icon(Icons.cancel_outlined),
-                  label: const Text('Cancel task'),
-                  style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+                  destructive: true,
                 ),
-              if (status == 'in_progress')
-                ElevatedButton.icon(
+              if (status == 'in_progress') ...[
+                const SizedBox(height: 10),
+                _statusAction(
+                  label: 'Mark complete',
+                  icon: Icons.check_rounded,
                   onPressed: acting ? null : _complete,
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: const Text('Mark complete'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: taskOrange,
-                    foregroundColor: Colors.white,
-                  ),
                 ),
+              ],
             ]),
           ],
         ),
@@ -595,9 +593,23 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
     ),
   );
   Widget _attachment(dynamic raw) {
-    final a = raw is Map ? raw : <String, dynamic>{};
-    final name = '${a['file_name'] ?? 'Attachment'}';
-    final url = api.resolveImageUrl('${a['file_url'] ?? a['url'] ?? ''}');
+    final a = raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
+    final rawValue = raw is String ? raw : '';
+    final name =
+        '${a['file_name'] ?? a['name'] ?? a['filename'] ?? (rawValue.isNotEmpty ? rawValue.split('/').last : 'Attachment')}';
+    final fileValue = a['file'];
+    final rawUrl =
+        a['file_url'] ??
+        a['attachment_url'] ??
+        a['attachment'] ??
+        a['url'] ??
+        (fileValue is Map
+            ? (fileValue['url'] ?? fileValue['file_url'] ?? fileValue['path'])
+            : fileValue) ??
+        a['path'] ??
+        a['image_url'] ??
+        rawValue;
+    final url = api.resolveImageUrl('$rawUrl');
     final contentType = '${a['content_type'] ?? ''}'.toLowerCase();
     final image =
         contentType.startsWith('image/') ||
@@ -671,6 +683,43 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
     );
   }
 
+  Widget _statusAction({
+    required String label,
+    required IconData icon,
+    required VoidCallback? onPressed,
+    bool destructive = false,
+  }) => SizedBox(
+    width: double.infinity,
+    height: 50,
+    child: destructive
+        ? OutlinedButton.icon(
+            onPressed: onPressed,
+            icon: Icon(icon),
+            label: Text(label),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFFB42318),
+              side: const BorderSide(color: Color(0xFFF0A6A0)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              textStyle: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          )
+        : FilledButton.icon(
+            onPressed: onPressed,
+            icon: Icon(icon),
+            label: Text(label),
+            style: FilledButton.styleFrom(
+              backgroundColor: taskOrange,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              textStyle: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+  );
+
   Widget _pill(String value) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
     decoration: BoxDecoration(
@@ -689,58 +738,157 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
   Widget _bid(dynamic raw) {
     final b = raw is Map ? raw : <String, dynamic>{};
     final accepted = '${b['status']}' == 'accepted';
-    return Card(
-      color: const Color(0xFFF8FAFC),
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 10),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${b['technician_name'] ?? b['bidder'] ?? 'Technician'}',
-              style: const TextStyle(
-                color: taskNavy,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            Text(
-              '${b['amount'] ?? '—'} ${b['amount_type'] ?? ''}',
-              style: const TextStyle(
-                color: taskOrange,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            if ('${b['message'] ?? ''}'.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 7),
+    final technicianName =
+        '${b['technician_name'] ?? b['bidder_name'] ?? b['bidder'] ?? 'Technician'}';
+    final initials = technicianName.trim().isEmpty
+        ? 'T'
+        : technicianName
+              .trim()
+              .split(RegExp(r'\s+'))
+              .take(2)
+              .map((x) => x[0])
+              .join()
+              .toUpperCase();
+    final message = '${b['message'] ?? b['proposal'] ?? ''}'.trim();
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: const Color(0xFFFFE8E0),
                 child: Text(
-                  '${b['message']}',
-                  style: const TextStyle(color: taskMuted),
+                  initials,
+                  style: const TextStyle(
+                    color: taskOrange,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
-            Wrap(
-              spacing: 8,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  technicianName,
+                  style: const TextStyle(
+                    color: taskNavy,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              _proposalStatus('${b['status'] ?? 'pending'}'),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            '${b['amount'] ?? '—'} ${b['amount_type'] ?? ''}'.trim(),
+            style: const TextStyle(
+              color: taskOrange,
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          if (message.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              message,
+              style: const TextStyle(color: taskMuted, height: 1.45),
+            ),
+          ],
+          if ((!accepted && task['status'] == 'open') ||
+              b['technician'] != null) ...[
+            const SizedBox(height: 14),
+            Row(
               children: [
                 if (!accepted && task['status'] == 'open')
-                  TextButton(
-                    onPressed: acting ? null : () => _bidAction(b['id'], true),
-                    child: const Text('Accept'),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: acting
+                          ? null
+                          : () => _bidAction(b['id'], false),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFB42318),
+                        side: const BorderSide(color: Color(0xFFF0A6A0)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Reject'),
+                    ),
                   ),
                 if (!accepted && task['status'] == 'open')
-                  TextButton(
-                    onPressed: acting ? null : () => _bidAction(b['id'], false),
-                    child: const Text('Reject'),
+                  const SizedBox(width: 8),
+                if (!accepted && task['status'] == 'open')
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: acting
+                          ? null
+                          : () => _bidAction(b['id'], true),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: taskOrange,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Accept'),
+                    ),
                   ),
-                if (b['technician'] != null)
-                  TextButton(
-                    onPressed: () => _messageTech(b['technician']),
-                    child: const Text('Message'),
+                if (b['technician'] != null) ...[
+                  if (!accepted && task['status'] == 'open')
+                    const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _messageTech(b['technician']),
+                      icon: const Icon(Icons.chat_bubble_outline, size: 17),
+                      label: const Text('Message'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: taskNavy,
+                        side: const BorderSide(color: Color(0xFFCBD5E1)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
                   ),
+                ],
               ],
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _proposalStatus(String value) {
+    final normalized = value.toLowerCase();
+    final active = normalized == 'accepted';
+    final rejected = normalized == 'rejected';
+    final color = active
+        ? const Color(0xFF15803D)
+        : rejected
+        ? const Color(0xFFB42318)
+        : taskMuted;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .10),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        _label(value, fallback: 'Pending'),
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
