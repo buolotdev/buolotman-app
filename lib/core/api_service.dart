@@ -1083,7 +1083,7 @@ class ApiService {
     final data = _decodeDynamic(response);
     if (response.statusCode < 200 || response.statusCode >= 300)
       throw ApiException(
-        'Unable to save this information.',
+        _message(data, 'Unable to save this information.'),
         response.statusCode,
       );
     return data;

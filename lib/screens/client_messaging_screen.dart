@@ -468,15 +468,21 @@ class _ClientConversationState extends State<ClientConversationScreen> {
           bytes: file.bytes!,
           filename: file.name,
         );
+      final attachmentUrl = uploaded == null
+          ? ''
+          : '${uploaded['url'] ?? uploaded['file_url'] ?? uploaded['attachment_url'] ?? ''}';
+      if (file != null && attachmentUrl.isEmpty) {
+        throw const ApiException('The attachment upload returned no URL.', 500);
+      }
       final payload = <String, dynamic>{
         'text': text,
         if (uploaded != null) ...{
-          'attachment_url': uploaded['url'] ?? '',
-          'attachment_key': uploaded['key'] ?? '',
-          'attachment_name': uploaded['name'] ?? file?.name ?? '',
-          'attachment_type': uploaded['type'] ?? 'file',
-          'attachment_size': uploaded['size'] ?? file?.size ?? 0,
-          'attachment_content_type': uploaded['content_type'] ?? '',
+          'attachment_url': attachmentUrl,
+          'attachment_name':
+              uploaded['name'] ??
+              uploaded['file_name'] ??
+              file?.name ??
+              'Attachment',
         },
       };
       await api.sendMessage(widget.conversationId, payload);

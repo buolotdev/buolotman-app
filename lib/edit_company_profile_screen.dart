@@ -150,6 +150,8 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
       }
 
       await AppStateScope.of(context).updateCompanyProfile(data);
+      if (data['logo_url'] is String) _logoUrl = data['logo_url'] as String;
+      if (data['cover_url'] is String) _coverUrl = data['cover_url'] as String;
       _dirty = false;
 
       if (!mounted) return;

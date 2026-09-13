@@ -255,14 +255,17 @@ class _ConversationState extends State<TechnicianConversationScreen> {
           bytes: attachment!.bytes!,
           filename: attachment!.name,
         );
+      final attachmentUrl = attachment == null
+          ? ''
+          : '${uploaded['url'] ?? uploaded['file_url'] ?? uploaded['attachment_url'] ?? ''}';
+      if (attachment != null && attachmentUrl.isEmpty) {
+        throw const ApiException('The attachment upload returned no URL.', 500);
+      }
       await api.sendMessage(widget.conversationId, {
         'text': draft.text.trim(),
-        'attachment_url': uploaded['url'] ?? '',
-        'attachment_key': uploaded['key'] ?? '',
-        'attachment_name': uploaded['name'] ?? '',
-        'attachment_type': uploaded['type'] ?? 'file',
-        'attachment_size': uploaded['size'] ?? 0,
-        'attachment_content_type': uploaded['content_type'] ?? '',
+        'attachment_url': attachmentUrl,
+        'attachment_name':
+            uploaded['name'] ?? uploaded['file_name'] ?? attachment?.name ?? '',
       });
       draft.clear();
       attachment = null;

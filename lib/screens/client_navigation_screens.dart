@@ -891,8 +891,10 @@ class _ClientProfileState extends State<ClientProfileScreen> {
           filename: _pendingAvatarName ?? 'profile.jpg',
         );
         await api.updateProfile({'avatar_url': url});
+        avatar = api.resolveImageUrl(url);
       } else if (_removeAvatar) {
         await api.updateProfile({'avatar_url': ''});
+        avatar = null;
       }
       if (_pendingBanner != null) {
         final url = await api.uploadBannerBytes(
@@ -900,15 +902,20 @@ class _ClientProfileState extends State<ClientProfileScreen> {
           filename: _pendingBannerName ?? 'cover.jpg',
         );
         await api.updateProfile({'banner_url': url});
+        banner = api.resolveImageUrl(url);
       } else if (_removeBanner) {
         await api.updateProfile({'banner_url': ''});
+        banner = null;
       }
       _pendingAvatar = null;
       _pendingBanner = null;
       _removeAvatar = false;
       _removeBanner = false;
       _dirty = false;
-      if (mounted) _snack('Profile saved successfully.');
+      if (mounted) {
+        setState(() {});
+        _snack('Profile saved successfully.');
+      }
     } catch (_) {
       if (mounted)
         _snack(

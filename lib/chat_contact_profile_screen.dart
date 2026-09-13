@@ -18,61 +18,63 @@ class _ChatContactProfileState extends State<ChatContactProfileScreen> {
   late Future<dynamic> future = api.publicUserProfile(widget.userId);
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xFFF5F7FA),
-    appBar: AppBar(
-      title: const Text('Profile'),
-      foregroundColor: navy,
-      backgroundColor: Colors.white,
-    ),
-    body: FutureBuilder<dynamic>(
-      future: future,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator(color: orange));
-        }
-        if (snapshot.hasError || snapshot.data is! Map) {
-          return const Center(child: Text('Unable to load this profile.'));
-        }
-        final p = Map<String, dynamic>.from(snapshot.data as Map);
-        final name =
-            '${p['name'] ?? '${p['first_name'] ?? ''} ${p['last_name'] ?? ''}'}'
-                .trim();
-        final username = '${p['username'] ?? ''}'.trim();
-        final role = '${p['role'] ?? p['user_type'] ?? 'Member'}'.trim();
-        final avatar = api.resolveImageUrl(p['avatar_url'] as String?);
-        final normalizedRole = role.toLowerCase();
-
-        // Technicians already have a complete public-profile experience with
-        // tabs for services, portfolio, reviews, availability and rates.
-        // Chat used to open only this generic contact summary, which hid all
-        // of those fields.
-        if (normalizedRole.contains('technician') || normalizedRole == 'tech') {
-          final displaySkill =
-              (p['primary_occupation'] ??
-                      p['professional_title'] ??
-                      p['specialization'] ??
-                      p['trade'] ??
-                      'Technician')
-                  .toString();
-          final displayPrice =
-              (p['hourly_rate'] ?? p['starting_price'] ?? p['price'] ?? '')
-                  .toString();
-          final displayRating = (p['average_rating'] ?? p['rating'] ?? '0')
-              .toString();
-          return TechnicianPublicProfileScreen(
-            name: name.isEmpty ? 'Technician' : name,
-            skill: displaySkill,
-            avatar: avatar,
-            price: displayPrice,
-            rating: displayRating,
-            rawData: p,
-          );
-        }
-        final banner = api.resolveImageUrl(
-          (p['banner_url'] ?? p['cover_url']) as String?,
+  Widget build(BuildContext context) => FutureBuilder<dynamic>(
+    future: future,
+    builder: (context, snapshot) {
+      if (snapshot.connectionState != ConnectionState.done) {
+        return const Scaffold(
+          appBar: _ProfileAppBar(),
+          body: Center(child: CircularProgressIndicator(color: orange)),
         );
-        return ListView(
+      }
+      if (snapshot.hasError || snapshot.data is! Map) {
+        return const Scaffold(
+          appBar: _ProfileAppBar(),
+          body: Center(child: Text('Unable to load this profile.')),
+        );
+      }
+      final p = Map<String, dynamic>.from(snapshot.data as Map);
+      final name =
+          '${p['name'] ?? '${p['first_name'] ?? ''} ${p['last_name'] ?? ''}'}'
+              .trim();
+      final username = '${p['username'] ?? ''}'.trim();
+      final role = '${p['role'] ?? p['user_type'] ?? 'Member'}'.trim();
+      final avatar = api.resolveImageUrl(p['avatar_url'] as String?);
+      final normalizedRole = role.toLowerCase();
+
+      // Technicians already have a complete public-profile experience with
+      // tabs for services, portfolio, reviews, availability and rates.
+      // Chat used to open only this generic contact summary, which hid all
+      // of those fields.
+      if (normalizedRole.contains('technician') || normalizedRole == 'tech') {
+        final displaySkill =
+            (p['primary_occupation'] ??
+                    p['professional_title'] ??
+                    p['specialization'] ??
+                    p['trade'] ??
+                    'Technician')
+                .toString();
+        final displayPrice =
+            (p['hourly_rate'] ?? p['starting_price'] ?? p['price'] ?? '')
+                .toString();
+        final displayRating = (p['average_rating'] ?? p['rating'] ?? '0')
+            .toString();
+        return TechnicianPublicProfileScreen(
+          name: name.isEmpty ? 'Technician' : name,
+          skill: displaySkill,
+          avatar: avatar,
+          price: displayPrice,
+          rating: displayRating,
+          rawData: p,
+        );
+      }
+      final banner = api.resolveImageUrl(
+        (p['banner_url'] ?? p['cover_url']) as String?,
+      );
+      return Scaffold(
+        backgroundColor: const Color(0xFFF5F7FA),
+        appBar: const _ProfileAppBar(),
+        body: ListView(
           padding: EdgeInsets.zero,
           children: [
             SizedBox(
@@ -133,8 +135,22 @@ class _ChatContactProfileState extends State<ChatContactProfileScreen> {
               ),
             ),
           ],
-        );
-      },
-    ),
+        ),
+      );
+    },
   );
+}
+
+class _ProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const _ProfileAppBar();
+
+  @override
+  Widget build(BuildContext context) => AppBar(
+    title: const Text('Profile'),
+    foregroundColor: _ChatContactProfileState.navy,
+    backgroundColor: Colors.white,
+  );
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
