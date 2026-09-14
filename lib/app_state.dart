@@ -2091,9 +2091,33 @@ class AppState extends GetxController {
 
   bool isTechSaved(String techId) => _savedTechUserIds.contains(techId);
 
-  Future<void> toggleSavedTech(String techId) async {
+  Map<String, dynamic>? _savedProfessionalFrom(dynamic item) {
+    if (item is! Map) return null;
+    final map = Map<String, dynamic>.from(item);
+    dynamic raw =
+        map['professional'] ??
+        map['user'] ??
+        map['technician'] ??
+        map['saved_professional'] ??
+        map['professional_profile'];
+    raw ??= map;
+    if (raw is! Map) return null;
+    final prof = Map<String, dynamic>.from(raw);
+    final id =
+        prof['id'] ??
+        prof['user_id'] ??
+        prof['technician_id'] ??
+        map['professional_id'] ??
+        map['user_id'] ??
+        map['technician_id'];
+    if (id == null || id.toString().trim().isEmpty) return null;
+    prof['id'] = id;
+    return prof;
+  }
+
+  Future<bool> toggleSavedTech(String techId) async {
     final int id = int.tryParse(techId) ?? 0;
-    if (id == 0) return;
+    if (id == 0) return false;
 
     if (_savedTechUserIds.contains(techId)) {
       _savedTechUserIds.remove(techId);
@@ -2101,10 +2125,12 @@ class AppState extends GetxController {
       try {
         await ApiService.instance.unsaveProfessional(id);
         await syncSavedPros();
+        return true;
       } catch (e) {
         _savedTechUserIds.add(techId);
         update();
         debugPrint('Unsave professional error: $e');
+        return false;
       }
     } else {
       _savedTechUserIds.add(techId);
@@ -2112,10 +2138,12 @@ class AppState extends GetxController {
       try {
         await ApiService.instance.saveProfessional(id);
         await syncSavedPros();
+        return true;
       } catch (e) {
         _savedTechUserIds.remove(techId);
         update();
         debugPrint('Save professional error: $e');
+        return false;
       }
     }
   }
@@ -2123,19 +2151,24 @@ class AppState extends GetxController {
   Future<void> syncSavedPros() async {
     try {
       final list = await ApiService.instance.fetchSavedProfessionals();
-      _savedTechUserIds.clear();
-      _savedPros.clear();
+      final ids = <String>{};
+      final pros = <Map<String, dynamic>>[];
       for (final item in list) {
-        final Map<String, dynamic>? prof =
-            item['professional'] as Map<String, dynamic>?;
+        final prof = _savedProfessionalFrom(item);
         if (prof != null) {
-          final String? profId = prof['id']?.toString();
-          if (profId != null) {
-            _savedTechUserIds.add(profId);
-            _savedPros.add(prof);
+          final String profId = prof['id'].toString();
+          if (profId.trim().isNotEmpty) {
+            ids.add(profId);
+            pros.add(prof);
           }
         }
       }
+      _savedTechUserIds
+        ..clear()
+        ..addAll(ids);
+      _savedPros
+        ..clear()
+        ..addAll(pros);
       update();
     } catch (e) {
       debugPrint('Sync saved pros error: $e');

@@ -40,6 +40,12 @@ class ApiService {
 
   String? get accessToken => _accessToken;
 
+  Future<void> loadTokensFromStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    _accessToken ??= prefs.getString('access_token');
+    _refreshToken ??= prefs.getString('refresh_token');
+  }
+
   void setTokens(String? access, String? refresh) {
     _accessToken = access;
     _refreshToken = refresh;
@@ -164,6 +170,7 @@ class ApiService {
 
   Future<http.Response> get(String path, {bool requireAuth = true}) async {
     return _wrapRequest(() async {
+      if (requireAuth) await loadTokensFromStorage();
       final url = Uri.parse('$baseUrl$path');
       final response = await http.get(
         url,
@@ -179,6 +186,7 @@ class ApiService {
     bool requireAuth = true,
   }) async {
     return _wrapRequest(() async {
+      if (requireAuth) await loadTokensFromStorage();
       final url = Uri.parse('$baseUrl$path');
       final response = await http.post(
         url,
@@ -195,6 +203,7 @@ class ApiService {
     bool requireAuth = true,
   }) async {
     return _wrapRequest(() async {
+      if (requireAuth) await loadTokensFromStorage();
       final url = Uri.parse('$baseUrl$path');
       final response = await http.patch(
         url,
@@ -207,6 +216,7 @@ class ApiService {
 
   Future<http.Response> delete(String path, {bool requireAuth = true}) async {
     return _wrapRequest(() async {
+      if (requireAuth) await loadTokensFromStorage();
       final url = Uri.parse('$baseUrl$path');
       final response = await http.delete(
         url,
@@ -1299,7 +1309,15 @@ class ApiService {
   Future<List<dynamic>> fetchSavedProfessionals() async {
     final response = await get('/auth/saved-pros/');
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final decoded = jsonDecode(response.body);
+      if (decoded is List) return decoded;
+      if (decoded is Map && decoded['results'] is List) {
+        return decoded['results'] as List<dynamic>;
+      }
+      if (decoded is Map && decoded['data'] is List) {
+        return decoded['data'] as List<dynamic>;
+      }
+      return const [];
     } else {
       throw Exception('Failed to load saved professionals.');
     }

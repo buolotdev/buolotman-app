@@ -50,16 +50,164 @@ class _TechnicianPublicProfileScreenState
     super.dispose();
   }
 
+  String _clean(dynamic value, {String fallback = ''}) {
+    final text = value?.toString().trim() ?? '';
+    if (text.isEmpty) return fallback;
+    final lower = text.toLowerCase();
+    if (lower == 'null' || lower == 'none' || lower == 'undefined') {
+      return fallback;
+    }
+    if (text == '[]' || text == '{}') return fallback;
+    return text;
+  }
+
+  List<String> _cleanList(dynamic value) {
+    if (value is List) {
+      return value
+          .map(_clean)
+          .where((item) => item.isNotEmpty)
+          .toSet()
+          .toList();
+    }
+    final single = _clean(value);
+    return single.isEmpty ? <String>[] : <String>[single];
+  }
+
+  dynamic _firstValue(Map<String, dynamic> data, List<String> keys) {
+    for (final key in keys) {
+      final value = data[key];
+      if (value is List && value.isNotEmpty) return value;
+      if (value is Map && value.isNotEmpty) return value;
+      if (_clean(value).isNotEmpty) return value;
+    }
+    return null;
+  }
+
+  List<dynamic> _firstList(Map<String, dynamic> data, List<String> keys) {
+    final value = _firstValue(data, keys);
+    if (value is List) return value;
+    return const [];
+  }
+
+  Map<String, dynamic> _mergeProfileData(dynamic decoded) {
+    final merged = <String, dynamic>{...widget.rawData};
+    if (decoded is Map) {
+      final base = Map<String, dynamic>.from(decoded);
+      merged.addAll(base);
+      for (final key in const [
+        'profile',
+        'user',
+        'technician',
+        'technician_profile',
+        'professional',
+        'professional_profile',
+      ]) {
+        final nested = base[key];
+        if (nested is Map) {
+          merged.addAll(Map<String, dynamic>.from(nested));
+        }
+      }
+    }
+    return merged;
+  }
+
+  String _mediaUrl(dynamic value) {
+    final raw = _clean(value);
+    if (raw.isEmpty || raw.startsWith('data:image')) return raw;
+    final parsed = Uri.tryParse(raw);
+    if (parsed != null && parsed.hasScheme) return raw;
+    final serverBase = ApiService.instance.baseUrl.replaceFirst(
+      RegExp(r'/api/?$'),
+      '',
+    );
+    return '$serverBase${raw.startsWith('/') ? raw : '/$raw'}';
+  }
+
+  String _displayName(Map<String, dynamic> data) {
+    final direct = _clean(data['name']);
+    if (direct.isNotEmpty) return direct;
+    final combined = [
+      _clean(data['first_name']),
+      _clean(data['last_name']),
+    ].where((part) => part.isNotEmpty).join(' ').trim();
+    return combined.isNotEmpty
+        ? combined
+        : _clean(widget.name, fallback: 'Professional');
+  }
+
+  void _showImagePreview(String imageUrl, String title) {
+    if (imageUrl.isEmpty) return;
+    showDialog(
+      context: context,
+      builder: (context) => Dialog.fullscreen(
+        backgroundColor: Colors.black,
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                minScale: 0.75,
+                maxScale: 4,
+                child: imageUrl.startsWith('data:image')
+                    ? Image.memory(
+                        base64Decode(imageUrl.split(',').last),
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.broken_image_outlined,
+                          color: Colors.white70,
+                          size: 64,
+                        ),
+                      )
+                    : Image.network(
+                        imageUrl,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.broken_image_outlined,
+                          color: Colors.white70,
+                          size: 64,
+                        ),
+                      ),
+              ),
+            ),
+            SafeArea(
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: Colors.white),
+                  ),
+                  Expanded(
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 48),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _fetchFullProfile() async {
     try {
-      final String techId = widget.rawData['id']?.toString() ?? '';
+      final String techId = _clean(
+        _firstValue(widget.rawData, ['id', 'user_id', 'technician_id']),
+      );
       if (techId.isNotEmpty) {
         final response = await ApiService.instance.get('/auth/users/$techId/');
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           if (mounted) {
             setState(() {
-              _fullData = data is Map<String, dynamic> ? data : {};
+              _fullData = _mergeProfileData(data);
               _isLoading = false;
             });
             return;
@@ -81,34 +229,50 @@ class _TechnicianPublicProfileScreenState
   Widget build(BuildContext context) {
     final dataMap = _isLoading ? widget.rawData : _fullData;
 
-    final String bio = dataMap['bio']?.toString().trim().isNotEmpty == true
-        ? dataMap['bio'].toString().trim()
-        : "This professional hasn't uploaded a bio yet.";
+    final String displayName = _displayName(dataMap);
+    final String bio = _clean(
+      dataMap['bio'] ?? dataMap['about'],
+      fallback: "This professional hasn't uploaded a bio yet.",
+    );
 
-    final List<dynamic> dbSkills = dataMap['skills'] is List
-        ? dataMap['skills']
-        : [];
+    final List<String> dbSkills = _cleanList(
+      _firstValue(dataMap, [
+        'skills',
+        'skill_list',
+        'specialties',
+        'specializations',
+      ]),
+    );
     final List<String> specialties = dbSkills.isNotEmpty
         ? dbSkills
-              .map((s) => s.toString().trim())
-              .where((s) => s.isNotEmpty)
-              .toList()
-        : [widget.skill];
+        : _cleanList(widget.skill);
 
-    final List<dynamic> hierarchicalServices = dataMap['services'] is List
-        ? dataMap['services']
-        : [];
+    final List<dynamic> hierarchicalServices = _firstList(dataMap, [
+      'services',
+      'service_categories',
+      'offered_services',
+      'verified_services',
+    ]);
 
-    final List<dynamic> dbPortfolio = dataMap['portfolio'] is List
-        ? dataMap['portfolio']
-        : [];
-    final List<dynamic> dbReviews = dataMap['reviews'] is List
-        ? dataMap['reviews']
-        : [];
-    final List<dynamic> certifications = dataMap['certifications'] is List
-        ? dataMap['certifications']
-        : [];
-    final String experience = dataMap['experience']?.toString().trim() ?? '';
+    final List<dynamic> dbPortfolio = _firstList(dataMap, [
+      'portfolio',
+      'portfolio_items',
+      'projects',
+    ]);
+    final List<dynamic> dbReviews = _firstList(dataMap, [
+      'reviews',
+      'review_list',
+    ]);
+    final List<String> certifications = _cleanList(
+      _firstValue(dataMap, ['certifications', 'certificates']),
+    );
+    final String experience = _clean(
+      _firstValue(dataMap, [
+        'experience',
+        'experience_description',
+        'about_experience',
+      ]),
+    );
 
     final double ratingVal =
         double.tryParse(dataMap['average_rating']?.toString() ?? '') ?? 0.0;
@@ -129,35 +293,36 @@ class _TechnicianPublicProfileScreenState
         double.tryParse(dataMap['fixed_price']?.toString() ?? '') ?? 0.0;
     final double inspectionFeeVal =
         double.tryParse(dataMap['inspection_fee']?.toString() ?? '') ?? 0.0;
-    final List<dynamic> toolsList = dataMap['tools_and_equipment'] is List
-        ? dataMap['tools_and_equipment']
-        : [];
-    final List<dynamic> prefsList = dataMap['work_preferences'] is List
-        ? dataMap['work_preferences']
-        : [];
-    final List<dynamic> languages = dataMap['preferred_languages'] is List
-        ? dataMap['preferred_languages']
-        : [];
-    final List<dynamic> licences = dataMap['licences'] is List
-        ? dataMap['licences']
-        : [];
+    final List<String> toolsList = _cleanList(
+      _firstValue(dataMap, ['tools_and_equipment', 'tools', 'equipment']),
+    );
+    final List<String> prefsList = _cleanList(
+      _firstValue(dataMap, ['work_preferences', 'preferences']),
+    );
+    final List<String> languages = _cleanList(
+      _firstValue(dataMap, ['preferred_languages', 'languages']),
+    );
+    final List<String> licences = _cleanList(
+      _firstValue(dataMap, ['licences', 'licenses']),
+    );
 
-    final String priceText = _isLoading
-        ? (hourlyRateVal > 0
-              ? '\$${hourlyRateVal.toStringAsFixed(0)}/hr'
-              : '...')
-        : (hourlyRateVal > 0
-              ? '\$${hourlyRateVal.toStringAsFixed(0)}/hr'
-              : 'Rate not set');
-
-    final String avatarUrl =
-        (dataMap['avatar_url']?.toString().isNotEmpty == true)
-        ? dataMap['avatar_url']
-        : widget.avatar;
-    final String bannerUrl =
-        dataMap['banner_url']?.toString().isNotEmpty == true
-        ? dataMap['banner_url'].toString()
-        : (dataMap['cover_url']?.toString() ?? '');
+    final String avatarUrl = _mediaUrl(
+      _firstValue(dataMap, [
+            'avatar_url',
+            'profile_picture',
+            'profile_image',
+            'photo_url',
+          ]) ??
+          widget.avatar,
+    );
+    final String bannerUrl = _mediaUrl(
+      _firstValue(dataMap, [
+        'banner_url',
+        'cover_url',
+        'cover_image',
+        'cover_photo',
+      ]),
+    );
 
     final String availability =
         (dataMap['availability_status']?.toString() ?? 'available')
@@ -172,24 +337,28 @@ class _TechnicianPublicProfileScreenState
       availText = 'Offline';
     }
 
-    final String verificationBadge =
-        dataMap['verification_badge']?.toString() ?? 'Unverified';
-    final String tagline =
-        dataMap['tagline']?.toString().trim().isNotEmpty == true
-        ? dataMap['tagline'].toString()
-        : (dataMap['primary_occupation']?.toString().isNotEmpty == true
-              ? dataMap['primary_occupation']!
-              : 'Technician');
-    final String city = dataMap['city']?.toString() ?? '';
-    final String primaryOccupation =
-        dataMap['primary_occupation']?.toString() ?? '';
+    final String verificationBadge = _clean(
+      dataMap['verification_badge'],
+      fallback: 'Unverified',
+    );
+    final String tagline = _clean(
+      dataMap['tagline'],
+      fallback: _clean(dataMap['primary_occupation'], fallback: 'Technician'),
+    );
+    final String city = _clean(_firstValue(dataMap, ['city', 'town']));
+    final String country = _clean(_firstValue(dataMap, ['country', 'nation']));
+    final String primaryOccupation = _clean(dataMap['primary_occupation']);
     final int yearsExp =
         int.tryParse(dataMap['years_experience']?.toString() ?? '0') ?? 0;
 
     return GetBuilder<AppState>(
       builder: (appState) {
-        final String techId =
-            dataMap['id']?.toString() ?? widget.rawData['id']?.toString() ?? '';
+        final String techId = _clean(
+          _firstValue(dataMap, ['id', 'user_id', 'technician_id']),
+          fallback: _clean(
+            _firstValue(widget.rawData, ['id', 'user_id', 'technician_id']),
+          ),
+        );
         final bool isSaved = appState.isTechSaved(techId);
 
         return Scaffold(
@@ -202,7 +371,7 @@ class _TechnicianPublicProfileScreenState
               onPressed: () => Navigator.pop(context),
             ),
             title: Text(
-              widget.name,
+              displayName,
               style: const TextStyle(
                 color: Color(0xFF001F3F),
                 fontWeight: FontWeight.w700,
@@ -218,14 +387,17 @@ class _TechnicianPublicProfileScreenState
                       ? const Color(0xFFFF5500)
                       : const Color(0xFF001F3F),
                 ),
-                onPressed: () {
-                  appState.toggleSavedTech(techId);
+                onPressed: () async {
+                  final didUpdate = await appState.toggleSavedTech(techId);
+                  if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        !isSaved
-                            ? 'Added ${widget.name} to saved professionals.'
-                            : 'Removed ${widget.name} from saved professionals.',
+                        didUpdate
+                            ? (!isSaved
+                                  ? 'Added $displayName to saved professionals.'
+                                  : 'Removed $displayName from saved professionals.')
+                            : 'We could not update saved professionals. Please try again.',
                       ),
                       duration: const Duration(seconds: 2),
                     ),
@@ -294,14 +466,14 @@ class _TechnicianPublicProfileScreenState
                         _buildPersonalDetailRow(
                           Icons.email_outlined,
                           "Email",
-                          dataMap['email']?.toString() ?? 'N/A',
+                          _clean(dataMap['email'], fallback: 'Not provided'),
                         ),
                         _buildPersonalDetailRow(
                           Icons.location_on_outlined,
                           "Location",
                           [
                             if (city.isNotEmpty) city,
-                            dataMap['country']?.toString() ?? '',
+                            country,
                           ].where((e) => e.isNotEmpty).join(', '),
                         ),
                         if (primaryOccupation.isNotEmpty) ...[
@@ -312,13 +484,12 @@ class _TechnicianPublicProfileScreenState
                             primaryOccupation,
                           ),
                         ],
-                        if (dataMap['business_type'] != null &&
-                            dataMap['business_type'].toString().isNotEmpty) ...[
+                        if (_clean(dataMap['business_type']).isNotEmpty) ...[
                           const SizedBox(height: 8),
                           _buildPersonalDetailRow(
                             Icons.business_outlined,
                             "Business Type",
-                            dataMap['business_type'].toString(),
+                            _clean(dataMap['business_type']),
                           ),
                         ],
                         if (yearsExp > 0) ...[
@@ -400,7 +571,7 @@ class _TechnicianPublicProfileScreenState
                                             const SizedBox(width: 8),
                                             Expanded(
                                               child: Text(
-                                                c.toString(),
+                                                c,
                                                 style: const TextStyle(
                                                   fontSize: 13,
                                                   color: Color(0xFF001F3F),
@@ -427,7 +598,7 @@ class _TechnicianPublicProfileScreenState
                                             const SizedBox(width: 8),
                                             Expanded(
                                               child: Text(
-                                                l.toString(),
+                                                l,
                                                 style: const TextStyle(
                                                   fontSize: 13,
                                                   color: Color(0xFF001F3F),
@@ -445,9 +616,7 @@ class _TechnicianPublicProfileScreenState
                         const SizedBox(height: 12),
                         _isLoading
                             ? _buildLoading()
-                            : _buildSpecialtyTags(
-                                toolsList.map((e) => e.toString()).toList(),
-                              ),
+                            : _buildSpecialtyTags(toolsList),
                         const SizedBox(height: 28),
                         const SizedBox(height: 24),
                         _buildSectionHeader("Boulot Man Eligibility"),
@@ -590,7 +759,7 @@ class _TechnicianPublicProfileScreenState
                             Padding(
                               padding: const EdgeInsets.only(top: 8, bottom: 8),
                               child: Text(
-                                'Service Radius: ${dataMap["service_radius_km"] ?? 0} km',
+                                'Service Radius: ${_clean(dataMap["service_radius_km"], fallback: '0')} km',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF001F3F),
@@ -603,9 +772,7 @@ class _TechnicianPublicProfileScreenState
                         const SizedBox(height: 12),
                         _isLoading
                             ? _buildLoading()
-                            : _buildSpecialtyTags(
-                                prefsList.map((e) => e.toString()).toList(),
-                              ),
+                            : _buildSpecialtyTags(prefsList),
                         const SizedBox(height: 28),
                         _buildSectionHeader("Rates & Fees"),
                         const SizedBox(height: 12),
@@ -725,10 +892,24 @@ class _TechnicianPublicProfileScreenState
     return Column(
       children: [
         if (bannerUrl.isNotEmpty)
-          SizedBox(
-            width: double.infinity,
-            height: 156,
-            child: Image.network(bannerUrl, fit: BoxFit.cover),
+          GestureDetector(
+            onTap: () => _showImagePreview(bannerUrl, 'Cover photo'),
+            child: SizedBox(
+              width: double.infinity,
+              height: 156,
+              child: Image.network(
+                bannerUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: const Color(0xFFE2E8F0),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.broken_image_outlined,
+                    color: Color(0xFF94A3B8),
+                  ),
+                ),
+              ),
+            ),
           ),
         Container(
           width: double.infinity,
@@ -739,34 +920,39 @@ class _TechnicianPublicProfileScreenState
             children: [
               Stack(
                 children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: avatarUrl.isNotEmpty
-                          ? DecorationImage(
-                              image: avatarUrl.startsWith('data:image')
-                                  ? MemoryImage(
-                                      base64Decode(avatarUrl.split(',').last),
-                                    )
-                                  : getAvatarImageProvider(avatarUrl),
-                              fit: BoxFit.cover,
+                  GestureDetector(
+                    onTap: avatarUrl.isEmpty
+                        ? null
+                        : () => _showImagePreview(avatarUrl, 'Profile photo'),
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: avatarUrl.isNotEmpty
+                            ? DecorationImage(
+                                image: avatarUrl.startsWith('data:image')
+                                    ? MemoryImage(
+                                        base64Decode(avatarUrl.split(',').last),
+                                      )
+                                    : getAvatarImageProvider(avatarUrl),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                        color: const Color(0xFFF1F5F9),
+                        border: Border.all(
+                          color: const Color(0xFFE2E8F0),
+                          width: 2,
+                        ),
+                      ),
+                      child: avatarUrl.isEmpty
+                          ? const Icon(
+                              Icons.person,
+                              size: 40,
+                              color: Color(0xFF94A3B8),
                             )
                           : null,
-                      color: const Color(0xFFF1F5F9),
-                      border: Border.all(
-                        color: const Color(0xFFE2E8F0),
-                        width: 2,
-                      ),
                     ),
-                    child: avatarUrl.isEmpty
-                        ? const Icon(
-                            Icons.person,
-                            size: 40,
-                            color: Color(0xFF94A3B8),
-                          )
-                        : null,
                   ),
                   Positioned(
                     bottom: 0,
@@ -789,7 +975,7 @@ class _TechnicianPublicProfileScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.name,
+                      _displayName(_isLoading ? widget.rawData : _fullData),
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
@@ -1241,6 +1427,28 @@ class _TechnicianPublicProfileScreenState
     }
     return Column(
       children: services.map((s) {
+        final service = s is Map ? Map<String, dynamic>.from(s) : {};
+        final serviceName = _clean(
+          service['service_name'] ?? service['name'] ?? service['title'],
+          fallback: 'Service',
+        );
+        final category = _clean(
+          service['category_name'] ??
+              (service['category'] is Map
+                  ? service['category']['name']
+                  : service['category']),
+        );
+        final subcategory = _clean(
+          service['subcategory_name'] ??
+              service['skill_name'] ??
+              (service['subcategory'] is Map
+                  ? service['subcategory']['name']
+                  : service['subcategory']),
+        );
+        final categoryLine = [
+          category,
+          subcategory,
+        ].where((part) => part.isNotEmpty).join(' > ');
         return Container(
           width: double.infinity,
           margin: const EdgeInsets.only(bottom: 12),
@@ -1257,7 +1465,7 @@ class _TechnicianPublicProfileScreenState
                 children: [
                   Expanded(
                     child: Text(
-                      s['service_name'] ?? 'Unknown',
+                      serviceName,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -1265,7 +1473,7 @@ class _TechnicianPublicProfileScreenState
                       ),
                     ),
                   ),
-                  if (s['is_verified_skill'] == true)
+                  if (service['is_verified_skill'] == true)
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 6,
@@ -1297,11 +1505,16 @@ class _TechnicianPublicProfileScreenState
                     ),
                 ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                '${s["category_name"]} > ${s["subcategory_name"]}',
-                style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
-              ),
+              if (categoryLine.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  categoryLine,
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
             ],
           ),
         );
@@ -1341,12 +1554,17 @@ class _TechnicianPublicProfileScreenState
       ),
       itemCount: portfolio.length,
       itemBuilder: (context, index) {
-        final item = portfolio[index];
-        final String title = item['title']?.toString() ?? 'Project Title';
-        final String desc =
-            item['description']?.toString() ??
-            'Woodwork / Electric Project Details';
-        final String imageUrl = item['image_url']?.toString() ?? '';
+        final item = portfolio[index] is Map
+            ? Map<String, dynamic>.from(portfolio[index] as Map)
+            : <String, dynamic>{};
+        final String title = _clean(item['title'], fallback: 'Project');
+        final String desc = _clean(
+          item['description'],
+          fallback: 'No description provided.',
+        );
+        final String imageUrl = _mediaUrl(
+          item['image_url'] ?? item['image'] ?? item['file_url'],
+        );
 
         return Container(
           decoration: BoxDecoration(
@@ -1432,10 +1650,19 @@ class _TechnicianPublicProfileScreenState
 
     return Column(
       children: reviews.map((item) {
-        final reviewer = item['reviewer_name']?.toString() ?? 'Client';
+        final review = item is Map
+            ? Map<String, dynamic>.from(item)
+            : <String, dynamic>{};
+        final reviewer = _clean(
+          review['reviewer_name'] ?? review['client_name'] ?? review['name'],
+          fallback: 'Client',
+        );
         final double score =
-            double.tryParse(item['rating']?.toString() ?? '5.0') ?? 5.0;
-        final comment = item['comment']?.toString() ?? 'No comment provided';
+            double.tryParse(_clean(review['rating'], fallback: '5.0')) ?? 5.0;
+        final comment = _clean(
+          review['comment'] ?? review['body'],
+          fallback: 'No comment provided.',
+        );
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 8.0),

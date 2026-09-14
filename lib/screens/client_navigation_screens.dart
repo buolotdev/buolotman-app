@@ -15,6 +15,7 @@ import '../profile_media_actions.dart';
 import '../core/username_utils.dart';
 import '../phone_validation.dart';
 import '../discard_changes.dart';
+import '../chat_contact_profile_screen.dart';
 
 const clientNavy = Color(0xFF001F3F),
     clientOrange = Color(0xFFFF4500),
@@ -1556,6 +1557,41 @@ class ClientSavedScreen extends StatefulWidget {
 class _SavedState extends State<ClientSavedScreen> {
   final api = ApiService();
   late Future<List<dynamic>> future = api.savedProfessionals();
+
+  String _clean(dynamic value, {String fallback = ''}) {
+    final text = value?.toString().trim() ?? '';
+    if (text.isEmpty) return fallback;
+    final lower = text.toLowerCase();
+    if (lower == 'null' || lower == 'none' || lower == 'undefined') {
+      return fallback;
+    }
+    return text;
+  }
+
+  Map<String, dynamic>? _savedProfessionalFrom(dynamic item) {
+    if (item is! Map) return null;
+    final map = Map<String, dynamic>.from(item);
+    dynamic raw =
+        map['professional'] ??
+        map['user'] ??
+        map['technician'] ??
+        map['saved_professional'] ??
+        map['professional_profile'];
+    raw ??= map;
+    if (raw is! Map) return null;
+    final person = Map<String, dynamic>.from(raw);
+    final id =
+        person['id'] ??
+        person['user_id'] ??
+        person['technician_id'] ??
+        map['professional_id'] ??
+        map['user_id'] ??
+        map['technician_id'];
+    if (id == null || id.toString().trim().isEmpty) return null;
+    person['id'] = id;
+    return person;
+  }
+
   Future<void> remove(dynamic id) async {
     try {
       await api.unsaveProfessional(id);
@@ -1582,9 +1618,7 @@ class _SavedState extends State<ClientSavedScreen> {
     if (id != null)
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => ClientPublicProfessionalScreen(userId: id),
-        ),
+        MaterialPageRoute(builder: (_) => ChatContactProfileScreen(userId: id)),
       );
   }
 
@@ -1617,7 +1651,10 @@ class _SavedState extends State<ClientSavedScreen> {
           return const Center(
             child: CircularProgressIndicator(color: clientOrange),
           );
-        final list = snapshot.data ?? const [];
+        final list = (snapshot.data ?? const [])
+            .map(_savedProfessionalFrom)
+            .whereType<Map<String, dynamic>>()
+            .toList();
         if (list.isEmpty)
           return const Center(
             child: Text(
@@ -1629,13 +1666,20 @@ class _SavedState extends State<ClientSavedScreen> {
           padding: const EdgeInsets.all(16),
           itemCount: list.length,
           itemBuilder: (_, i) {
-            final x = list[i] is Map ? list[i] as Map : <String, dynamic>{};
-            final person = x['professional'] is Map
-                ? Map<String, dynamic>.from(x['professional'] as Map)
-                : Map<String, dynamic>.from(x);
-            final name =
-                '${person['name'] ?? '${person['first_name'] ?? ''} ${person['last_name'] ?? ''}'}'
-                    .trim();
+            final person = list[i];
+            final name = _clean(person['name']).isNotEmpty
+                ? _clean(person['name'])
+                : '${_clean(person['first_name'])} ${_clean(person['last_name'])}'
+                      .trim();
+            final role = _clean(person['role'], fallback: 'Professional');
+            final city = _clean(person['city']);
+            final avatar = api.resolveImageUrl(
+              _clean(
+                person['avatar_url'] ??
+                    person['profile_picture'] ??
+                    person['profile_image'],
+              ),
+            );
             return Card(
               elevation: 0,
               margin: const EdgeInsets.only(bottom: 12),
@@ -1649,24 +1693,10 @@ class _SavedState extends State<ClientSavedScreen> {
                       CircleAvatar(
                         radius: 26,
                         backgroundColor: const Color(0xFFFFE8E0),
-                        backgroundImage:
-                            api
-                                .resolveImageUrl(
-                                  person['avatar_url'] as String?,
-                                )
-                                .isEmpty
+                        backgroundImage: avatar.isEmpty
                             ? null
-                            : NetworkImage(
-                                api.resolveImageUrl(
-                                  person['avatar_url'] as String?,
-                                ),
-                              ),
-                        child:
-                            api
-                                .resolveImageUrl(
-                                  person['avatar_url'] as String?,
-                                )
-                                .isEmpty
+                            : NetworkImage(avatar),
+                        child: avatar.isEmpty
                             ? const Icon(
                                 Icons.person_outline,
                                 color: clientOrange,
@@ -1686,7 +1716,10 @@ class _SavedState extends State<ClientSavedScreen> {
                               ),
                             ),
                             Text(
-                              '${person['role'] ?? 'Professional'} • ${person['city'] ?? ''}',
+                              [
+                                role,
+                                city,
+                              ].where((part) => part.isNotEmpty).join(' • '),
                               style: const TextStyle(color: clientMuted),
                             ),
                             const SizedBox(height: 9),
@@ -1715,7 +1748,7 @@ class _SavedState extends State<ClientSavedScreen> {
                         ),
                       ),
                       IconButton(
-                        onPressed: x['id'] == null
+                        onPressed: person['id'] == null
                             ? null
                             : () => remove(person['id']),
                         icon: const Icon(Icons.bookmark, color: clientOrange),

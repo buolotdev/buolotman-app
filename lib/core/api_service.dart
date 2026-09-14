@@ -1024,6 +1024,12 @@ class ApiService {
         response.statusCode,
       );
     final decoded = jsonDecode(response.body);
+    if (decoded is Map && decoded['results'] is List) {
+      return decoded['results'] as List<dynamic>;
+    }
+    if (decoded is Map && decoded['data'] is List) {
+      return decoded['data'] as List<dynamic>;
+    }
     return decoded is List ? decoded : const [];
   }
 
