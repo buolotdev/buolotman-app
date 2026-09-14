@@ -619,7 +619,19 @@ class _ClientConversationState extends State<ClientConversationScreen> {
                   reverse: false,
                   padding: const EdgeInsets.all(14),
                   itemCount: messages.length,
-                  itemBuilder: (_, i) => _bubble(messages[i]),
+                  itemBuilder: (_, i) {
+                    final previous = i > 0 ? messages[i - 1] : null;
+                    final currentDate = _messageDate(messages[i]);
+                    final showDate =
+                        i == 0 ||
+                        !_sameDay(currentDate, _messageDate(previous));
+                    return Column(
+                      children: [
+                        if (showDate) _dateDivider(currentDate),
+                        _bubble(messages[i]),
+                      ],
+                    );
+                  },
                 ),
         ),
         if (attachment != null)
@@ -774,10 +786,75 @@ class _ClientConversationState extends State<ClientConversationScreen> {
   }
 
   String _time(dynamic value) {
-    final date = DateTime.tryParse('$value');
-    return date == null
-        ? ''
-        : '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    final date = DateTime.tryParse('$value')?.toLocal();
+    if (date == null) return '';
+    final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
+    final minute = date.minute.toString().padLeft(2, '0');
+    final period = date.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $period';
+  }
+
+  DateTime? _messageDate(dynamic raw) {
+    if (raw is! Map) return null;
+    return DateTime.tryParse(
+      '${raw['created_at'] ?? raw['timestamp']}',
+    )?.toLocal();
+  }
+
+  bool _sameDay(DateTime? a, DateTime? b) {
+    if (a == null || b == null) return false;
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  String _dateLabel(DateTime? date) {
+    if (date == null) return '';
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(date.year, date.month, date.day);
+    final diff = today.difference(day).inDays;
+    if (diff == 0) return 'Today';
+    if (diff == 1) return 'Yesterday';
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  Widget _dateDivider(DateTime? date) {
+    final label = _dateLabel(date);
+    if (label.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12, top: 4),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: messageMuted,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   String _lastSeen(Map other) =>

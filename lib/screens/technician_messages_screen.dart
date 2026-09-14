@@ -417,6 +417,11 @@ class _ConversationState extends State<TechnicianConversationScreen> {
                       padding: const EdgeInsets.all(14),
                       itemCount: messages.length,
                       itemBuilder: (_, i) {
+                        final previous = i > 0 ? messages[i - 1] : null;
+                        final currentDate = _messageDate(messages[i]);
+                        final showDate =
+                            i == 0 ||
+                            !_sameDay(currentDate, _messageDate(previous));
                         final m = messages[i] is Map ? messages[i] as Map : {};
                         final mine = '${m['sender']}' == '$currentUserId';
                         final text = '${m['text'] ?? ''}';
@@ -430,51 +435,78 @@ class _ConversationState extends State<TechnicianConversationScreen> {
                             m['delivered_at'] != null ||
                             m['is_delivered'] == true ||
                             '${m['status']}'.toLowerCase() == 'delivered';
-                        return Align(
-                          alignment: mine
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
-                          child: Container(
-                            constraints: const BoxConstraints(maxWidth: 310),
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: mine ? orange : Colors.white,
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (text.isNotEmpty)
-                                  Text(
-                                    text,
-                                    style: TextStyle(
-                                      color: mine ? Colors.white : navy,
-                                    ),
-                                  ),
-                                if (url.isNotEmpty)
-                                  InkWell(
-                                    onTap: () => _notice(
-                                      'Attachment: ${m['attachment_name'] ?? 'file'}',
-                                    ),
-                                    child: Text(
-                                      '📎 ${m['attachment_name'] ?? 'Attachment'}',
-                                      style: TextStyle(
-                                        color: mine ? Colors.white : orange,
-                                        fontWeight: FontWeight.w700,
+                        return Column(
+                          children: [
+                            if (showDate) _dateDivider(currentDate),
+                            Align(
+                              alignment: mine
+                                  ? Alignment.centerRight
+                                  : Alignment.centerLeft,
+                              child: Container(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 310,
+                                ),
+                                margin: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: mine ? orange : Colors.white,
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (text.isNotEmpty)
+                                      Text(
+                                        text,
+                                        style: TextStyle(
+                                          color: mine ? Colors.white : navy,
+                                        ),
                                       ),
+                                    if (url.isNotEmpty)
+                                      InkWell(
+                                        onTap: () => _notice(
+                                          'Attachment: ${m['attachment_name'] ?? 'file'}',
+                                        ),
+                                        child: Text(
+                                          'Attachment: ${m['attachment_name'] ?? 'Attachment'}',
+                                          style: TextStyle(
+                                            color: mine ? Colors.white : orange,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    const SizedBox(height: 3),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          _time(m['created_at']),
+                                          style: TextStyle(
+                                            color: mine
+                                                ? Colors.white70
+                                                : muted,
+                                            fontSize: 10,
+                                          ),
+                                        ),
+                                        if (mine) ...[
+                                          const SizedBox(width: 4),
+                                          Icon(
+                                            delivered
+                                                ? Icons.done_all
+                                                : Icons.done,
+                                            size: 14,
+                                            color: read
+                                                ? Colors.white
+                                                : Colors.white70,
+                                          ),
+                                        ],
+                                      ],
                                     ),
-                                  ),
-                                const SizedBox(height: 3),
-                                if (mine)
-                                  Icon(
-                                    delivered ? Icons.done_all : Icons.done,
-                                    size: 14,
-                                    color: read ? Colors.white : Colors.white70,
-                                  ),
-                              ],
+                                  ],
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         );
                       },
                     ),
@@ -520,4 +552,76 @@ class _ConversationState extends State<TechnicianConversationScreen> {
       },
     ),
   );
+
+  String _time(dynamic value) {
+    final date = DateTime.tryParse('$value')?.toLocal();
+    if (date == null) return '';
+    final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
+    final minute = date.minute.toString().padLeft(2, '0');
+    final period = date.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $period';
+  }
+
+  DateTime? _messageDate(dynamic raw) {
+    if (raw is! Map) return null;
+    return DateTime.tryParse(
+      '${raw['created_at'] ?? raw['timestamp']}',
+    )?.toLocal();
+  }
+
+  bool _sameDay(DateTime? a, DateTime? b) {
+    if (a == null || b == null) return false;
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  String _dateLabel(DateTime? date) {
+    if (date == null) return '';
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(date.year, date.month, date.day);
+    final diff = today.difference(day).inDays;
+    if (diff == 0) return 'Today';
+    if (diff == 1) return 'Yesterday';
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  Widget _dateDivider(DateTime? date) {
+    final label = _dateLabel(date);
+    if (label.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12, top: 4),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: muted,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
