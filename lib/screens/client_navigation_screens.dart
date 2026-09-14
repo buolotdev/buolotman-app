@@ -1688,70 +1688,97 @@ class _SavedState extends State<ClientSavedScreen> {
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
                   padding: const EdgeInsets.all(14),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CircleAvatar(
-                        radius: 26,
-                        backgroundColor: const Color(0xFFFFE8E0),
-                        backgroundImage: avatar.isEmpty
-                            ? null
-                            : NetworkImage(avatar),
-                        child: avatar.isEmpty
-                            ? const Icon(
-                                Icons.person_outline,
-                                color: clientOrange,
-                              )
-                            : null,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              name.isEmpty ? 'Professional' : name,
-                              style: const TextStyle(
-                                color: clientNavy,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            Text(
-                              [
-                                role,
-                                city,
-                              ].where((part) => part.isNotEmpty).join(' • '),
-                              style: const TextStyle(color: clientMuted),
-                            ),
-                            const SizedBox(height: 9),
-                            Row(
-                              children: [
-                                OutlinedButton.icon(
-                                  onPressed: () => openProfile(person),
-                                  icon: const Icon(
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            radius: 26,
+                            backgroundColor: const Color(0xFFFFE8E0),
+                            backgroundImage: avatar.isEmpty
+                                ? null
+                                : NetworkImage(avatar),
+                            child: avatar.isEmpty
+                                ? const Icon(
                                     Icons.person_outline,
-                                    size: 16,
+                                    color: clientOrange,
+                                  )
+                                : null,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name.isEmpty ? 'Professional' : name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: clientNavy,
+                                    fontWeight: FontWeight.w800,
                                   ),
-                                  label: const Text('View profile'),
                                 ),
-                                const SizedBox(width: 8),
-                                OutlinedButton.icon(
-                                  onPressed: () => message(person),
-                                  icon: const Icon(
-                                    Icons.message_outlined,
-                                    size: 16,
-                                  ),
-                                  label: const Text('Message'),
+                                const SizedBox(height: 2),
+                                Text(
+                                  [role, city]
+                                      .where((part) => part.isNotEmpty)
+                                      .join(' • '),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: clientMuted),
                                 ),
                               ],
                             ),
-                          ],
-                        ),
+                          ),
+                          IconButton(
+                            tooltip: 'Remove from saved',
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 36,
+                              minHeight: 36,
+                            ),
+                            onPressed: person['id'] == null
+                                ? null
+                                : () => remove(person['id']),
+                            icon: const Icon(
+                              Icons.bookmark,
+                              color: clientOrange,
+                            ),
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        onPressed: person['id'] == null
-                            ? null
-                            : () => remove(person['id']),
-                        icon: const Icon(Icons.bookmark, color: clientOrange),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => openProfile(person),
+                              icon: const Icon(Icons.person_outline, size: 16),
+                              label: const Text(
+                                'View profile',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => message(person),
+                              icon: const Icon(
+                                Icons.message_outlined,
+                                size: 16,
+                              ),
+                              label: const Text(
+                                'Message',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
