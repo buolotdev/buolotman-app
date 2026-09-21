@@ -189,44 +189,25 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
             const SizedBox(height: 12),
             Text(
               verified
-                  ? 'Your identity has been approved by the Boulot Man administration team.'
-                  : 'Submit one government ID so the administration team can review your account.',
+                  ? 'Your account has been approved by the Boulot Man administration team.'
+                  : 'Account approval is handled by the administration team after registration. No client documents are required here.',
               style: const TextStyle(color: clientMuted, height: 1.4),
             ),
             const SizedBox(height: 14),
-            if (!verified)
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ClientVerificationScreen(),
-                    ),
-                  ).then((_) => _load()),
-                  icon: const Icon(Icons.upload_file),
-                  label: const Text('Submit verification documents'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: clientOrange,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size.fromHeight(46),
-                  ),
+            const Row(
+              children: [
+                Icon(
+                  Icons.admin_panel_settings_outlined,
+                  color: clientOrange,
+                  size: 19,
                 ),
-              )
-            else
-              const Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.green, size: 19),
-                  SizedBox(width: 8),
-                  Text(
-                    'Verified account benefits are unlocked.',
-                    style: TextStyle(
-                      color: Colors.green,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
+                SizedBox(width: 8),
+                Text(
+                  'Status is managed by administration.',
+                  style: TextStyle(color: clientMuted),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -1436,14 +1417,12 @@ class _ClientProfileState extends State<ClientProfileScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    trailing: TextButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const ClientVerificationScreen(),
-                        ),
+                    trailing: Text(
+                      verified ? 'Approved' : 'Pending',
+                      style: TextStyle(
+                        color: verified ? Colors.green : clientOrange,
+                        fontWeight: FontWeight.w600,
                       ),
-                      child: const Text('View status'),
                     ),
                   );
                 },
