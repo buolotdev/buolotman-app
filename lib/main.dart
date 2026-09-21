@@ -6,6 +6,8 @@ import 'screens/technician_dashboard_screen.dart';
 import 'screens/client_dashboard_screen.dart';
 import 'screens/company_dashboard_screen.dart';
 import 'core/api_service.dart';
+import 'app_state.dart';
+import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'push_notification_service.dart';
@@ -19,6 +21,12 @@ void main() async {
     await prefs.remove('backend_ip_override');
   } catch (e) {
     debugPrint('Failed to load backend IP override: $e');
+  }
+  // Legacy and shared flows (including phone OTP registration) use
+  // AppStateScope. Register it before any route can be displayed so signup,
+  // login, password reset, and post-auth screens share the same state.
+  if (!Get.isRegistered<AppState>()) {
+    Get.put(AppState(), permanent: true);
   }
   runApp(const MyApp());
 }
