@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/api_service.dart';
 import 'technician_navigation.dart';
 import 'technician_area_screens.dart';
+import 'technician_messages_screen.dart';
 
 class TechnicianBidsManagementScreen extends StatefulWidget {
   const TechnicianBidsManagementScreen({super.key});
@@ -52,6 +53,115 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
 
   Future<void> _reload() async => setState(() => future = api.myBids());
 
+  Future<void> _editBid(Map bid) async {
+    final id = bid['id'];
+    if (id == null) return;
+    final amount = TextEditingController(text: '${bid['amount'] ?? ''}');
+    final duration = TextEditingController(
+      text: '${bid['duration'] ?? bid['timeline'] ?? ''}',
+    );
+    final message = TextEditingController(
+      text: '${bid['message'] ?? bid['proposal'] ?? ''}',
+    );
+    final extra = TextEditingController(
+      text: '${bid['extra_notes'] ?? bid['extra'] ?? ''}',
+    );
+    final formKey = GlobalKey<FormState>();
+    final values = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Edit bid'),
+        content: Form(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: amount,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(labelText: 'Amount (XOF)'),
+                  validator: (value) =>
+                      double.tryParse(value?.trim() ?? '') == null
+                      ? 'Enter a valid amount'
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: duration,
+                  decoration: const InputDecoration(
+                    labelText: 'Delivery duration',
+                  ),
+                  validator: (value) => value == null || value.trim().isEmpty
+                      ? 'Enter a delivery duration'
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: message,
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    labelText: 'Proposal message',
+                  ),
+                  validator: (value) => value == null || value.trim().isEmpty
+                      ? 'Enter your proposal message'
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: extra,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Extra notes (optional)',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState?.validate() != true) return;
+              Navigator.pop(context, {
+                'amount': double.parse(amount.text.trim()),
+                'duration': duration.text.trim(),
+                'message': message.text.trim(),
+                'extra_notes': extra.text.trim(),
+              });
+            },
+            child: const Text('Save bid'),
+          ),
+        ],
+      ),
+    );
+    amount.dispose();
+    duration.dispose();
+    message.dispose();
+    extra.dispose();
+    if (values == null) return;
+    try {
+      await api.updateBid(id, values);
+      if (!mounted) return;
+      setState(() => future = api.myBids());
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Bid updated.')));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('We could not update this bid.')),
+        );
+      }
+    }
+  }
+
   Future<void> _withdraw(Map bid) async {
     final id = bid['id'];
     if (id == null) return;
@@ -92,8 +202,13 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
   }
 
   Future<void> _messageClient(Map bid) async {
-    final client = bid['client_id'] ?? bid['client_user_id'] ?? bid['client'];
-    final task = bid['task_id'] ?? bid['task'];
+    final clientValue =
+        bid['client_id'] ?? bid['client_user_id'] ?? bid['client'];
+    final client = clientValue is Map
+        ? clientValue['id'] ?? clientValue['user_id']
+        : clientValue;
+    final taskValue = bid['task_id'] ?? bid['task'];
+    final task = taskValue is Map ? taskValue['id'] : taskValue;
     if (client == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -103,11 +218,29 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
       return;
     }
     try {
-      await api.createConversation(client, taskId: task);
+      final created = await api.createConversation(client, taskId: task);
+      final conversation = created is Map
+          ? (created['conversation'] is Map
+                ? created['conversation'] as Map
+                : created)
+          : const <String, dynamic>{};
+      final conversationId =
+          conversation['id'] ??
+          (created is Map ? created['conversation_id'] : null);
+      if (conversationId == null) {
+        throw const ApiException(
+          'The conversation was created but no chat ID was returned.',
+          500,
+        );
+      }
       if (mounted)
-        ScaffoldMessenger.of(
+        await Navigator.push(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Conversation opened.')));
+          MaterialPageRoute(
+            builder: (_) =>
+                TechnicianConversationScreen(conversationId: conversationId),
+          ),
+        );
     } catch (_) {
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
@@ -320,6 +453,12 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
               spacing: 8,
               runSpacing: 8,
               children: [
+                if (status == 'pending')
+                  OutlinedButton.icon(
+                    onPressed: () => _editBid(bid),
+                    icon: const Icon(Icons.edit_outlined),
+                    label: const Text('Edit bid'),
+                  ),
                 if (status == 'pending')
                   OutlinedButton.icon(
                     onPressed: () => _withdraw(bid),

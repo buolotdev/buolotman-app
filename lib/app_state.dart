@@ -48,6 +48,8 @@ class AppState extends GetxController {
   List<Map<String, dynamic>> _technicianReferences = [];
   List<Map<String, dynamic>> _apiCategories = [];
   List<Map<String, dynamic>> _companyProjects = [];
+  List<Map<String, dynamic>> _companyQuotes = [];
+  List<Map<String, dynamic>> _companyServices = [];
   List<Map<String, dynamic>> _clientContracts = [];
 
   String? _companyRegistrationStatus;
@@ -79,6 +81,10 @@ class AppState extends GetxController {
       List.unmodifiable(_technicianReferences);
   List<Map<String, dynamic>> get companyProjects =>
       List.unmodifiable(_companyProjects);
+  List<Map<String, dynamic>> get companyQuotes =>
+      List.unmodifiable(_companyQuotes);
+  List<Map<String, dynamic>> get companyServices =>
+      List.unmodifiable(_companyServices);
   List<Map<String, dynamic>> get clientContracts =>
       List.unmodifiable(_clientContracts);
   String? get companyRegistrationStatus => _companyRegistrationStatus;
@@ -86,6 +92,33 @@ class AppState extends GetxController {
   String? get verificationStatus => _verificationStatus;
   String? get verificationSummary => _verificationSummary;
   Map<String, dynamic>? get companyProfile => _companyProfile;
+
+  Future<void> syncCompanyQuotes() async {
+    final response = await ApiService.instance.get('/company/quotes/');
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('Unable to load quote requests.');
+    }
+    final decoded = jsonDecode(response.body);
+    final values = decoded is Map && decoded['results'] is List
+        ? decoded['results'] as List
+        : decoded is List
+        ? decoded
+        : const [];
+    _companyQuotes = values.whereType<Map>().map((value) {
+      return Map<String, dynamic>.from(value);
+    }).toList();
+    update();
+  }
+
+  Future<void> updateCompanyQuote(String id, String status) async {
+    final response = await ApiService.instance.patch('/company/quotes/$id/', {
+      'status': status,
+    });
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('Unable to update quote request.');
+    }
+    await syncCompanyQuotes();
+  }
 
   List<TaskItem> get openMarketplaceTasks =>
       List.unmodifiable(_marketplaceTasks);
@@ -1061,6 +1094,22 @@ class AppState extends GetxController {
     update();
   }
 
+  Future<void> syncPublicProfessionals() async {
+    try {
+      final pros = await ApiService.instance.fetchPublicUsers(
+        role: 'TECHNICIAN',
+      );
+      _publicPros = pros
+          .whereType<Map>()
+          .map((user) => Map<String, dynamic>.from(user))
+          .toList();
+      update();
+    } catch (e) {
+      debugPrint('Sync public professionals error: $e');
+      rethrow;
+    }
+  }
+
   Future<void> syncMyServices() async {
     try {
       List<dynamic> backendServices = [];
@@ -1071,6 +1120,11 @@ class AppState extends GetxController {
       }
 
       if (backendServices.isNotEmpty) {
+        if (currentRole == 'Company') {
+          _companyServices = backendServices.whereType<Map>().map((item) {
+            return Map<String, dynamic>.from(item);
+          }).toList();
+        }
         final mapped = backendServices.map((item) {
           String priceLabel;
           if (currentRole == 'Company') {
@@ -2040,8 +2094,13 @@ class AppState extends GetxController {
   Future<void> requestWithdrawal({
     required double amount,
     required String method,
+    String? phoneNumber,
   }) async {
-    await ApiService.instance.requestWithdrawal(amount, method);
+    await ApiService.instance.requestWithdrawal(
+      amount,
+      method,
+      phoneNumber: phoneNumber,
+    );
     await syncWallet();
   }
 

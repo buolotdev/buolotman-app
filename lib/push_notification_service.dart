@@ -68,7 +68,18 @@ class PushNotificationService {
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // FCM displays notification payloads automatically while the app is closed.
-  // Data-only messages are intentionally not synthesized here because the
-  // backend always sends a notification payload for user-visible events.
+  await Firebase.initializeApp();
+  // Notification payloads are displayed by the OS while the app is closed.
+  // Some server events arrive as data-only messages, so synthesize the same
+  // visible alert for those events as well.
+  if (message.notification == null) {
+    final title = message.data['title']?.toString() ?? 'BoulotMan';
+    final body =
+        message.data['body']?.toString() ??
+        message.data['message']?.toString() ??
+        '';
+    if (body.isNotEmpty) {
+      await NotificationHelper.showPushNotification(title, body);
+    }
+  }
 }

@@ -232,6 +232,42 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
     }
   }
 
+  Future<void> _askQuestion() async {
+    final controller = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Ask a question'),
+        content: TextField(
+          controller: controller,
+          minLines: 3,
+          maxLines: 6,
+          decoration: const InputDecoration(hintText: 'Write your question'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Send'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || controller.text.trim().isEmpty) return;
+    try {
+      await api.askQuestion(widget.taskId, {
+        'question': controller.text.trim(),
+      });
+      if (mounted) _notice('Question posted.', error: false);
+      await _load();
+    } catch (e) {
+      _notice('Could not post the question: $e');
+    }
+  }
+
   Future<void> _complete() async {
     setState(() => acting = true);
     try {
@@ -457,7 +493,7 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
             if (attachments.isNotEmpty)
               _card(
                 'Attachments (${attachments.length})',
-                attachments.map(_attachment).toList(),
+                attachments.map(_attachmentWithDelete).toList(),
               ),
             _card(
               'Proposals (${bids.length})',
@@ -470,6 +506,30 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
                     ]
                   : bids.map(_bid).toList(),
             ),
+            _card('Questions', [
+              if (taskItems(task['questions']).isEmpty)
+                const Text(
+                  'No questions yet.',
+                  style: TextStyle(color: taskMuted),
+                )
+              else
+                ...taskItems(task['questions']).map(
+                  (q) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.help_outline, color: taskOrange),
+                    title: Text('${q is Map ? q['question'] ?? q['text'] : q}'),
+                    subtitle: q is Map && q['answer'] != null
+                        ? Text('${q['answer']}')
+                        : null,
+                  ),
+                ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _askQuestion,
+                icon: const Icon(Icons.help_outline),
+                label: const Text('Ask a question'),
+              ),
+            ]),
             _card('Status actions', [
               if (status == 'open' ||
                   status == 'draft' ||
@@ -683,6 +743,35 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
     );
   }
 
+  Widget _attachmentWithDelete(dynamic raw) {
+    final id = raw is Map ? raw['id'] ?? raw['attachment_id'] : null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _attachment(raw),
+        if (id != null)
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () async {
+                try {
+                  await api.deleteTaskAttachment(widget.taskId, id);
+                  if (mounted) {
+                    _notice('Attachment deleted.', error: false);
+                    _load();
+                  }
+                } catch (e) {
+                  _notice('Could not delete attachment: $e');
+                }
+              },
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              label: const Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ),
+      ],
+    );
+  }
+
   Widget _statusAction({
     required String label,
     required IconData icon,
@@ -807,60 +896,78 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
           if ((!accepted && task['status'] == 'open') ||
               b['technician'] != null) ...[
             const SizedBox(height: 14),
-            Row(
-              children: [
-                if (!accepted && task['status'] == 'open')
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: acting
-                          ? null
-                          : () => _bidAction(b['id'], false),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFFB42318),
-                        side: const BorderSide(color: Color(0xFFF0A6A0)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Reject'),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final showReviewActions = !accepted && task['status'] == 'open';
+                final hasTechnician = b['technician'] != null;
+
+                final rejectButton = OutlinedButton(
+                  onPressed: acting ? null : () => _bidAction(b['id'], false),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFB42318),
+                    side: const BorderSide(color: Color(0xFFF0A6A0)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                if (!accepted && task['status'] == 'open')
-                  const SizedBox(width: 8),
-                if (!accepted && task['status'] == 'open')
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: acting
-                          ? null
-                          : () => _bidAction(b['id'], true),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: taskOrange,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Accept'),
+                  child: const Text('Reject', maxLines: 1),
+                );
+                final acceptButton = FilledButton(
+                  onPressed: acting ? null : () => _bidAction(b['id'], true),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: taskOrange,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                if (b['technician'] != null) ...[
-                  if (!accepted && task['status'] == 'open')
-                    const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _messageTech(b['technician']),
-                      icon: const Icon(Icons.chat_bubble_outline, size: 17),
-                      label: const Text('Message'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: taskNavy,
-                        side: const BorderSide(color: Color(0xFFCBD5E1)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
+                  child: const Text('Accept', maxLines: 1),
+                );
+                final messageButton = OutlinedButton.icon(
+                  onPressed: () => _messageTech(b['technician']),
+                  icon: const Icon(Icons.chat_bubble_outline, size: 17),
+                  label: const Text('Message', maxLines: 1),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: taskNavy,
+                    side: const BorderSide(color: Color(0xFFCBD5E1)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                   ),
-                ],
-              ],
+                );
+
+                // Three actions do not have enough room side by side on
+                // narrow phones. Keep the decision buttons together and give
+                // Message its own full-width row so its label never wraps.
+                if (showReviewActions &&
+                    hasTechnician &&
+                    constraints.maxWidth < 390) {
+                  return Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(child: rejectButton),
+                          const SizedBox(width: 8),
+                          Expanded(child: acceptButton),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(width: double.infinity, child: messageButton),
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    if (showReviewActions) Expanded(child: rejectButton),
+                    if (showReviewActions) const SizedBox(width: 8),
+                    if (showReviewActions) Expanded(child: acceptButton),
+                    if (hasTechnician && showReviewActions)
+                      const SizedBox(width: 8),
+                    if (hasTechnician) Expanded(child: messageButton),
+                  ],
+                );
+              },
             ),
           ],
         ],
@@ -1091,10 +1198,13 @@ class _ClientTaskEditState extends State<ClientTaskEditScreen> {
         high = double.tryParse(max.text.trim());
     if (title.text.trim().isEmpty ||
         description.text.trim().isEmpty ||
+        category == null ||
         low == null ||
         high == null ||
         high < low)
-      return _notice('Enter a valid title, description, and budget range.');
+      return _notice(
+        'Enter a title, description, category, and valid budget range.',
+      );
     setState(() => saving = true);
     try {
       await api.updateTask(widget.task['id'], {

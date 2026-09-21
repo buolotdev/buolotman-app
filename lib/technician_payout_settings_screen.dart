@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'app_state.dart';
 import 'api_service.dart';
+import 'phone_validation.dart';
 
 class TechnicianPayoutSettingsScreen extends StatefulWidget {
   const TechnicianPayoutSettingsScreen({super.key});
@@ -71,6 +73,9 @@ class _TechnicianPayoutSettingsScreenState
       if (mounted) setState(() => _isLoading = false);
     }
   }
+
+  String? _required(String? value, String label) =>
+      value == null || value.trim().isEmpty ? '$label is required.' : null;
 
   @override
   Widget build(BuildContext context) {
@@ -178,11 +183,13 @@ class _TechnicianPayoutSettingsScreenState
                 const SizedBox(height: 8),
                 TextFormField(
                   initialValue: _bankName,
+                  textCapitalization: TextCapitalization.words,
                   decoration: const InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(),
                   ),
+                  validator: (v) => _required(v, 'Bank name'),
                   onSaved: (v) => _bankName = v ?? '',
                 ),
                 const SizedBox(height: 16),
@@ -193,11 +200,13 @@ class _TechnicianPayoutSettingsScreenState
                 const SizedBox(height: 8),
                 TextFormField(
                   initialValue: _bankAccountName,
+                  textCapitalization: TextCapitalization.words,
                   decoration: const InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(),
                   ),
+                  validator: (v) => _required(v, 'Account holder name'),
                   onSaved: (v) => _bankAccountName = v ?? '',
                 ),
                 const SizedBox(height: 16),
@@ -208,11 +217,21 @@ class _TechnicianPayoutSettingsScreenState
                 const SizedBox(height: 8),
                 TextFormField(
                   initialValue: _bankAccountNumber,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: const InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(),
                   ),
+                  validator: (v) {
+                    final value = v?.trim() ?? '';
+                    if (value.isEmpty) return 'Account number is required.';
+                    if (!RegExp(r'^\d{6,34}$').hasMatch(value)) {
+                      return 'Enter a valid account number.';
+                    }
+                    return null;
+                  },
                   onSaved: (v) => _bankAccountNumber = v ?? '',
                 ),
               ],
@@ -224,11 +243,24 @@ class _TechnicianPayoutSettingsScreenState
                 const SizedBox(height: 8),
                 TextFormField(
                   initialValue: _mobileMoneyNumber,
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    phoneInputFormatter(
+                      Get.find<AppState>().currentUser.country,
+                    ),
+                  ],
                   decoration: const InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(),
                   ),
+                  validator: (v) =>
+                      validPhoneForCountry(
+                        v?.trim() ?? '',
+                        Get.find<AppState>().currentUser.country,
+                      )
+                      ? null
+                      : 'Enter a valid mobile money number.',
                   onSaved: (v) => _mobileMoneyNumber = v ?? '',
                 ),
               ],

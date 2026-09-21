@@ -16,11 +16,13 @@ class _ServicesState extends State<TechnicianServicesScreen> {
       muted = Color(0xFF64748B);
   final api = ApiService();
   late Future<dynamic> future = api.technicianServices();
+  List<dynamic> categories = const [];
   bool verified = false;
   @override
   void initState() {
     super.initState();
     _check();
+    _loadCategories();
   }
 
   Future<void> _check() async {
@@ -32,6 +34,13 @@ class _ServicesState extends State<TechnicianServicesScreen> {
               p['is_verified'] == true ||
               p['technician_profile']?['is_verified'] == true,
         );
+    } catch (_) {}
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final result = await api.serviceCategories();
+      if (mounted) setState(() => categories = result);
     } catch (_) {}
   }
 
@@ -48,7 +57,13 @@ class _ServicesState extends State<TechnicianServicesScreen> {
       return;
     }
     final title = TextEditingController(text: '${item?['title'] ?? ''}');
-    final category = TextEditingController(text: '${item?['category'] ?? ''}');
+    int? categoryId;
+    final rawCategory = item?['category'];
+    if (rawCategory is Map) {
+      categoryId = int.tryParse('${rawCategory['id'] ?? ''}');
+    } else {
+      categoryId = int.tryParse('$rawCategory');
+    }
     final description = TextEditingController(
       text: '${item?['description'] ?? ''}',
     );
@@ -72,28 +87,73 @@ class _ServicesState extends State<TechnicianServicesScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                const SizedBox(height: 8),
                 _field(title, 'Service title'),
-                _field(category, 'Category / specializations'),
+                if (categories.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('Loading service categories...'),
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: DropdownButtonFormField<int>(
+                      initialValue:
+                          categories.any(
+                            (c) => int.tryParse('${c['id']}') == categoryId,
+                          )
+                          ? categoryId
+                          : null,
+                      decoration: const InputDecoration(
+                        labelText: 'Category',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: categories
+                          .whereType<Map>()
+                          .map(
+                            (c) => DropdownMenuItem<int>(
+                              value: int.tryParse('${c['id']}'),
+                              child: Text('${c['name'] ?? c['title'] ?? ''}'),
+                            ),
+                          )
+                          .where((item) => item.value != null)
+                          .toList(),
+                      onChanged: (v) => setDialog(() => categoryId = v),
+                    ),
+                  ),
                 _field(description, 'Description', lines: 4),
                 _field(coverage, 'Coverage area'),
-                DropdownButtonFormField<String>(
-                  initialValue: type,
-                  decoration: const InputDecoration(labelText: 'Service type'),
-                  items: const [
-                    DropdownMenuItem(value: 'onsite', child: Text('On-site')),
-                    DropdownMenuItem(value: 'remote', child: Text('Remote')),
-                  ],
-                  onChanged: (v) => setDialog(() => type = v ?? 'onsite'),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: DropdownButtonFormField<String>(
+                    initialValue: type,
+                    decoration: const InputDecoration(
+                      labelText: 'Service type',
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'onsite', child: Text('On-site')),
+                      DropdownMenuItem(value: 'remote', child: Text('Remote')),
+                    ],
+                    onChanged: (v) => setDialog(() => type = v ?? 'onsite'),
+                  ),
                 ),
-                DropdownButtonFormField<String>(
-                  initialValue: pricing,
-                  decoration: const InputDecoration(labelText: 'Pricing model'),
-                  items: const [
-                    DropdownMenuItem(value: 'fixed', child: Text('Fixed')),
-                    DropdownMenuItem(value: 'hourly', child: Text('Hourly')),
-                    DropdownMenuItem(value: 'range', child: Text('Range')),
-                  ],
-                  onChanged: (v) => setDialog(() => pricing = v ?? 'fixed'),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: DropdownButtonFormField<String>(
+                    initialValue: pricing,
+                    decoration: const InputDecoration(
+                      labelText: 'Pricing model',
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'fixed', child: Text('Fixed')),
+                      DropdownMenuItem(value: 'hourly', child: Text('Hourly')),
+                      DropdownMenuItem(value: 'range', child: Text('Range')),
+                    ],
+                    onChanged: (v) => setDialog(() => pricing = v ?? 'fixed'),
+                  ),
                 ),
                 _field(
                   min,
@@ -175,7 +235,15 @@ class _ServicesState extends State<TechnicianServicesScreen> {
         ),
       ),
     );
-    if (ok != true || title.text.trim().isEmpty) return;
+    if (ok != true) return;
+    if (title.text.trim().isEmpty) {
+      _notice('Please enter a service title.');
+      return;
+    }
+    if (categories.isEmpty || categoryId == null) {
+      _notice('Please select a service category.');
+      return;
+    }
     final low = double.tryParse(min.text.trim());
     final high = double.tryParse(max.text.trim());
     if (low == null ||
@@ -186,7 +254,7 @@ class _ServicesState extends State<TechnicianServicesScreen> {
     }
     final data = {
       'title': title.text.trim(),
-      'category': int.tryParse(category.text.trim()),
+      'category': categoryId,
       'description': description.text.trim(),
       'service_type': type,
       'coverage_area': coverage.text.trim(),
@@ -225,6 +293,8 @@ class _ServicesState extends State<TechnicianServicesScreen> {
       keyboardType: keyboard,
       decoration: InputDecoration(
         labelText: label,
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        contentPadding: const EdgeInsets.fromLTRB(14, 17, 14, 12),
         border: const OutlineInputBorder(),
       ),
     ),
@@ -262,7 +332,10 @@ class _ServicesState extends State<TechnicianServicesScreen> {
           onPressed: () async {
             try {
               await api.deleteTechnicianService(item['id']);
-              if (mounted) setState(() => future = api.technicianServices());
+              if (mounted) {
+                setState(() => future = api.technicianServices());
+                _notice('Service deleted successfully.');
+              }
             } catch (_) {
               _notice('We could not delete this service.');
             }

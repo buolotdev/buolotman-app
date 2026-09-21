@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/api_service.dart';
 import 'client_messaging_screen.dart';
+import '../phone_validation.dart';
 
 const companyNavy = Color(0xFF001F3F);
 const companyOrange = Color(0xFFFF4500);
@@ -8,7 +9,8 @@ const companyMuted = Color(0xFF64748B);
 const companyBg = Color(0xFFF5F7FA);
 
 class CompanyProjectsScreen extends StatefulWidget {
-  const CompanyProjectsScreen({super.key});
+  const CompanyProjectsScreen({super.key, this.autoOpenCreate = false});
+  final bool autoOpenCreate;
   @override
   State<CompanyProjectsScreen> createState() => _CompanyProjectsState();
 }
@@ -17,6 +19,16 @@ class _CompanyProjectsState extends State<CompanyProjectsScreen> {
   final api = ApiService();
   late Future<List<dynamic>> future = api.companyProjects();
   String filter = 'all';
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.autoOpenCreate) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) createProject();
+      });
+    }
+  }
 
   void reload() => setState(
     () => future = api.companyProjects(status: filter == 'all' ? null : filter),
@@ -31,6 +43,22 @@ class _CompanyProjectsState extends State<CompanyProjectsScreen> {
     final budget = TextEditingController();
     final timeline = TextEditingController();
     final location = TextEditingController();
+    Future<void> pickDeadline() async {
+      final now = DateTime.now();
+      final selected = await showDatePicker(
+        context: context,
+        initialDate: now,
+        firstDate: DateTime(now.year, now.month, now.day),
+        lastDate: DateTime(now.year + 20),
+        helpText: 'Select project deadline',
+      );
+      if (selected == null) return;
+      timeline.text =
+          '${selected.year.toString().padLeft(4, '0')}-'
+          '${selected.month.toString().padLeft(2, '0')}-'
+          '${selected.day.toString().padLeft(2, '0')}';
+    }
+
     final ok = await showDialog<bool>(
       context: context,
       builder: (d) => AlertDialog(
@@ -55,8 +83,12 @@ class _CompanyProjectsState extends State<CompanyProjectsScreen> {
               ),
               TextField(
                 controller: timeline,
+                readOnly: true,
+                onTap: pickDeadline,
                 decoration: const InputDecoration(
-                  labelText: 'Timeline / deadline',
+                  labelText: 'Deadline',
+                  hintText: 'YYYY-MM-DD',
+                  suffixIcon: Icon(Icons.calendar_today_outlined),
                 ),
               ),
               TextField(
@@ -74,7 +106,9 @@ class _CompanyProjectsState extends State<CompanyProjectsScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(
               d,
-              title.text.trim().isNotEmpty && client.text.trim().isNotEmpty,
+              title.text.trim().isNotEmpty &&
+                  client.text.trim().isNotEmpty &&
+                  timeline.text.trim().isNotEmpty,
             ),
             child: const Text('Create'),
           ),
@@ -82,6 +116,14 @@ class _CompanyProjectsState extends State<CompanyProjectsScreen> {
       ),
     );
     if (ok == true) {
+      final budgetValue = double.tryParse(budget.text.trim());
+      if (budgetValue == null || budgetValue <= 0) {
+        notice('Enter a valid project budget greater than zero.');
+        for (final c in [title, client, budget, timeline, location]) {
+          c.dispose();
+        }
+        return;
+      }
       try {
         await api.createCompanyProject({
           'title': title.text.trim(),
@@ -159,9 +201,9 @@ class _CompanyProjectsState extends State<CompanyProjectsScreen> {
                 itemCount: items.length,
                 itemBuilder: (_, i) {
                   final p = items[i] as Map;
-                          return Card(
-                            elevation: 0,
-                            child: ListTile(
+                  return Card(
+                    elevation: 0,
+                    child: ListTile(
                       title: Text(
                         '${p['title'] ?? 'Project'}',
                         style: const TextStyle(
@@ -172,16 +214,16 @@ class _CompanyProjectsState extends State<CompanyProjectsScreen> {
                       subtitle: Text(
                         '${p['client_name'] ?? ''} • ${p['status'] ?? 'pending'}\nBudget: ${p['budget'] ?? '—'} • Progress: ${p['progress'] ?? 0}%',
                       ),
-                              isThreeLine: true,
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => CompanyProjectDetailsScreen(
-                                    project: Map<String, dynamic>.from(p),
-                                  ),
-                                ),
-                              ),
-                              trailing: Row(
+                      isThreeLine: true,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CompanyProjectDetailsScreen(
+                            project: Map<String, dynamic>.from(p),
+                          ),
+                        ),
+                      ),
+                      trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (p['client_id'] != null)
@@ -213,6 +255,8 @@ class _CompanyProjectsState extends State<CompanyProjectsScreen> {
                               try {
                                 await api.deleteCompanyProject(p['id']);
                                 reload();
+                                if (mounted)
+                                  notice('Project deleted successfully.');
                               } catch (e) {
                                 notice(e);
                               }
@@ -391,6 +435,11 @@ class _CompanyTeamState extends State<CompanyTeamScreen> {
             TextField(
               controller: email,
               keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.done,
+              textCapitalization: TextCapitalization.none,
+              autocorrect: false,
+              enableSuggestions: false,
+              autofillHints: const [AutofillHints.email],
               decoration: const InputDecoration(labelText: 'Email'),
             ),
           ],
@@ -403,7 +452,9 @@ class _CompanyTeamState extends State<CompanyTeamScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(
               d,
-              name.text.trim().isNotEmpty && role.text.trim().isNotEmpty,
+              name.text.trim().isNotEmpty &&
+                  role.text.trim().isNotEmpty &&
+                  email.text.trim().isNotEmpty,
             ),
             child: const Text('Add'),
           ),
@@ -411,6 +462,17 @@ class _CompanyTeamState extends State<CompanyTeamScreen> {
       ),
     );
     if (ok == true) {
+      final emailValue = email.text.trim();
+      final emailIsValid = RegExp(
+        r'^[^\s@]+@[^\s@]+\.[^\s@]+$',
+      ).hasMatch(emailValue);
+      if (emailValue.isNotEmpty && !emailIsValid) {
+        notice('Please enter a valid email address.');
+        name.dispose();
+        role.dispose();
+        email.dispose();
+        return;
+      }
       try {
         await api.createCompanyTeamMember({
           'name': name.text.trim(),
@@ -476,6 +538,7 @@ class _CompanyTeamState extends State<CompanyTeamScreen> {
                     try {
                       await api.deleteCompanyTeamMember(m['id']);
                       setState(() => future = api.companyTeam());
+                      if (mounted) notice('Team member deleted successfully.');
                     } catch (e) {
                       notice(e);
                     }
@@ -491,7 +554,8 @@ class _CompanyTeamState extends State<CompanyTeamScreen> {
 }
 
 class CompanyInsightsScreen extends StatefulWidget {
-  const CompanyInsightsScreen({super.key});
+  const CompanyInsightsScreen({super.key, required this.showReviews});
+  final bool showReviews;
   @override
   State<CompanyInsightsScreen> createState() => _CompanyInsightsState();
 }
@@ -502,7 +566,9 @@ class _CompanyInsightsState extends State<CompanyInsightsScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Analytics and reviews'),
+      title: Text(
+        widget.showReviews ? 'Reviews & ratings' : 'Company analytics',
+      ),
       foregroundColor: companyNavy,
       backgroundColor: Colors.white,
     ),
@@ -521,8 +587,10 @@ class _CompanyInsightsState extends State<CompanyInsightsScreen> {
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            _metric('Profile views', p['profile_views']),
-            _metric('Completed projects', p['completed_tasks']),
+            if (!widget.showReviews) ...[
+              _metric('Profile views', p['profile_views']),
+              _metric('Completed projects', p['completed_tasks']),
+            ],
             _metric('Average rating', p['average_rating']),
             _metric('Reviews', p['review_count']),
             Card(
@@ -532,8 +600,10 @@ class _CompanyInsightsState extends State<CompanyInsightsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Rating distribution',
+                    Text(
+                      widget.showReviews
+                          ? 'Review rating distribution'
+                          : 'Rating distribution',
                       style: TextStyle(
                         color: companyNavy,
                         fontWeight: FontWeight.w800,
@@ -583,9 +653,9 @@ class _CompanyProjectDetailsState extends State<CompanyProjectDetailsScreen> {
   late Map<String, dynamic> project = Map<String, dynamic>.from(widget.project);
   bool saving = false;
 
-  void notice(Object error) => ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(error.toString())),
-  );
+  void notice(Object error) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(error.toString())));
 
   Future<void> update(Map<String, dynamic> values) async {
     final id = project['id'];
@@ -623,31 +693,52 @@ class _CompanyProjectDetailsState extends State<CompanyProjectDetailsScreen> {
               TextField(
                 controller: progress,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Completion percentage'),
+                decoration: const InputDecoration(
+                  labelText: 'Completion percentage',
+                ),
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
-                initialValue: ['pending', 'active', 'completed', 'cancelled'].contains(selectedStatus)
+                initialValue:
+                    [
+                      'pending',
+                      'active',
+                      'completed',
+                      'cancelled',
+                    ].contains(selectedStatus)
                     ? selectedStatus
                     : 'pending',
                 decoration: const InputDecoration(labelText: 'Status'),
                 items: const [
                   DropdownMenuItem(value: 'pending', child: Text('Pending')),
                   DropdownMenuItem(value: 'active', child: Text('Active')),
-                  DropdownMenuItem(value: 'completed', child: Text('Completed')),
-                  DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
+                  DropdownMenuItem(
+                    value: 'completed',
+                    child: Text('Completed'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'cancelled',
+                    child: Text('Cancelled'),
+                  ),
                 ],
-                onChanged: (value) => setDialogState(() => selectedStatus = value ?? 'pending'),
+                onChanged: (value) =>
+                    setDialogState(() => selectedStatus = value ?? 'pending'),
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
             FilledButton(
               onPressed: () {
                 final value = int.tryParse(progress.text.trim());
                 if (value == null || value < 0 || value > 100) return;
-                Navigator.pop(context, {'progress': value, 'status': selectedStatus});
+                Navigator.pop(context, {
+                  'progress': value,
+                  'status': selectedStatus,
+                });
               },
               child: const Text('Save'),
             ),
@@ -671,7 +762,14 @@ class _CompanyProjectDetailsState extends State<CompanyProjectDetailsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('${p['title'] ?? 'Project'}', style: const TextStyle(color: companyNavy, fontSize: 24, fontWeight: FontWeight.w800)),
+          Text(
+            '${p['title'] ?? 'Project'}',
+            style: const TextStyle(
+              color: companyNavy,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
           const SizedBox(height: 8),
           _detail('Client', p['client_name']),
           _detail('Budget', p['budget']),
@@ -680,7 +778,10 @@ class _CompanyProjectDetailsState extends State<CompanyProjectDetailsScreen> {
           _detail('Status', p['status']),
           _detail('Payment status', p['payment_status']),
           _detail('Progress', '${p['progress'] ?? 0}%'),
-          _detail('Milestones', '${p['milestones_completed'] ?? 0} / ${p['milestones_total'] ?? 0}'),
+          _detail(
+            'Milestones',
+            '${p['milestones_completed'] ?? 0} / ${p['milestones_total'] ?? 0}',
+          ),
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: saving ? null : editProgress,
@@ -715,7 +816,10 @@ class _CompanyProjectDetailsState extends State<CompanyProjectDetailsScreen> {
     elevation: 0,
     child: ListTile(
       title: Text(label, style: const TextStyle(color: companyMuted)),
-      subtitle: Text("${value ?? '—'}", style: const TextStyle(color: companyNavy, fontWeight: FontWeight.w600)),
+      subtitle: Text(
+        "${value ?? '—'}",
+        style: const TextStyle(color: companyNavy, fontWeight: FontWeight.w600),
+      ),
     ),
   );
 }
@@ -736,16 +840,18 @@ class _CompanyWalletState extends State<CompanyWalletScreen> {
     future = api.walletTransactions();
   });
 
-  void notice(String message) => ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(message)),
-  );
+  void notice(String message) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(message)));
 
   Future<void> checkCampayBalance() async {
     setState(() => busy = true);
     try {
       final result = await api.campayGetBalance();
       final amount = result is Map
-          ? (result['balance'] ?? result['available_balance'] ?? result['amount'])
+          ? (result['balance'] ??
+                result['available_balance'] ??
+                result['amount'])
           : result;
       notice('CamPay balance: ${amount ?? 0}');
     } catch (e) {
@@ -764,13 +870,17 @@ class _CompanyWalletState extends State<CompanyWalletScreen> {
         final status = result is Map
             ? '${result['status'] ?? result['state'] ?? ''}'.toLowerCase()
             : '$result'.toLowerCase();
-        if (status.contains('success') || status.contains('complete') || status == 'paid') {
+        if (status.contains('success') ||
+            status.contains('complete') ||
+            status == 'paid') {
           campayStatus = 'Top-up confirmed.';
           reload();
           if (mounted) setState(() {});
           return;
         }
-        if (status.contains('fail') || status.contains('cancel') || status.contains('reject')) {
+        if (status.contains('fail') ||
+            status.contains('cancel') ||
+            status.contains('reject')) {
           campayStatus = 'Top-up was not completed.';
           if (mounted) setState(() {});
           return;
@@ -780,7 +890,10 @@ class _CompanyWalletState extends State<CompanyWalletScreen> {
       }
     }
     if (mounted) {
-      setState(() => campayStatus = 'Payment is still pending. Refresh later to check again.');
+      setState(
+        () => campayStatus =
+            'Payment is still pending. Refresh later to check again.',
+      );
     }
   }
 
@@ -793,36 +906,53 @@ class _CompanyWalletState extends State<CompanyWalletScreen> {
         title: const Text('Withdraw funds'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-            children: [
+          children: [
             TextField(
               controller: amount,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(labelText: 'Amount'),
             ),
             TextField(
               controller: phone,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: 'Payout phone/account'),
+              decoration: const InputDecoration(
+                labelText: 'Payout phone/account',
+              ),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Continue')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Continue'),
+          ),
         ],
       ),
     );
     if (confirmed != true) return;
     final value = double.tryParse(amount.text.trim());
-    if (value == null || value <= 0 || phone.text.trim().isEmpty) {
-      notice('Enter a valid amount and payout account.');
+    if (value == null ||
+        value < 500 ||
+        !validPhoneForCountry(phone.text.trim(), 'Cameroon')) {
+      notice(
+        'Enter a valid Cameroon Mobile Money number and an amount of at least 500 XAF.',
+      );
       return;
     }
     setState(() => busy = true);
     try {
       await api.campayWithdraw({
         'amount': value,
-        'phone_number': phone.text.trim(),
+        'phone_number': internationalPhone(
+          phone.text.trim(),
+          'Cameroon',
+        ).replaceAll(RegExp(r'[^0-9]'), ''),
         'description': 'Company wallet withdrawal',
       });
       notice('Withdrawal request submitted.');
@@ -846,33 +976,48 @@ class _CompanyWalletState extends State<CompanyWalletScreen> {
           children: [
             TextField(
               controller: amount,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(labelText: 'Amount'),
             ),
             TextField(
               controller: phone,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: 'Mobile Money number'),
+              decoration: const InputDecoration(
+                labelText: 'Mobile Money number',
+              ),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Continue')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Continue'),
+          ),
         ],
       ),
     );
     if (confirmed != true) return;
     final value = double.tryParse(amount.text.trim());
-    if (value == null || value <= 0 || phone.text.trim().isEmpty) {
-      notice('Enter a valid amount and mobile money number.');
+    if (value == null ||
+        value <= 0 ||
+        !validPhoneForCountry(phone.text.trim(), 'Cameroon')) {
+      notice('Enter a valid Cameroon Mobile Money number.');
       return;
     }
     setState(() => busy = true);
     try {
       final result = await api.campayCollect({
         'amount': value,
-        'phone_number': phone.text.trim(),
+        'phone_number': internationalPhone(
+          phone.text.trim(),
+          'Cameroon',
+        ).replaceAll(RegExp(r'[^0-9]'), ''),
         'purpose': 'wallet_topup',
         'description': 'Company wallet top-up',
       });
@@ -880,7 +1025,10 @@ class _CompanyWalletState extends State<CompanyWalletScreen> {
       if (reference == null || reference.isEmpty) {
         notice('The payment request did not return a reference.');
       } else {
-        setState(() => campayStatus = 'Payment request sent. Waiting for confirmation...');
+        setState(
+          () => campayStatus =
+              'Payment request sent. Waiting for confirmation...',
+        );
         notice('Complete the payment on your phone.');
         await pollTopUp(reference);
       }
@@ -937,7 +1085,10 @@ class _CompanyWalletState extends State<CompanyWalletScreen> {
                         ),
                         if (campayStatus.isNotEmpty) ...[
                           const SizedBox(height: 8),
-                          Text(campayStatus, style: const TextStyle(color: Colors.white70)),
+                          Text(
+                            campayStatus,
+                            style: const TextStyle(color: Colors.white70),
+                          ),
                         ],
                         const SizedBox(height: 16),
                         Row(
@@ -952,7 +1103,9 @@ class _CompanyWalletState extends State<CompanyWalletScreen> {
                             Expanded(
                               child: FilledButton(
                                 onPressed: busy ? null : withdraw,
-                                style: FilledButton.styleFrom(backgroundColor: companyOrange),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: companyOrange,
+                                ),
                                 child: const Text('Withdraw'),
                               ),
                             ),
@@ -965,7 +1118,9 @@ class _CompanyWalletState extends State<CompanyWalletScreen> {
                             onPressed: busy ? null : checkCampayBalance,
                             icon: const Icon(Icons.sync_alt),
                             label: const Text('Check CamPay balance'),
-                            style: TextButton.styleFrom(foregroundColor: Colors.white),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.white,
+                            ),
                           ),
                         ),
                       ],

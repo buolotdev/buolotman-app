@@ -15,6 +15,7 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
       muted = Color(0xFF64748B);
   final api = ApiService();
   final title = TextEditingController(), description = TextEditingController();
+  dynamic _editingId;
   String category = 'Construction', pricing = 'Quote-based', status = 'Active';
   List<dynamic> services = [];
   bool verified = false, loading = true, saving = false;
@@ -64,6 +65,7 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
   }
 
   Future<void> _create() async {
+    final wasEditing = _editingId != null;
     if (!verified) {
       _notice(
         'Please wait for administrator verification before publishing services.',
@@ -76,27 +78,73 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
     }
     setState(() => saving = true);
     try {
-      await api.createCompanyService({
+      final values = <String, dynamic>{
         'title': title.text.trim(),
         'category': category,
         'pricing_model': pricing,
         'description': description.text.trim(),
         'status': status,
-      });
+      };
+      if (_editingId == null) {
+        await api.createCompanyService(values);
+      } else {
+        await api.updateCompanyService(_editingId, values);
+      }
       title.clear();
       description.clear();
       setState(() {
+        _editingId = null;
         category = 'Construction';
         pricing = 'Quote-based';
         status = 'Active';
       });
       await _load();
-      if (mounted) _notice('Service saved successfully.');
+      if (mounted) {
+        _notice(
+          wasEditing
+              ? 'Service updated successfully.'
+              : 'Service saved successfully.',
+        );
+      }
     } catch (e) {
       if (mounted)
         _notice(e is ApiException ? e.message : 'Could not save the service.');
     } finally {
       if (mounted) setState(() => saving = false);
+    }
+  }
+
+  void _editService(Map service) {
+    final id = service['id'];
+    if (id == null) {
+      _notice('This service cannot be edited because it has no ID.');
+      return;
+    }
+    setState(() {
+      _editingId = id;
+      title.text = '${service['title'] ?? ''}';
+      description.text = '${service['description'] ?? ''}';
+      category = categories.contains('${service['category'] ?? ''}')
+          ? '${service['category']}'
+          : categories.first;
+      pricing = pricingModels.contains('${service['pricing_model'] ?? ''}')
+          ? '${service['pricing_model']}'
+          : pricingModels.first;
+      status = '${service['status'] ?? 'Active'}' == 'Inactive'
+          ? 'Inactive'
+          : 'Active';
+    });
+  }
+
+  Future<void> _setServiceStatus(Map service, String nextStatus) async {
+    final id = service['id'];
+    if (id == null) return;
+    try {
+      await api.updateCompanyService(id, {'status': nextStatus});
+      await _load();
+      if (mounted) _notice('Service status updated.');
+    } catch (e) {
+      if (mounted) _notice(e is ApiException ? e.message : 'Action failed.');
     }
   }
 
@@ -262,8 +310,8 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Add New Service',
+          Text(
+            _editingId == null ? 'Add New Service' : 'Edit Service',
             style: TextStyle(
               color: navy,
               fontSize: 20,
@@ -284,10 +332,13 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
             pricingModels,
             (v) => setState(() => pricing = v!),
           ),
-          TextField(
-            controller: description,
-            maxLines: 4,
-            decoration: _decoration('Description'),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: TextField(
+              controller: description,
+              maxLines: 4,
+              decoration: _decoration('Description'),
+            ),
           ),
           _select('Status', status, const [
             'Active',
@@ -302,9 +353,34 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
                 backgroundColor: orange,
                 padding: const EdgeInsets.symmetric(vertical: 15),
               ),
-              child: Text(saving ? 'Saving...' : 'Save service'),
+              child: Text(
+                saving
+                    ? 'Saving...'
+                    : _editingId == null
+                    ? 'Save service'
+                    : 'Update service',
+              ),
             ),
           ),
+          if (_editingId != null) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: saving
+                    ? null
+                    : () => setState(() {
+                        _editingId = null;
+                        title.clear();
+                        description.clear();
+                        category = 'Construction';
+                        pricing = 'Quote-based';
+                        status = 'Active';
+                      }),
+                child: const Text('Cancel editing'),
+              ),
+            ),
+          ],
         ],
       ),
     ),
@@ -412,14 +488,16 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
                 ),
                 const Spacer(),
                 TextButton(
-                  onPressed: () =>
-                      _notice('Editing services will be available soon.'),
+                  onPressed: () => _editService(Map<String, dynamic>.from(s)),
                   child: const Text('Edit'),
                 ),
                 TextButton(
                   onPressed: () => current == 'Active'
                       ? _deactivate(s['id'])
-                      : _notice('Editing services will be available soon.'),
+                      : _setServiceStatus(
+                          Map<String, dynamic>.from(s),
+                          'Active',
+                        ),
                   child: Text(
                     current == 'Inactive' ? 'Activate' : 'Deactivate',
                   ),

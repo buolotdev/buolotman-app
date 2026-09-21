@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../core/api_service.dart';
+import '../phone_validation.dart';
 
 const payNavy = Color(0xFF001F3F),
     payOrange = Color(0xFFFF4500),
@@ -41,6 +42,102 @@ class _ClientWalletState extends State<ClientWalletScreen> {
     }
   }
 
+  Future<void> _topUp() async {
+    final amount = TextEditingController(text: '500');
+    final phone = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Add money to wallet'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: amount,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(labelText: 'Amount (XAF)'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: phone,
+              keyboardType: TextInputType.phone,
+              inputFormatters: [phoneInputFormatter('Cameroon')],
+              decoration: const InputDecoration(
+                labelText: 'Cameroon Mobile Money number',
+                prefixText: '+237 ',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+    final value = double.tryParse(amount.text.trim());
+    if (confirmed != true ||
+        value == null ||
+        value < 500 ||
+        !validPhoneForCountry(phone.text.trim(), 'Cameroon')) {
+      if (confirmed == true && mounted) {
+        _notice(
+          'Enter a valid Cameroon number and an amount of at least 500 XAF.',
+        );
+      }
+      return;
+    }
+    try {
+      final result = await api.campayCollect({
+        'amount': value,
+        'phone_number': internationalPhone(
+          phone.text.trim(),
+          'Cameroon',
+        ).replaceAll(RegExp(r'[^0-9]'), ''),
+        'purpose': 'wallet_topup',
+        'description': 'Client wallet top-up',
+      });
+      final reference = result is Map ? result['reference']?.toString() : null;
+      if (reference == null || reference.isEmpty) {
+        throw Exception('The payment request did not return a reference.');
+      }
+      _notice('Approve the Mobile Money request on your phone.');
+      for (var attempt = 0; attempt < 20; attempt++) {
+        await Future<void>.delayed(const Duration(seconds: 3));
+        if (!mounted) return;
+        final status = await api.campayCheckStatus(reference);
+        final state = status is Map
+            ? '${status['status'] ?? status['state'] ?? ''}'.toUpperCase()
+            : '';
+        if (state == 'SUCCESSFUL' ||
+            state == 'SUCCESS' ||
+            state == 'COMPLETED') {
+          _notice('Wallet top-up confirmed.');
+          await _load();
+          return;
+        }
+        if (state == 'FAILED' || state == 'CANCELLED' || state == 'REJECTED') {
+          throw Exception('The Mobile Money payment was not completed.');
+        }
+      }
+      _notice('Payment is still pending. Refresh later to check again.');
+    } catch (e) {
+      if (mounted) _notice(e.toString());
+    }
+  }
+
+  void _notice(String value) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(value)));
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
@@ -71,6 +168,16 @@ class _ClientWalletState extends State<ClientWalletScreen> {
                   'Escrow held',
                   '${wallet['pending_escrow'] ?? wallet['escrow_balance'] ?? 0} ${wallet['currency'] ?? 'XAF'}',
                   Icons.lock_outline,
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: _topUp,
+                    icon: const Icon(Icons.add_card),
+                    label: const Text('Add money via Mobile Money'),
+                    style: FilledButton.styleFrom(backgroundColor: payOrange),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 const Text(
@@ -177,9 +284,18 @@ class _EscrowPaymentState extends State<ClientEscrowPaymentScreen> {
   final api = ApiService();
   final phone = TextEditingController();
   String method = 'mobile';
+  // The website's CamPay integration is Cameroon-only and the backend formats
+  // every collect request as 237XXXXXXXXX. Do not send another signup country
+  // here and silently create a provider request that CamPay cannot process.
+  static const country = 'Cameroon';
   bool processing = false;
   String status = '';
   Timer? timer;
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   void dispose() {
     timer?.cancel();
@@ -193,8 +309,10 @@ class _EscrowPaymentState extends State<ClientEscrowPaymentScreen> {
   Future<void> _pay() async {
     final amount = num.tryParse('${widget.amount}') ?? 0;
     if (amount <= 0) return _notice('The escrow amount is invalid.');
-    if (method == 'mobile' && phone.text.trim().isEmpty)
-      return _notice('Enter the Cameroon Mobile Money number.');
+    if (method == 'mobile' &&
+        !validPhoneForCountry(phone.text.trim(), country)) {
+      return _notice('Enter a valid $country Mobile Money number.');
+    }
     setState(() {
       processing = true;
       status = '';
@@ -210,10 +328,10 @@ class _EscrowPaymentState extends State<ClientEscrowPaymentScreen> {
         if (mounted) Navigator.pop(context, true);
         return;
       }
-      final clean = phone.text.replaceAll(RegExp(r'[^0-9]'), '');
+      final clean = internationalPhone(phone.text, country);
       final result = await api.campayCollect({
         'amount': amount,
-        'phone_number': clean.startsWith('237') ? clean : '237$clean',
+        'phone_number': clean.replaceAll(RegExp(r'[^0-9]'), ''),
         'task_id': widget.taskId,
         if (widget.bidId != null) 'bid_id': widget.bidId,
         'purpose': 'escrow_deposit',
@@ -317,10 +435,11 @@ class _EscrowPaymentState extends State<ClientEscrowPaymentScreen> {
                   TextField(
                     controller: phone,
                     keyboardType: TextInputType.phone,
+                    inputFormatters: [phoneInputFormatter(country)],
                     decoration: const InputDecoration(
                       labelText: 'Mobile Money number',
-                      hintText: '237 6XX XXX XXX',
-                    ),
+                      hintText: 'Enter your national number',
+                    ).copyWith(prefix: Text(country)),
                   ),
                 ],
                 const SizedBox(height: 18),

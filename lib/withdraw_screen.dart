@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'app_state.dart';
+import 'phone_validation.dart';
 
 class WithdrawScreen extends StatefulWidget {
   const WithdrawScreen({super.key});
@@ -13,10 +14,12 @@ class WithdrawScreen extends StatefulWidget {
 class _WithdrawScreenState extends State<WithdrawScreen> {
   String _selectedMethod = 'Mobile Money';
   final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
 
   @override
   void dispose() {
     _amountController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -80,11 +83,18 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                   "Direct to your bank account",
                   Icons.account_balance_outlined,
                 ),
-                _buildMethodItem(
-                  "Credit Card",
-                  "Visa, Mastercard",
-                  Icons.credit_card_outlined,
-                ),
+                if (_selectedMethod == 'Mobile Money') ...[
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [phoneInputFormatter('Cameroon')],
+                    decoration: const InputDecoration(
+                      labelText: 'Cameroon Mobile Money number',
+                      prefixText: '+237 ',
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 40),
                 _buildWithdrawButton(),
               ],
@@ -246,12 +256,43 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {
+        onPressed: () async {
           final amount = double.tryParse(_amountController.text.trim()) ?? 0;
-          AppStateScope.of(
-            context,
-          ).requestWithdrawal(amount: amount, method: _selectedMethod);
-          _showSuccessDialog();
+          if (amount <= 0 ||
+              (_selectedMethod == 'Mobile Money' &&
+                  (amount < 500 ||
+                      !validPhoneForCountry(
+                        _phoneController.text.trim(),
+                        'Cameroon',
+                      )))) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Enter a valid amount and Cameroon payout number. Mobile Money withdrawals require at least 500 XAF.',
+                ),
+              ),
+            );
+            return;
+          }
+          try {
+            await AppStateScope.of(context).requestWithdrawal(
+              amount: amount,
+              method: _selectedMethod,
+              phoneNumber: _selectedMethod == 'Mobile Money'
+                  ? internationalPhone(
+                      _phoneController.text.trim(),
+                      'Cameroon',
+                    ).replaceAll(RegExp(r'[^0-9]'), '')
+                  : null,
+            );
+            if (mounted) _showSuccessDialog();
+          } catch (error) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Withdrawal failed: $error')),
+              );
+            }
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFFFF4500),

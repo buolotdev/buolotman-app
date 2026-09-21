@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import '../core/api_service.dart';
+import '../phone_validation.dart';
 import 'technician_navigation.dart';
 import 'subscription_screen.dart';
 
 class TechnicianWalletScreen extends StatefulWidget {
-  const TechnicianWalletScreen({super.key});
+  const TechnicianWalletScreen({super.key, this.withBottomNavigation = true});
+
+  final bool withBottomNavigation;
+
   @override
   State<TechnicianWalletScreen> createState() => _WalletState();
 }
@@ -26,28 +30,70 @@ class _WalletState extends State<TechnicianWalletScreen> {
 
   Future<void> withdraw() async {
     final amount = TextEditingController();
-    final details = TextEditingController();
+    final phone = TextEditingController();
+    final bankName = TextEditingController();
+    final accountNumber = TextEditingController();
+    var method = 'mobile';
     final submitted = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Withdraw funds'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: amount,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+        content: StatefulBuilder(
+          builder: (context, setDialogState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: amount,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: const InputDecoration(labelText: 'Amount (XAF)'),
               ),
-              decoration: const InputDecoration(labelText: 'Amount'),
-            ),
-            TextField(
-              controller: details,
-              decoration: const InputDecoration(
-                labelText: 'Mobile money or bank details',
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: method,
+                decoration: const InputDecoration(
+                  labelText: 'Withdrawal method',
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: 'mobile',
+                    child: Text('Mobile Money'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'bank',
+                    child: Text('Direct bank transfer'),
+                  ),
+                ],
+                onChanged: (value) =>
+                    setDialogState(() => method = value ?? 'mobile'),
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              if (method == 'mobile')
+                TextField(
+                  controller: phone,
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [phoneInputFormatter('Cameroon')],
+                  decoration: const InputDecoration(
+                    labelText: 'Cameroon Mobile Money number',
+                    prefixText: '+237 ',
+                  ),
+                )
+              else ...[
+                TextField(
+                  controller: bankName,
+                  decoration: const InputDecoration(labelText: 'Bank name'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: accountNumber,
+                  decoration: const InputDecoration(
+                    labelText: 'Account number / IBAN',
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -62,23 +108,49 @@ class _WalletState extends State<TechnicianWalletScreen> {
       ),
     );
     final value = double.tryParse(amount.text.trim());
+    final validMobile =
+        method == 'mobile' &&
+        validPhoneForCountry(phone.text.trim(), 'Cameroon');
+    final validBank =
+        method == 'bank' &&
+        bankName.text.trim().isNotEmpty &&
+        accountNumber.text.trim().isNotEmpty;
     if (submitted != true ||
         value == null ||
         value <= 0 ||
-        details.text.trim().isEmpty) {
+        (method == 'mobile' && (!validMobile || value < 500)) ||
+        (method == 'bank' && !validBank)) {
       if (submitted == true && mounted)
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Enter a valid amount and payout details.'),
+            content: Text(
+              'Enter a valid amount and payout details. Mobile Money withdrawals require at least 500 XAF.',
+            ),
           ),
         );
       return;
     }
     try {
-      await api.withdrawFunds({
-        'amount': value,
-        'account_details': {'details': details.text.trim()},
-      });
+      if (method == 'mobile') {
+        await api.campayWithdraw({
+          'amount': value,
+          'phone_number': internationalPhone(
+            phone.text.trim(),
+            'Cameroon',
+          ).replaceAll(RegExp(r'[^0-9]'), ''),
+          'description': 'Technician wallet withdrawal',
+        });
+      } else {
+        await api.withdrawFunds({
+          'amount': value,
+          'method': 'bank_transfer',
+          'account_details': {
+            'method': 'Direct bank transfer',
+            'bank_name': bankName.text.trim(),
+            'account_number_or_iban': accountNumber.text.trim(),
+          },
+        });
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Withdrawal request submitted.')),
@@ -97,7 +169,9 @@ class _WalletState extends State<TechnicianWalletScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: 2),
+      bottomNavigationBar: widget.withBottomNavigation
+          ? const TechnicianBottomNavigation(selectedIndex: 2)
+          : null,
       appBar: AppBar(
         title: const Text('Wallet'),
         foregroundColor: navy,

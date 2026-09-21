@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../core/api_service.dart';
 import 'client_dashboard_screen.dart';
 import 'client_task_management_screen.dart';
@@ -74,6 +75,7 @@ class _ClientMessagesState extends State<ClientMessagesScreen> {
     try {
       final created = await api.createConversation(
         widget.participantId,
+        participantName: widget.participantName,
         taskId: widget.taskId,
         contextType: widget.contextType,
         contextId: widget.contextId,
@@ -503,6 +505,14 @@ class _ClientConversationState extends State<ClientConversationScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 
+  Future<void> _openAttachment(String value, String name) async {
+    final uri = Uri.tryParse(api.resolveImageUrl(value));
+    if (uri == null ||
+        !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      _notice('Could not open ${name.isEmpty ? 'the attachment' : name}.');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final participants = conversation['participants'] is List
@@ -656,39 +666,37 @@ class _ClientConversationState extends State<ClientConversationScreen> {
               ],
             ),
           ),
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 7, 10, 10),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: sending ? null : _pick,
-                  icon: const Icon(Icons.attach_file, color: messageOrange),
-                ),
-                Expanded(
-                  child: TextField(
-                    controller: draft,
-                    minLines: 1,
-                    maxLines: 4,
-                    textInputAction: TextInputAction.newline,
-                    decoration: const InputDecoration(
-                      hintText: 'Type your message...',
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(borderSide: BorderSide.none),
-                    ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(10, 7, 10, 10),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: sending ? null : _pick,
+                icon: const Icon(Icons.attach_file, color: messageOrange),
+              ),
+              Expanded(
+                child: TextField(
+                  controller: draft,
+                  minLines: 1,
+                  maxLines: 4,
+                  textInputAction: TextInputAction.newline,
+                  decoration: const InputDecoration(
+                    hintText: 'Type your message...',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(borderSide: BorderSide.none),
                   ),
                 ),
-                const SizedBox(width: 7),
-                IconButton(
-                  onPressed: sending ? null : _send,
-                  icon: Icon(
-                    Icons.send,
-                    color: sending ? messageMuted : messageOrange,
-                  ),
+              ),
+              const SizedBox(width: 7),
+              IconButton(
+                onPressed: sending ? null : _send,
+                icon: Icon(
+                  Icons.send,
+                  color: sending ? messageMuted : messageOrange,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],
@@ -752,11 +760,29 @@ class _ClientConversationState extends State<ClientConversationScreen> {
               else
                 Padding(
                   padding: const EdgeInsets.only(top: 7),
-                  child: Text(
-                    attachmentName.isEmpty ? 'Attachment' : attachmentName,
-                    style: const TextStyle(
-                      color: messageOrange,
-                      fontWeight: FontWeight.w700,
+                  child: InkWell(
+                    onTap: () => _openAttachment(attachmentUrl, attachmentName),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.picture_as_pdf_outlined,
+                          color: messageOrange,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            attachmentName.isEmpty
+                                ? 'Open attachment'
+                                : attachmentName,
+                            style: const TextStyle(
+                              color: messageOrange,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

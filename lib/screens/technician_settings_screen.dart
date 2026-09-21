@@ -3,6 +3,7 @@ import '../core/api_service.dart';
 import 'login_screen.dart';
 import 'technician_navigation.dart';
 import 'technician_wallet_screen.dart';
+import '../phone_validation.dart';
 
 class TechnicianSettingsScreen extends StatefulWidget {
   const TechnicianSettingsScreen({super.key});
@@ -23,12 +24,16 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
       newPassword = TextEditingController(),
       confirmPassword = TextEditingController();
   String email = '',
+      country = 'Benin',
       responseTime = 'Within 24 hours',
       availability = 'available';
   bool availableForJobs = true,
       loading = true,
       saving = false,
       changingPassword = false;
+  bool showCurrentPassword = false,
+      showNewPassword = false,
+      showConfirmPassword = false;
   // These controls exist on the website, but the current API has no fields for them.
   bool visibleInSearch = true,
       showPhone = false,
@@ -72,7 +77,10 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
           : u;
       first.text = '${u['first_name'] ?? ''}';
       last.text = '${u['last_name'] ?? ''}';
-      phone.text = '${u['phone'] ?? ''}';
+      country = countryPhoneRules.containsKey('${u['country'] ?? ''}')
+          ? '${u['country']}'
+          : 'Benin';
+      phone.text = nationalPhoneDigits('${u['phone'] ?? ''}', country);
       email = '${u['email'] ?? ''}';
       profession.text =
           '${u['primary_occupation'] ?? p['primary_occupation'] ?? u['headline'] ?? p['headline'] ?? ''}';
@@ -93,12 +101,17 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
   Future<void> _save() async {
     if (first.text.trim().isEmpty || last.text.trim().isEmpty)
       return _notice('Enter both first and last name.');
+    if (phone.text.trim().isNotEmpty &&
+        !validPhoneForCountry(phone.text.trim(), country)) {
+      return _notice('Enter a valid $country phone number.');
+    }
     setState(() => saving = true);
     try {
       await api.updateProfile({
         'first_name': first.text.trim(),
         'last_name': last.text.trim(),
-        'phone': phone.text.trim(),
+        'phone': internationalPhone(phone.text.trim(), country),
+        'country': country,
         'primary_occupation': profession.text.trim(),
         'response_time': responseTime,
         'availability_status': availableForJobs ? availability : 'offline',
@@ -220,6 +233,7 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
                 TextField(
                   controller: phone,
                   keyboardType: TextInputType.phone,
+                  inputFormatters: [phoneInputFormatter(country)],
                   decoration: const InputDecoration(labelText: 'Phone'),
                 ),
                 TextField(
@@ -341,23 +355,55 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
               _card('Password', [
                 TextField(
                   controller: currentPassword,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: !showCurrentPassword,
+                  decoration: InputDecoration(
                     labelText: 'Current password',
+                    suffixIcon: IconButton(
+                      tooltip: 'Show or hide current password',
+                      onPressed: () => setState(
+                        () => showCurrentPassword = !showCurrentPassword,
+                      ),
+                      icon: Icon(
+                        showCurrentPassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
+                    ),
                   ),
                 ),
                 TextField(
                   controller: newPassword,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: !showNewPassword,
+                  decoration: InputDecoration(
                     labelText: 'New password (minimum 8 characters)',
+                    suffixIcon: IconButton(
+                      tooltip: 'Show or hide new password',
+                      onPressed: () =>
+                          setState(() => showNewPassword = !showNewPassword),
+                      icon: Icon(
+                        showNewPassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
+                    ),
                   ),
                 ),
                 TextField(
                   controller: confirmPassword,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: !showConfirmPassword,
+                  decoration: InputDecoration(
                     labelText: 'Confirm new password',
+                    suffixIcon: IconButton(
+                      tooltip: 'Show or hide confirmation password',
+                      onPressed: () => setState(
+                        () => showConfirmPassword = !showConfirmPassword,
+                      ),
+                      icon: Icon(
+                        showConfirmPassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
+                    ),
                   ),
                 ),
                 SizedBox(
@@ -381,7 +427,9 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const TechnicianWalletScreen(),
+                      builder: (_) => const TechnicianWalletScreen(
+                        withBottomNavigation: false,
+                      ),
                     ),
                   ),
                 ),

@@ -102,6 +102,50 @@ class ApiService {
     return data;
   }
 
+  Future<Map<String, dynamic>> requestPhoneOtp({
+    required String phone,
+    String? email,
+    String purpose = 'verification',
+  }) async {
+    final response = await http.post(
+      Uri.parse('$_apiBase/auth/otp/request/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'phone': phone.trim(),
+        if (email != null && email.trim().isNotEmpty)
+          'email': email.trim().toLowerCase(),
+        'purpose': purpose,
+      }),
+    );
+    final data = _decode(response);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        _message(data, 'Unable to send the verification code.'),
+        response.statusCode,
+      );
+    }
+    return data;
+  }
+
+  Future<Map<String, dynamic>> verifyPhoneOtp({
+    required int challengeId,
+    required String code,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$_apiBase/auth/otp/verify/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'challenge_id': challengeId, 'code': code.trim()}),
+    );
+    final data = _decode(response);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        _message(data, 'Invalid or expired verification code.'),
+        response.statusCode,
+      );
+    }
+    return data;
+  }
+
   Future<Map<String, dynamic>> confirmPasswordReset({
     required String email,
     required String code,
@@ -361,6 +405,8 @@ class ApiService {
 
   Future<void> deletePortfolio(dynamic id) async =>
       _deleteAny('auth/portfolio/$id/');
+  Future<void> updatePortfolio(dynamic id, Map<String, dynamic> values) async =>
+      _patchAny('auth/portfolio/$id/', values);
 
   Future<Map<String, dynamic>> uploadTechnicianDocumentBytes({
     required List<int> bytes,
@@ -597,6 +643,10 @@ class ApiService {
       _postAny('governance/my-support/', values);
   Future<dynamic> replySupportTicket(dynamic id, String body) async =>
       _postAny('governance/my-support/$id/reply/', {'body': body});
+  Future<dynamic> submitInquiry(Map<String, dynamic> values) async =>
+      _postAny('tasks/inquiry/', values);
+  Future<dynamic> submitContact(Map<String, dynamic> values) async =>
+      _postAny('auth/contact/', values);
   Future<Map<String, dynamic>> uploadMessageAttachment({
     required dynamic conversationId,
     required List<int> bytes,
@@ -653,11 +703,14 @@ class ApiService {
       _postAny('conversations/$id/messages/', values);
   Future<dynamic> createConversation(
     dynamic participantId, {
+    String? participantName,
     dynamic taskId,
     String? contextType,
     dynamic contextId,
   }) async => _postAny('conversations/create/', {
-    'participant_id': participantId,
+    if (participantId != null) 'participant_id': participantId,
+    if (participantName != null && participantName.trim().isNotEmpty)
+      'participant_name': participantName.trim(),
     if (taskId != null) 'task_id': taskId,
     if (contextType != null && contextType.isNotEmpty)
       'context_type': contextType,
@@ -711,8 +764,17 @@ class ApiService {
   }
 
   Future<dynamic> taskBids(dynamic id) async => _getAny('tasks/$id/bids/');
+  Future<dynamic> bid(dynamic id) async => _getAny('tasks/bids/$id/');
+  Future<dynamic> updateBid(dynamic id, Map<String, dynamic> values) async =>
+      _patchAny('tasks/bids/$id/', values);
   Future<dynamic> taskQuestions(dynamic id) async =>
       _getAny('tasks/$id/questions/');
+  Future<dynamic> askQuestion(dynamic id, Map<String, dynamic> values) async =>
+      _postAny('tasks/$id/questions/', values);
+  Future<dynamic> deleteTaskAttachment(
+    dynamic taskId,
+    dynamic attachmentId,
+  ) async => _deleteAny('tasks/$taskId/attachments/$attachmentId/');
   Future<dynamic> acceptBid(dynamic id) async =>
       _patchAny('tasks/bids/$id/', {'status': 'accepted'});
   Future<dynamic> rejectBid(dynamic id) async =>

@@ -12,6 +12,7 @@ import 'technician_settings_screen.dart';
 import 'technician_services_screen.dart';
 import 'technician_navigation.dart';
 import 'technician_bids_management_screen.dart';
+import '../role_support_screen.dart';
 
 class TechnicianDashboardScreen extends StatefulWidget {
   const TechnicianDashboardScreen({super.key, this.role = 'TECHNICIAN'});
@@ -157,9 +158,9 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
     body: tab == 0
         ? SafeArea(child: _feed())
         : tab == 2
-        ? const TechnicianWalletScreen()
+        ? const TechnicianWalletScreen(withBottomNavigation: false)
         : tab == 3
-        ? const TechnicianProfileDetailsScreen()
+        ? const TechnicianProfileDetailsScreen(withBottomNavigation: false)
         : const TechnicianBidsManagementScreen(),
     drawer: _drawer(context),
     bottomNavigationBar: TechnicianBottomNavigation(selectedIndex: tab),
@@ -201,15 +202,18 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
           Stack(
             children: [
               IconButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const TechnicianNotificationsScreen(),
-                  ),
-                ),
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const TechnicianNotificationsScreen(),
+                    ),
+                  );
+                  if (mounted) _load();
+                },
                 icon: const Icon(Icons.notifications_none, color: navy),
               ),
-              if (notifications.isNotEmpty)
+              if (notifications.any((n) => n is Map && n['is_read'] != true))
                 Positioned(
                   right: 5,
                   top: 5,
@@ -220,7 +224,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: Text(
-                      '${notifications.length > 99 ? '99+' : notifications.length}',
+                      '${notifications.where((n) => n is Map && n['is_read'] != true).length > 99 ? '99+' : notifications.where((n) => n is Map && n['is_read'] != true).length}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 9,
@@ -386,6 +390,12 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
                 ),
                 _nav(
                   context,
+                  Icons.support_agent_outlined,
+                  'Support',
+                  () => _push(const RoleSupportScreen(role: 'Technician')),
+                ),
+                _nav(
+                  context,
                   Icons.account_balance_wallet_outlined,
                   'Wallet',
                   () => setState(() => tab = 2),
@@ -458,15 +468,28 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
         .length;
     final progress = documents.length.clamp(0, 4);
     final search = query.trim().toLowerCase();
-    final visibleTasks = search.isEmpty
-        ? tasks
-        : tasks.where((item) {
-            if (item is! Map) return false;
-            final title = '${item['title'] ?? ''}'.toLowerCase();
-            final city = '${item['city'] ?? item['location'] ?? ''}'
-                .toLowerCase();
-            return title.contains(search) || city.contains(search);
-          }).toList();
+    bool matches(dynamic item) {
+      if (search.isEmpty) return true;
+      if (item is! Map) return false;
+      final searchable = [
+        item['title'],
+        item['task_title'],
+        item['description'],
+        item['message'],
+        item['category'],
+        item['category_name'],
+        item['city'],
+        item['location'],
+        item['client_name'],
+        item['client'],
+        item['skills'],
+      ].map((value) => '$value'.toLowerCase()).join(' ');
+      return searchable.contains(search);
+    }
+
+    final visibleTasks = search.isEmpty ? tasks : tasks.where(matches).toList();
+    final visibleAssignments = assignments.where(matches).toList();
+    final visibleBids = bids.where(matches).toList();
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(
@@ -519,13 +542,20 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
           const SizedBox(height: 22),
           _sectionTitle(
             'Direct projects & offers',
-            assignments.isNotEmpty ? '${assignments.length} active' : null,
+            visibleAssignments.isNotEmpty
+                ? '${visibleAssignments.length} active'
+                : null,
             onAction: () => _push(const TechnicianProjectsScreen()),
           ),
-          if (assignments.isEmpty)
-            _empty('No direct assignments yet.', Icons.assignment_ind_outlined)
+          if (visibleAssignments.isEmpty)
+            _empty(
+              search.isEmpty
+                  ? 'No direct assignments yet.'
+                  : 'No projects match your search.',
+              Icons.assignment_ind_outlined,
+            )
           else
-            ...assignments.take(3).map(_assignment),
+            ...visibleAssignments.take(3).map(_assignment),
           const SizedBox(height: 18),
           _sectionTitle(
             'Available tasks',
@@ -565,10 +595,15 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
             'View all',
             onAction: () => _push(const TechnicianBidsManagementScreen()),
           ),
-          if (bids.isEmpty)
-            _empty('No bids submitted yet.', Icons.gavel_outlined)
+          if (visibleBids.isEmpty)
+            _empty(
+              search.isEmpty
+                  ? 'No bids submitted yet.'
+                  : 'No bids match your search.',
+              Icons.gavel_outlined,
+            )
           else
-            ...bids.take(3).map(_bid),
+            ...visibleBids.take(3).map(_bid),
         ],
       ),
     );

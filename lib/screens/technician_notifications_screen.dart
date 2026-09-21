@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import '../core/api_service.dart';
 import 'technician_navigation.dart';
 import 'technician_messages_screen.dart';
+import 'technician_area_screens.dart';
+import 'technician_bids_management_screen.dart';
+import 'technician_wallet_screen.dart';
+import '../role_support_screen.dart';
 
 class TechnicianNotificationsScreen extends StatefulWidget {
   const TechnicianNotificationsScreen({super.key});
@@ -31,9 +35,32 @@ class _NotificationsState extends State<TechnicianNotificationsScreen> {
   }
 
   void _open(Map item) {
+    final category = '${item['category'] ?? item['type'] ?? ''}'.toLowerCase();
+    final title = '${item['title'] ?? ''}'.toLowerCase();
+    if (category.contains('payment') ||
+        category.contains('wallet') ||
+        title.contains('payment') ||
+        title.contains('wallet')) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const TechnicianWalletScreen()),
+      );
+      return;
+    }
+    if (category.contains('support') ||
+        category.contains('ticket') ||
+        title.contains('support')) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const RoleSupportScreen(role: 'Technician'),
+        ),
+      );
+      return;
+    }
     final meta = item['metadata'] is Map ? item['metadata'] as Map : {};
     final conversation = meta['conversation_id'];
-    if (conversation != null)
+    if (conversation != null) {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -41,6 +68,35 @@ class _NotificationsState extends State<TechnicianNotificationsScreen> {
               TechnicianConversationScreen(conversationId: conversation),
         ),
       );
+      return;
+    }
+    final task = meta['task_id'] ?? meta['task'];
+    if (task != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TechnicianTaskDetailScreen(taskId: task),
+        ),
+      );
+      return;
+    }
+    final project = meta['project_id'] ?? meta['assignment_id'];
+    if (project != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const TechnicianProjectsScreen()),
+      );
+      return;
+    }
+    final bid = meta['bid_id'] ?? meta['proposal_id'];
+    if (bid != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const TechnicianBidsManagementScreen(),
+        ),
+      );
+    }
   }
 
   @override

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'app_state.dart';
+import 'core/api_service.dart';
 import 'main_navigation_screen.dart';
 import 'notification_helper.dart';
 
@@ -7,16 +9,20 @@ class OTPScreen extends StatefulWidget {
   final String email;
   final String role;
   final int challengeId;
+  final String? phone;
   final String? otpCode;
   final String purpose;
+  final Map<String, dynamic>? registrationData;
 
   const OTPScreen({
     super.key,
     required this.email,
     this.role = 'Client',
     required this.challengeId,
+    this.phone,
     this.otpCode,
     this.purpose = 'register',
+    this.registrationData,
   });
 
   @override
@@ -39,6 +45,7 @@ class _OTPScreenState extends State<OTPScreen> {
 
   bool _obscurePassword = true;
   late int _activeChallengeId;
+  final _api = ApiService();
 
   @override
   void initState() {
@@ -251,6 +258,88 @@ class _OTPScreenState extends State<OTPScreen> {
                           );
                         }
                       }
+                    } else if (widget.registrationData != null) {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (context) => const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFFFF4500),
+                            ),
+                          ),
+                        ),
+                      );
+                      try {
+                        await _api.verifyPhoneOtp(
+                          challengeId: _activeChallengeId,
+                          code: code,
+                        );
+                        final data = widget.registrationData!;
+                        final role = '${data['role'] ?? widget.role}'
+                            .toLowerCase();
+                        final registrationRole =
+                            role == 'technician' || role == 'company'
+                            ? role
+                            : 'client';
+                        final registration = Map<String, dynamic>.from(data)
+                          ..remove('role');
+                        await _api.register(
+                          role: registrationRole,
+                          data: registration,
+                        );
+                        final login = await _api.login(
+                          '${registration['email']}',
+                          '${registration['password']}',
+                        );
+                        await AppStateScope.of(context).syncAll();
+                        final country = '${registration['country'] ?? ''}'
+                            .trim();
+                        final city = '${registration['city'] ?? ''}'.trim();
+                        final address = '${registration['address'] ?? ''}'
+                            .trim();
+                        if (country.isNotEmpty ||
+                            city.isNotEmpty ||
+                            address.isNotEmpty) {
+                          await _api.updateProfile({
+                            if (country.isNotEmpty) 'country': country,
+                            if (city.isNotEmpty) 'city': city,
+                            if (address.isNotEmpty) 'address': address,
+                          });
+                        }
+                        final prefs = await SharedPreferences.getInstance();
+                        if (country.isNotEmpty) {
+                          await prefs.setString('signup_country', country);
+                        }
+                        if (city.isNotEmpty) {
+                          await prefs.setString('signup_city', city);
+                        }
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                          final apiRole = '${login['role'] ?? registrationRole}'
+                              .toLowerCase();
+                          final displayRole = switch (apiRole) {
+                            'technician' => 'Technician',
+                            'company' => 'Company',
+                            'admin' => 'Admin',
+                            _ => 'Client',
+                          };
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  MainNavigationScreen(role: displayRole),
+                            ),
+                            (_) => false,
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text(_message(e))));
+                        }
+                      }
                     } else {
                       // Regular flow
                       showDialog(
@@ -326,9 +415,15 @@ class _OTPScreenState extends State<OTPScreen> {
                       ),
                     );
                     try {
-                      final otpRes = await AppStateScope.of(
-                        context,
-                      ).requestOTP(widget.email, widget.purpose);
+                      final otpRes = widget.registrationData != null
+                          ? await _api.requestPhoneOtp(
+                              phone: widget.phone ?? '',
+                              email: widget.email,
+                              purpose: 'verification',
+                            )
+                          : await AppStateScope.of(
+                              context,
+                            ).requestOTP(widget.email, widget.purpose);
                       final newChallengeId = otpRes['challenge_id'] as int;
                       final newOtpCode = otpRes['code']?.toString();
 
@@ -389,6 +484,10 @@ class _OTPScreenState extends State<OTPScreen> {
       ),
     );
   }
+
+  String _message(Object error) => error is ApiException
+      ? error.message
+      : error.toString().replaceFirst('Exception: ', '');
 
   Widget _buildOTPBox(int index) {
     return Container(

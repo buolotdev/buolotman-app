@@ -61,6 +61,64 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
     }
   }
 
+  Future<void> _openNotification(BuildContext context, Map item) async {
+    final meta = item['metadata'] is Map ? item['metadata'] as Map : item;
+    final category = '${item['category'] ?? ''}'.toLowerCase();
+    final title = '${item['title'] ?? ''}'.toLowerCase();
+    final conversationId =
+        meta['conversation_id'] ?? meta['chat_id'] ?? meta['conversation'];
+    if (conversationId != null) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ClientMessagesScreen(conversationId: conversationId),
+        ),
+      );
+      return;
+    }
+    final taskId = meta['task_id'] ?? meta['task'];
+    if (taskId != null) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ClientTaskDetailScreen(taskId: taskId),
+        ),
+      );
+      return;
+    }
+    if (category == 'payment' ||
+        title.contains('payment') ||
+        title.contains('escrow') ||
+        title.contains('wallet')) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ClientPaymentsScreen()),
+      );
+      return;
+    }
+    if (category == 'support' ||
+        title.contains('support') ||
+        title.contains('ticket')) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ClientSupportScreen()),
+      );
+      return;
+    }
+    if (category == 'project' || title.contains('project')) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ClientProjectsScreen()),
+      );
+      return;
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This notification has no linked page.')),
+      );
+    }
+  }
+
   Future<void> _logout() async {
     await api.clearSession();
     if (mounted)
@@ -202,12 +260,17 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
       Stack(
         children: [
           IconButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const ServerNotificationsScreen(),
-              ),
-            ),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ServerNotificationsScreen(
+                    onNotificationTap: _openNotification,
+                  ),
+                ),
+              );
+              if (mounted) _load();
+            },
             icon: const Icon(Icons.notifications_none, color: navy),
           ),
           if (notifications.any((n) => n is Map && n['is_read'] != true))

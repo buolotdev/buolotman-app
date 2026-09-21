@@ -9,7 +9,13 @@ import 'technician_portfolio_screen.dart';
 import 'technician_navigation.dart';
 
 class TechnicianProfileDetailsScreen extends StatefulWidget {
-  const TechnicianProfileDetailsScreen({super.key});
+  const TechnicianProfileDetailsScreen({
+    super.key,
+    this.withBottomNavigation = true,
+  });
+
+  final bool withBottomNavigation;
+
   @override
   State<TechnicianProfileDetailsScreen> createState() => _State();
 }
@@ -148,7 +154,9 @@ class _State extends State<TechnicianProfileDetailsScreen> {
   final ImagePicker _imagePicker = ImagePicker();
   @override
   Widget build(BuildContext context) => Scaffold(
-    bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: 3),
+    bottomNavigationBar: widget.withBottomNavigation
+        ? const TechnicianBottomNavigation(selectedIndex: 3)
+        : null,
     appBar: AppBar(
       title: const Text('Expert profile'),
       backgroundColor: navy,
@@ -318,11 +326,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
               }),
               _input('City', city),
               _input('Address', address),
-              _input(
-                'Date of birth (YYYY-MM-DD)',
-                dateOfBirth,
-                keyboardType: TextInputType.datetime,
-              ),
+              _dateOfBirthInput(),
             ]),
             _section('Professional information', [
               _input('Professional headline', headline),
@@ -402,15 +406,22 @@ class _State extends State<TechnicianProfileDetailsScreen> {
               ),
             ]),
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: OutlinedButton.icon(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const TechnicianPortfolioScreen(),
+              padding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const TechnicianPortfolioScreen(),
+                    ),
+                  ),
+                  icon: const Icon(Icons.collections_outlined),
+                  label: const Text('Manage portfolio projects'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
                   ),
                 ),
-                icon: const Icon(Icons.collections_outlined),
-                label: const Text('Manage portfolio projects'),
               ),
             ),
             _section('Payout details', [
@@ -805,6 +816,56 @@ class _State extends State<TechnicianProfileDetailsScreen> {
       ),
     ),
   );
+
+  Widget _dateOfBirthInput() => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: TextField(
+      controller: dateOfBirth,
+      readOnly: true,
+      onTap: _pickDateOfBirth,
+      decoration: InputDecoration(
+        labelText: 'Date of birth',
+        hintText: 'Select your date of birth',
+        suffixIcon: const Icon(Icons.calendar_month_outlined),
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFD7DEE8)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFFF4500), width: 1.5),
+        ),
+      ),
+    ),
+  );
+
+  Future<void> _pickDateOfBirth() async {
+    final today = DateTime.now();
+    final existing = DateTime.tryParse(dateOfBirth.text.trim());
+    final firstDate = DateTime(1900);
+    final initialDate =
+        existing != null &&
+            !existing.isBefore(firstDate) &&
+            !existing.isAfter(today)
+        ? existing
+        : DateTime(today.year - 18, today.month, today.day);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: today,
+      helpText: 'Select date of birth',
+    );
+    if (picked == null || !mounted) return;
+    final month = picked.month.toString().padLeft(2, '0');
+    final day = picked.day.toString().padLeft(2, '0');
+    setState(() {
+      dateOfBirth.text = '${picked.year}-$month-$day';
+    });
+  }
+
   Widget _phoneInput() {
     final selectedCountry = countries.contains(country.text)
         ? country.text
@@ -887,6 +948,19 @@ class _State extends State<TechnicianProfileDetailsScreen> {
       ? value
       : '';
   Future<void> _save() async {
+    if (first.text.trim().isEmpty ||
+        last.text.trim().isEmpty ||
+        city.text.trim().isEmpty ||
+        occupation.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'First name, last name, city, and occupation are required.',
+          ),
+        ),
+      );
+      return;
+    }
     final normalizedUsername = normalizeUsername(username.text);
     final usernameError = validateUsername(normalizedUsername);
     if (usernameError != null) {
@@ -923,10 +997,60 @@ class _State extends State<TechnicianProfileDetailsScreen> {
       );
       return;
     }
+    final emergencyDigits = _nationalDigits(emergencyPhone.text, country.text);
+    if (emergencyPhone.text.trim().isNotEmpty &&
+        emergencyDigits.length != expected) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Enter a valid emergency contact phone number for ${country.text}.',
+          ),
+        ),
+      );
+      return;
+    }
+    final experienceValue = int.tryParse(experience.text.trim());
+    if (experience.text.trim().isNotEmpty &&
+        (experienceValue == null ||
+            experienceValue < 0 ||
+            experienceValue > 80)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Experience must be a valid number from 0 to 80.'),
+        ),
+      );
+      return;
+    }
     final dob = dateOfBirth.text.trim();
-    if (dob.isNotEmpty && DateTime.tryParse(dob) == null) {
+    if (dob.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select your date of birth.')),
+      );
+      return;
+    }
+    final dobPattern = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+    final parsedDob = DateTime.tryParse(dob);
+    if (!dobPattern.hasMatch(dob) || parsedDob == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Date of birth must use YYYY-MM-DD.')),
+      );
+      return;
+    }
+    if (parsedDob.isAfter(DateTime.now())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Date of birth cannot be in the future.')),
+      );
+      return;
+    }
+    final today = DateTime.now();
+    var age = today.year - parsedDob.year;
+    if (today.month < parsedDob.month ||
+        (today.month == parsedDob.month && today.day < parsedDob.day)) {
+      age--;
+    }
+    if (age < 18) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You must be at least 18 years old.')),
       );
       return;
     }
@@ -946,7 +1070,9 @@ class _State extends State<TechnicianProfileDetailsScreen> {
         'bio': bio.text.trim(),
         'experience_years': experience.text.trim(),
         'emergency_contact_name': emergencyName.text.trim(),
-        'emergency_contact_phone': emergencyPhone.text.trim(),
+        'emergency_contact_phone': emergencyPhone.text.trim().isEmpty
+            ? ''
+            : '${dialCodes[country.text]}$emergencyDigits',
         'languages': _list(languages.text),
         'education_level': education.text.trim(),
         'expertise_level': expertise.text.trim(),

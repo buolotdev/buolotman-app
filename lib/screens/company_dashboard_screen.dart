@@ -7,6 +7,9 @@ import 'company_services_screen.dart';
 import 'company_workflow_screens.dart';
 import 'client_messaging_screen.dart';
 import 'server_notifications_screen.dart';
+import '../role_support_screen.dart';
+import 'company_tasks_screen.dart';
+import '../browse_professionals_screen.dart';
 
 class CompanyDashboardScreen extends StatefulWidget {
   const CompanyDashboardScreen({super.key});
@@ -76,7 +79,7 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
     }
   }
 
-  void _open(String title, {bool restricted = false}) {
+  Future<void> _open(String title, {bool restricted = false}) async {
     setState(() => drawerOpen = false);
     if (title == 'Company profile') {
       Navigator.push(
@@ -99,10 +102,33 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
       );
       return;
     }
+    if (title == 'Browse tasks') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const CompanyTasksScreen()),
+      );
+      return;
+    }
+    if (title == 'Find technicians') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const BrowseProfessionalsScreen()),
+      );
+      return;
+    }
     if (title == 'Projects') {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const CompanyProjectsScreen()),
+      );
+      return;
+    }
+    if (title == 'Create project') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const CompanyProjectsScreen(autoOpenCreate: true),
+        ),
       );
       return;
     }
@@ -120,10 +146,21 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
       );
       return;
     }
-    if (title == 'Reviews' || title == 'Analytics') {
+    if (title == 'Reviews') {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const CompanyInsightsScreen()),
+        MaterialPageRoute(
+          builder: (_) => const CompanyInsightsScreen(showReviews: true),
+        ),
+      );
+      return;
+    }
+    if (title == 'Analytics') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const CompanyInsightsScreen(showReviews: false),
+        ),
       );
       return;
     }
@@ -135,9 +172,22 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
       return;
     }
     if (title == 'Notifications') {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              ServerNotificationsScreen(onNotificationTap: _openNotification),
+        ),
+      );
+      if (mounted) _load();
+      return;
+    }
+    if (title == 'Support') {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const ServerNotificationsScreen()),
+        MaterialPageRoute(
+          builder: (_) => const RoleSupportScreen(role: 'Company'),
+        ),
       );
       return;
     }
@@ -155,6 +205,42 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
 
   void _notice(String text) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+
+  Future<void> _openNotification(BuildContext context, Map notification) async {
+    final metadata = notification['metadata'] is Map
+        ? notification['metadata'] as Map
+        : const {};
+    final category = '${notification['category'] ?? ''}'.toLowerCase();
+    final title = '${notification['title'] ?? ''}'.toLowerCase();
+    if (category == 'payment' ||
+        title.contains('payment') ||
+        title.contains('wallet')) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const CompanyWalletScreen()),
+      );
+    } else if (category == 'support' ||
+        title.contains('support') ||
+        title.contains('ticket')) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const RoleSupportScreen(role: 'Company'),
+        ),
+      );
+    } else if (metadata['task_id'] != null ||
+        metadata['project_id'] != null ||
+        category == 'task' ||
+        category == 'project') {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const CompanyProjectsScreen()),
+      );
+    } else if (category == 'message' || title.contains('message')) {
+      if (mounted) setState(() => tab = 2);
+    }
+  }
+
   Future<void> _logout() async {
     await api.clearSession();
     if (mounted)
@@ -171,13 +257,17 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
     },
     child: Scaffold(
       backgroundColor: bg,
-      body: tab == 0
-          ? SafeArea(child: _home())
-          : tab == 1
-          ? _projects()
-          : tab == 2
-          ? _messages()
-          : _profile(),
+      body: SafeArea(
+        top: true,
+        bottom: false,
+        child: tab == 0
+            ? _home()
+            : tab == 1
+            ? _projects()
+            : tab == 2
+            ? _messages()
+            : _profile(),
+      ),
       bottomNavigationBar: _bottom(),
     ),
   );
@@ -628,6 +718,18 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
                 ),
                 _item(
                   c,
+                  'Browse tasks',
+                  Icons.assignment_outlined,
+                  () => _open('Browse tasks'),
+                ),
+                _item(
+                  c,
+                  'Find technicians',
+                  Icons.handyman_outlined,
+                  () => _open('Find technicians'),
+                ),
+                _item(
+                  c,
                   'Projects',
                   Icons.folder_open_outlined,
                   () => _open('Projects', restricted: true),
@@ -663,6 +765,12 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
                   'Settings',
                   Icons.settings_outlined,
                   () => _open('Settings'),
+                ),
+                _item(
+                  c,
+                  'Support',
+                  Icons.support_agent_outlined,
+                  () => _open('Support'),
                 ),
               ],
             ),

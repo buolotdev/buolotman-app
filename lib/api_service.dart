@@ -729,10 +729,25 @@ class ApiService {
 
   Future<Map<String, dynamic>> requestWithdrawal(
     double amount,
-    String method,
-  ) async {
+    String method, {
+    String? phoneNumber,
+  }) async {
+    if (method == 'Mobile Money') {
+      final response = await post('/wallet/campay/withdraw/', {
+        'amount': amount,
+        'phone_number': phoneNumber,
+        'description': 'Mobile wallet withdrawal',
+      });
+      if (response.statusCode == 200) return jsonDecode(response.body);
+      throw Exception(
+        response.body.isNotEmpty
+            ? response.body
+            : 'Mobile Money withdrawal failed.',
+      );
+    }
     final response = await post('/wallet/withdraw/', {
       'amount': amount,
+      'method': 'bank_transfer',
       'account_details': {'method': method},
     });
 
@@ -751,6 +766,22 @@ class ApiService {
         err['detail'] ?? err['error'] ?? _parseValidationErrors(err),
       );
     }
+  }
+
+  Future<Map<String, dynamic>> campayWithdraw({
+    required double amount,
+    required String phoneNumber,
+  }) async {
+    final response = await post('/wallet/campay/withdraw/', {
+      'amount': amount,
+      'phone_number': phoneNumber,
+    });
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception(
+      response.body.isNotEmpty
+          ? response.body
+          : 'Mobile Money withdrawal failed.',
+    );
   }
 
   Future<Map<String, dynamic>> depositEscrow({
@@ -897,7 +928,12 @@ class ApiService {
         : '/auth/users/';
     final response = await get(path, requireAuth: false);
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final payload = jsonDecode(response.body);
+      if (payload is List) return payload;
+      if (payload is Map && payload['results'] is List) {
+        return List<dynamic>.from(payload['results'] as List);
+      }
+      return const [];
     } else {
       throw Exception('Failed to load users.');
     }
@@ -1230,7 +1266,7 @@ class ApiService {
     required String code,
     required String newPassword,
   }) async {
-    final response = await post('/auth/reset-password/', {
+    final response = await post('/auth/password/reset/confirm/', {
       'challenge_id': challengeId,
       'code': code,
       'new_password': newPassword,

@@ -2,22 +2,38 @@ import 'package:flutter/material.dart';
 import '../core/api_service.dart';
 
 class ServerNotificationsScreen extends StatefulWidget {
-  const ServerNotificationsScreen({super.key});
+  const ServerNotificationsScreen({super.key, this.onNotificationTap});
+  final Future<void> Function(BuildContext, Map)? onNotificationTap;
   @override
   State<ServerNotificationsScreen> createState() => _ServerNotificationsState();
 }
 
 class _ServerNotificationsState extends State<ServerNotificationsScreen> {
   final api = ApiService();
-  late Future<List<dynamic>> future = ApiService().notifications();
+  late Future<List<dynamic>> future = api.notifications();
   Future<void> reload() async => setState(() => future = api.notifications());
+
+  Future<void> markAllRead() async {
+    final items = await future;
+    await Future.wait(
+      items
+          .whereType<Map>()
+          .where((item) => item['is_read'] != true && item['id'] != null)
+          .map((item) => api.markNotificationRead(item['id'])),
+    );
+    if (mounted) reload();
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: const Text('Notifications'),
       foregroundColor: const Color(0xFF001F3F),
       backgroundColor: Colors.white,
-      actions: [IconButton(onPressed: reload, icon: const Icon(Icons.refresh))],
+      actions: [
+        IconButton(onPressed: markAllRead, icon: const Icon(Icons.done_all)),
+        IconButton(onPressed: reload, icon: const Icon(Icons.refresh)),
+      ],
     ),
     backgroundColor: const Color(0xFFF5F7FA),
     body: FutureBuilder<List<dynamic>>(
@@ -58,6 +74,9 @@ class _ServerNotificationsState extends State<ServerNotificationsScreen> {
                       ? null
                       : () async {
                           await api.markNotificationRead(n['id']);
+                          if (widget.onNotificationTap != null) {
+                            await widget.onNotificationTap!(context, n);
+                          }
                           reload();
                         },
                 ),

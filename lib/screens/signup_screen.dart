@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/api_service.dart';
+import '../otp_screen.dart';
 
 const supportedCountries = [
   'Nigeria',
@@ -246,8 +247,13 @@ class _SignupScreenState extends State<SignupScreen> {
       );
       return;
     }
-    if (_email.text.trim().toLowerCase() !=
-        _confirmEmail.text.trim().toLowerCase()) {
+    final email = _email.text.trim().toLowerCase();
+    final emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+    if (!emailPattern.hasMatch(email)) {
+      _error('Enter a valid email address.');
+      return;
+    }
+    if (email != _confirmEmail.text.trim().toLowerCase()) {
       _error('Email addresses do not match.');
       return;
     }
@@ -279,9 +285,14 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _loading = true);
     try {
       final data = <String, dynamic>{
-        'email': _email.text.trim().toLowerCase(),
+        'email': email,
         'password': _password.text,
         'phone': phone,
+        'country': _country,
+        'city': _city.text.trim(),
+        'region': _region.text.trim(),
+        'address':
+            '${_city.text.trim()}${_region.text.trim().isEmpty ? '' : ', ${_region.text.trim()}'}',
       };
       if (_role == 'company') {
         data['company_name'] = _company.text.trim();
@@ -291,34 +302,33 @@ class _SignupScreenState extends State<SignupScreen> {
       }
       if (_role == 'technician') {
         data['country'] = _country;
-        data['address'] =
-            '${_city.text.trim()}${_region.text.trim().isEmpty ? '' : ', ${_region.text.trim()}'}';
       }
-      await _api.register(role: _role, data: data);
-      final login = await _api.login(_email.text, _password.text);
-      // The registration serializers differ by role. Persist the common
-      // location fields after authentication so client and company accounts
-      // receive the same profile data as technicians.
-      final location = await _api.updateProfile({
-        'country': _country,
-        'city': _city.text.trim(),
-        'address':
-            '${_city.text.trim()}${_region.text.trim().isEmpty ? '' : ', ${_region.text.trim()}'}',
-      });
-      _verifySavedLocation(location);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('signup_country', _country);
-      await prefs.setString('signup_city', _city.text.trim());
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Account created. ${(login['role'] ?? _role).toString()} account is pending admin verification.',
-            ),
-          ),
+      final otp = await _api.requestPhoneOtp(
+        phone: phone,
+        email: email,
+        purpose: 'verification',
+      );
+      final challengeId = int.tryParse('${otp['challenge_id'] ?? ''}');
+      if (challengeId == null) {
+        throw const ApiException(
+          'The server did not return a verification challenge.',
+          500,
         );
-        Navigator.pop(context);
       }
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => OTPScreen(
+            email: email,
+            phone: phone,
+            role: _role,
+            challengeId: challengeId,
+            purpose: 'signup',
+            registrationData: data,
+          ),
+        ),
+      );
     } on ApiException catch (e) {
       _error(e.message);
     } finally {
@@ -526,171 +536,191 @@ class _SignupScreenState extends State<SignupScreen> {
       scrolledUnderElevation: 0,
       foregroundColor: const Color(0xFF001F3F),
     ),
-    body: ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        const Text(
-          'Join Boulot Man',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF001F3F),
-          ),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Choose an account type and get started.',
-          style: TextStyle(color: Color(0xFF64748B)),
-        ),
-        const SizedBox(height: 24),
-        Row(
-          children: [
-            _roleCard('client', 'Client', Icons.person_outline),
-            _roleCard('technician', 'Technician', Icons.handyman_outlined),
-            _roleCard('company', 'Company', Icons.business_center_outlined),
-          ],
-        ),
-        if (_role.isEmpty) ...[
-          const SizedBox(height: 10),
+    body: SafeArea(
+      top: false,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+        children: [
           const Text(
-            'Select an account type to continue',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+            'Join Boulot Man',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF001F3F),
+            ),
           ),
-        ],
-        const SizedBox(height: 20),
-        if (_role == 'company')
-          TextField(
-            controller: _company,
-            decoration: _dec('Company name', Icons.business_outlined),
-          )
-        else
+          const SizedBox(height: 8),
+          const Text(
+            'Choose an account type and get started.',
+            style: TextStyle(color: Color(0xFF64748B)),
+          ),
+          const SizedBox(height: 24),
           Row(
             children: [
-              Expanded(
-                child: TextField(
-                  controller: _first,
-                  decoration: _dec('First name', Icons.person_outline),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _last,
-                  decoration: _dec('Last name', Icons.person_outline),
-                ),
-              ),
+              _roleCard('client', 'Client', Icons.person_outline),
+              _roleCard('technician', 'Technician', Icons.handyman_outlined),
+              _roleCard('company', 'Company', Icons.business_center_outlined),
             ],
           ),
-        const SizedBox(height: 16),
-        _countrySelector(),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _city,
-          decoration: _dec('City / Town', Icons.location_city),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _region,
-          decoration: _dec('Region / State', Icons.map_outlined),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _email,
-          keyboardType: TextInputType.emailAddress,
-          decoration: _dec('Email', Icons.email_outlined),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _confirmEmail,
-          keyboardType: TextInputType.emailAddress,
-          decoration: _dec('Confirm email', Icons.mark_email_read_outlined),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _phone,
-          keyboardType: TextInputType.phone,
-          inputFormatters: [_PhoneFormatter(countryPhoneGroups[_country]!)],
-          decoration: _dec(
-            'Phone number (${countryDialCodes[_country]})',
-            Icons.phone_outlined,
-            prefixText: '${countryDialCodes[_country]} ',
+          if (_role.isEmpty) ...[
+            const SizedBox(height: 10),
+            const Text(
+              'Select an account type to continue',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+            ),
+          ],
+          const SizedBox(height: 20),
+          if (_role == 'company')
+            TextField(
+              controller: _company,
+              decoration: _dec('Company name', Icons.business_outlined),
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _first,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: _dec('First name', Icons.person_outline),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _last,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: _dec('Last name', Icons.person_outline),
+                  ),
+                ),
+              ],
+            ),
+          const SizedBox(height: 16),
+          _countrySelector(),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _city,
+            decoration: _dec('City / Town', Icons.location_city),
           ),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _password,
-          obscureText: _hidePassword,
-          decoration: _dec(
-            'Password (minimum 8 characters)',
-            Icons.lock_outline,
-            suffix: IconButton(
-              onPressed: () => setState(() => _hidePassword = !_hidePassword),
-              icon: Icon(
-                _hidePassword
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
+          const SizedBox(height: 16),
+          TextField(
+            controller: _region,
+            decoration: _dec('Region / State', Icons.map_outlined),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _email,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
+            textCapitalization: TextCapitalization.none,
+            autocorrect: false,
+            enableSuggestions: false,
+            autofillHints: const [AutofillHints.email],
+            decoration: _dec('Email', Icons.email_outlined),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _confirmEmail,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
+            textCapitalization: TextCapitalization.none,
+            autocorrect: false,
+            enableSuggestions: false,
+            autofillHints: const [AutofillHints.email],
+            decoration: _dec('Confirm email', Icons.mark_email_read_outlined),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _phone,
+            keyboardType: TextInputType.phone,
+            textInputAction: TextInputAction.next,
+            textCapitalization: TextCapitalization.none,
+            autocorrect: false,
+            enableSuggestions: false,
+            inputFormatters: [_PhoneFormatter(countryPhoneGroups[_country]!)],
+            decoration: _dec(
+              'Phone number (${countryDialCodes[_country]})',
+              Icons.phone_outlined,
+              prefixText: '${countryDialCodes[_country]} ',
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _password,
+            obscureText: _hidePassword,
+            decoration: _dec(
+              'Password (minimum 8 characters)',
+              Icons.lock_outline,
+              suffix: IconButton(
+                onPressed: () => setState(() => _hidePassword = !_hidePassword),
+                icon: Icon(
+                  _hidePassword
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _confirmPassword,
-          obscureText: _hideConfirm,
-          decoration: _dec(
-            'Confirm password',
-            Icons.lock_outline,
-            suffix: IconButton(
-              onPressed: () => setState(() => _hideConfirm = !_hideConfirm),
-              icon: Icon(
-                _hideConfirm
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
+          const SizedBox(height: 16),
+          TextField(
+            controller: _confirmPassword,
+            obscureText: _hideConfirm,
+            decoration: _dec(
+              'Confirm password',
+              Icons.lock_outline,
+              suffix: IconButton(
+                onPressed: () => setState(() => _hideConfirm = !_hideConfirm),
+                icon: Icon(
+                  _hideConfirm
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 12),
-        _termsConsent(),
-        const SizedBox(height: 18),
-        OutlinedButton.icon(
-          onPressed: _loading ? null : _googleSignup,
-          icon: Image.asset(
-            'assets/images/google_logo.png',
-            width: 20,
-            height: 20,
-          ),
-          label: Text(
-            _role.isEmpty
-                ? 'Continue with Google'
-                : 'Continue with Google as ${_role[0].toUpperCase()}${_role.substring(1)}',
-          ),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFF001F3F),
-            minimumSize: const Size.fromHeight(52),
-            side: const BorderSide(color: Color(0xFFD7DEE8)),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+          const SizedBox(height: 12),
+          _termsConsent(),
+          const SizedBox(height: 18),
+          OutlinedButton.icon(
+            onPressed: _loading ? null : _googleSignup,
+            icon: Image.asset(
+              'assets/images/google_logo.png',
+              width: 20,
+              height: 20,
             ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 54,
-          child: ElevatedButton(
-            onPressed: _loading ? null : _submit,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF4500),
-              foregroundColor: Colors.white,
+            label: Text(
+              _role.isEmpty
+                  ? 'Continue with Google'
+                  : 'Continue with Google as ${_role[0].toUpperCase()}${_role.substring(1)}',
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF001F3F),
+              minimumSize: const Size.fromHeight(52),
+              side: const BorderSide(color: Color(0xFFD7DEE8)),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: Text(_loading ? 'Creating account...' : 'Create Account'),
           ),
-        ),
-      ],
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 54,
+            child: ElevatedButton(
+              onPressed: _loading ? null : _submit,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF4500),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(_loading ? 'Creating account...' : 'Create Account'),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
     ),
   );
 }

@@ -77,13 +77,14 @@ class NotificationHelper {
       // Native iOS / Android local notification
       try {
         const androidDetails = AndroidNotificationDetails(
-          'boulotman_general',
+          'boulotman_alerts_v2',
           'BoulotMan notifications',
           channelDescription:
               'Messages, bids, verification, project and account updates',
           importance: Importance.max,
           priority: Priority.high,
           icon: '@drawable/ic_notification',
+          playSound: true,
           showWhen: true,
         );
         const iosDetails = DarwinNotificationDetails(
@@ -115,13 +116,14 @@ class NotificationHelper {
     if (kIsWeb) return;
     const details = NotificationDetails(
       android: AndroidNotificationDetails(
-        'boulotman_general',
+        'boulotman_alerts_v2',
         'BoulotMan notifications',
         channelDescription:
             'Messages, bids, verification, project and account updates',
         importance: Importance.max,
         priority: Priority.high,
         icon: '@drawable/ic_notification',
+        playSound: true,
         showWhen: true,
       ),
       iOS: DarwinNotificationDetails(

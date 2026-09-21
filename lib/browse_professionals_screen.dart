@@ -15,6 +15,36 @@ class BrowseProfessionalsScreen extends StatefulWidget {
 class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = 'All';
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!Get.isRegistered<AppState>()) {
+      Get.put(AppState());
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadProfessionals());
+  }
+
+  Future<void> _loadProfessionals() async {
+    if (!mounted) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await Get.find<AppState>().syncPublicProfessionals();
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'We could not load professionals right now.';
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -85,7 +115,15 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
                 _buildSearchSection(),
                 _buildCategoryChips(categories),
                 Expanded(
-                  child: filteredPros.isEmpty
+                  child: _loading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFFFF4500),
+                          ),
+                        )
+                      : _error != null
+                      ? _buildErrorState()
+                      : filteredPros.isEmpty
                       ? _buildEmptyState()
                       : ListView.builder(
                           physics: const BouncingScrollPhysics(),
@@ -105,6 +143,36 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.cloud_off_outlined,
+              size: 44,
+              color: Color(0xFF64748B),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFF64748B)),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: _loadProfessionals,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

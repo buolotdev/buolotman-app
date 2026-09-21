@@ -2,6 +2,7 @@ import 'public_technician_profile_screen.dart' as public_profile;
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'custom_camera_screen.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -399,6 +400,19 @@ class _TechnicianProfileSettingsScreenState
   }
 
   Future<void> _saveSettings() async {
+    String? requiredValue(String value, String label) =>
+        value.trim().isEmpty ? '$label is required.' : null;
+    final requiredError =
+        requiredValue(_firstNameController.text, 'First name') ??
+        requiredValue(_lastNameController.text, 'Last name') ??
+        requiredValue(_countryController.text, 'Country') ??
+        requiredValue(_cityController.text, 'City');
+    if (requiredError != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(requiredError)));
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
     if (_phoneController.text.trim().isNotEmpty &&
         !validPhoneForCountry(
@@ -413,6 +427,32 @@ class _TechnicianProfileSettingsScreenState
         ),
       );
       return;
+    }
+    if (_emergencyContactPhoneController.text.trim().isNotEmpty &&
+        !validPhoneForCountry(
+          _emergencyContactPhoneController.text.trim(),
+          _countryController.text.trim(),
+        )) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a valid emergency contact phone.')),
+      );
+      return;
+    }
+    for (final entry in <String, TextEditingController>{
+      'years of experience': _yearsExpController,
+      'starting price': _startingPriceController,
+      'hourly rate': _hourlyRateController,
+      'daily rate': _dailyRateController,
+      'inspection fee': _inspectionFeeController,
+    }.entries) {
+      final value = entry.value.text.trim();
+      if (value.isNotEmpty &&
+          (double.tryParse(value) == null || double.parse(value) < 0)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${entry.key} must be a valid number.')),
+        );
+        return;
+      }
     }
 
     setState(() => _isLoading = true);
@@ -504,7 +544,10 @@ class _TechnicianProfileSettingsScreenState
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         tagline: _taglineController.text.trim(),
-        phone: _phoneController.text.trim(),
+        phone: internationalPhone(
+          _phoneController.text.trim(),
+          _countryController.text.trim(),
+        ),
         country: _countryController.text.trim(),
         city: _cityController.text.trim(),
         preferredLanguages: _languagesController.text
@@ -514,7 +557,10 @@ class _TechnicianProfileSettingsScreenState
             .toList(),
 
         emergencyContactName: _emergencyContactNameController.text.trim(),
-        emergencyContactPhone: _emergencyContactPhoneController.text.trim(),
+        emergencyContactPhone: internationalPhone(
+          _emergencyContactPhoneController.text.trim(),
+          _countryController.text.trim(),
+        ),
 
         yearsExperience: int.tryParse(_yearsExpController.text.trim()) ?? 0,
         skills: _skillsController.text
@@ -593,7 +639,10 @@ class _TechnicianProfileSettingsScreenState
         'country': _countryController.text.trim(),
         'city': _cityController.text.trim(),
         'emergency_contact_name': _emergencyContactNameController.text.trim(),
-        'emergency_contact_phone': _emergencyContactPhoneController.text.trim(),
+        'emergency_contact_phone': internationalPhone(
+          _emergencyContactPhoneController.text.trim(),
+          _countryController.text.trim(),
+        ),
       };
       final mismatches = checks.entries
           .where((entry) {
@@ -696,6 +745,7 @@ class _TechnicianProfileSettingsScreenState
     int maxLines = 1,
     TextInputType? keyboardType,
     String? hint,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -714,6 +764,7 @@ class _TechnicianProfileSettingsScreenState
             controller: controller,
             maxLines: maxLines,
             keyboardType: keyboardType,
+            inputFormatters: inputFormatters,
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: const TextStyle(color: Colors.grey),
@@ -728,7 +779,15 @@ class _TechnicianProfileSettingsScreenState
                 vertical: 14,
               ),
             ),
-            validator: (v) => v!.trim().isEmpty ? 'Required' : null,
+            validator: (v) {
+              final value = v?.trim() ?? '';
+              if (value.isEmpty) return null;
+              if (keyboardType == TextInputType.number &&
+                  double.tryParse(value) == null) {
+                return 'Enter a valid number.';
+              }
+              return null;
+            },
           ),
         ],
       ),
@@ -1215,6 +1274,9 @@ class _TechnicianProfileSettingsScreenState
                         'Phone Number',
                         _phoneController,
                         keyboardType: TextInputType.phone,
+                        inputFormatters: [
+                          phoneInputFormatter(_countryController.text.trim()),
+                        ],
                       ),
                       _buildTextField('Country', _countryController),
                       _buildTextField(
@@ -1247,6 +1309,9 @@ class _TechnicianProfileSettingsScreenState
                         'Contact Phone',
                         _emergencyContactPhoneController,
                         keyboardType: TextInputType.phone,
+                        inputFormatters: [
+                          phoneInputFormatter(_countryController.text.trim()),
+                        ],
                       ),
                     ],
                   ),

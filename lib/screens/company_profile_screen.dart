@@ -78,23 +78,34 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
 
   Future<void> _load() async {
     try {
-      final values = await Future.wait<dynamic>([
-        api.companyProfile(),
-        api.companyVerificationDocuments(),
-        api.profile(),
-      ]);
-      final data = Map<String, dynamic>.from(values[0] as Map);
+      // The company profile is usable even when optional verification data or
+      // the account endpoint is temporarily unavailable. Do not let either
+      // secondary request blank the whole form.
+      final data = await api.companyProfile();
+      List<dynamic> loadedDocuments = const [];
+      try {
+        loadedDocuments = await api.companyVerificationDocuments();
+      } catch (_) {
+        // Verification documents are supplementary to the editable profile.
+      }
+      Map<String, dynamic> account = const {};
+      try {
+        account = await api.profile();
+      } catch (_) {
+        // The company response may already include the username.
+      }
       if (!mounted) return;
       profile = data;
-      final account = Map<String, dynamic>.from(values[2] as Map);
-      username.text = normalizeUsername('${account['username'] ?? ''}');
+      username.text = normalizeUsername(
+        '${account['username'] ?? data['username'] ?? ''}',
+      );
       _initialUsername = username.text;
       for (final f in fields) {
         form[f.$1]!.text = data[f.$1]?.toString() ?? '';
       }
       logoUrl = data['logo_url']?.toString();
       coverUrl = data['cover_url']?.toString();
-      documents = values[1] is List ? values[1] as List : [];
+      documents = loadedDocuments;
       setState(() => loading = false);
     } catch (e) {
       if (mounted) {
@@ -211,6 +222,50 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
   }
 
   Future<void> _save() async {
+    final companyName = form['company_name']!.text.trim();
+    if (companyName.isEmpty) {
+      _snack('Enter the company name.');
+      return;
+    }
+    final yearText = form['year_founded']!.text.trim();
+    if (yearText.isNotEmpty) {
+      final year = int.tryParse(yearText);
+      final currentYear = DateTime.now().year;
+      if (year == null || year < 1800 || year > currentYear) {
+        _snack('Enter a valid year founded.');
+        return;
+      }
+    }
+    final teamSizeText = form['team_size']!.text.trim();
+    if (teamSizeText.isNotEmpty &&
+        (int.tryParse(teamSizeText) == null || int.parse(teamSizeText) < 0)) {
+      _snack('Team size must be a whole number of zero or more.');
+      return;
+    }
+    final latitudeText = form['latitude']!.text.trim();
+    final longitudeText = form['longitude']!.text.trim();
+    final latitude = double.tryParse(latitudeText);
+    final longitude = double.tryParse(longitudeText);
+    if (latitudeText.isNotEmpty &&
+        (latitude == null || latitude < -90 || latitude > 90)) {
+      _snack('Latitude must be between -90 and 90.');
+      return;
+    }
+    if (longitudeText.isNotEmpty &&
+        (longitude == null || longitude < -180 || longitude > 180)) {
+      _snack('Longitude must be between -180 and 180.');
+      return;
+    }
+    final website = form['website']!.text.trim();
+    if (website.isNotEmpty) {
+      final uri = Uri.tryParse(
+        website.startsWith(RegExp(r'https?://')) ? website : 'https://$website',
+      );
+      if (uri == null || uri.host.isEmpty) {
+        _snack('Enter a valid website address.');
+        return;
+      }
+    }
     final normalizedUsername = normalizeUsername(username.text);
     final usernameError = validateUsername(normalizedUsername);
     if (usernameError != null) {
@@ -235,7 +290,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       for (final f in fields) {
         final value = form[f.$1]!.text.trim();
         if (f.$1 == 'team_size') {
-          data[f.$1] = int.tryParse(value) ?? 0;
+          data[f.$1] = value.isEmpty ? null : int.parse(value);
         } else {
           data[f.$1] = value;
         }
@@ -263,9 +318,12 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       } else if (coverUrl != null) {
         data['cover_url'] = coverUrl;
       }
-      await api.updateProfile({'username': normalizedUsername});
+      if (normalizedUsername != _initialUsername) {
+        await api.updateProfile({'username': normalizedUsername});
+      }
       final saved = await api.updateCompanyProfile(data);
       profile = saved;
+      _initialUsername = normalizedUsername;
       _pendingLogo = null;
       _pendingCover = null;
       _removeLogo = false;
@@ -562,17 +620,13 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       _docSlot(
         'RCCM Certificate',
         'Corporate registration certificate',
-        'certificate',
+        'rccm',
       ),
-      _docSlot(
-        'IFU Tax Certificate',
-        'Official tax certificate',
-        'certificate',
-      ),
+      _docSlot('IFU Tax Certificate', 'Official tax certificate', 'ifu'),
       _docSlot(
         'Representative Authorization',
         'Authorization for company representative',
-        'id',
+        'representative_authorization',
       ),
       const SizedBox(height: 12),
       if (documents.isEmpty)
@@ -613,16 +667,42 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
 
   Widget _docSlot(String title, String subtitle, String type) => Card(
     elevation: 0,
-    child: ListTile(
-      leading: const Icon(Icons.description_outlined, color: orange),
-      title: Text(
-        title,
-        style: const TextStyle(color: navy, fontWeight: FontWeight.w700),
-      ),
-      subtitle: Text(subtitle, style: const TextStyle(color: muted)),
-      trailing: OutlinedButton(
-        onPressed: () => _showDocumentActions(title, type),
-        child: const Text('Upload'),
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 2),
+            child: Icon(Icons.description_outlined, color: orange),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: navy,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(subtitle, style: const TextStyle(color: muted)),
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showDocumentActions(title, type),
+                    icon: const Icon(Icons.upload_outlined, size: 18),
+                    label: const Text('Upload document'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     ),
   );

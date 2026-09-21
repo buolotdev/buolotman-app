@@ -87,6 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = TextEditingController();
     final code = TextEditingController();
     final newPassword = TextEditingController();
+    final confirmPassword = TextEditingController();
     try {
       final requested = await showDialog<bool>(
         context: context,
@@ -110,6 +111,9 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
       if (requested != true || email.text.trim().isEmpty) return;
+      if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email.text.trim())) {
+        throw const ApiException('Enter a valid email address.', 400);
+      }
 
       setState(() => _loading = true);
       final reset = await _api.requestPasswordReset(email.text);
@@ -141,6 +145,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 obscureText: true,
                 decoration: const InputDecoration(labelText: 'New password'),
               ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: confirmPassword,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm new password',
+                ),
+              ),
             ],
           ),
           actions: [
@@ -156,6 +168,16 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
       if (confirmed != true) return;
+      if (!RegExp(r'^\d{6}$').hasMatch(code.text.trim())) {
+        throw const ApiException('Enter the 6-digit verification code.', 400);
+      }
+      if (newPassword.text.length < 6 ||
+          newPassword.text != confirmPassword.text) {
+        throw const ApiException(
+          'Use at least 6 characters and make both new passwords match.',
+          400,
+        );
+      }
       setState(() => _loading = true);
       await _api.confirmPasswordReset(
         email: email.text,
@@ -179,6 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
       email.dispose();
       code.dispose();
       newPassword.dispose();
+      confirmPassword.dispose();
       if (mounted) setState(() => _loading = false);
     }
   }

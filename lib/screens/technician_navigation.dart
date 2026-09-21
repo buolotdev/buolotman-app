@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'technician_area_screens.dart';
 import 'technician_bids_management_screen.dart';
 import 'technician_dashboard_screen.dart';
 import 'technician_profile_details_screen.dart';
@@ -14,7 +13,9 @@ const technicianOrange = Color(0xFFFF4500);
 class TechnicianBottomNavigation extends StatelessWidget {
   const TechnicianBottomNavigation({super.key, required this.selectedIndex});
 
-  final int selectedIndex;
+  /// Use null for screens that are not represented by a bottom-bar tab,
+  /// such as Messages. This keeps Feed from appearing incorrectly selected.
+  final int? selectedIndex;
 
   void _open(BuildContext context, int index) {
     final Widget page = switch (index) {
@@ -33,12 +34,16 @@ class TechnicianBottomNavigation extends StatelessWidget {
     return NavigationBarTheme(
       data: NavigationBarThemeData(
         backgroundColor: technicianNavy,
-        indicatorColor: technicianOrange.withValues(alpha: .22),
+        indicatorColor: selectedIndex == null
+            ? Colors.transparent
+            : technicianOrange.withValues(alpha: .22),
         height: 72,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
-            color: selected ? Colors.white : Colors.white70,
+            color: selectedIndex == null || !selected
+                ? Colors.white70
+                : Colors.white,
             fontWeight: FontWeight.w700,
             fontSize: 12,
           );
@@ -46,12 +51,16 @@ class TechnicianBottomNavigation extends StatelessWidget {
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
-            color: selected ? technicianOrange : Colors.white70,
+            color: selectedIndex == null || !selected
+                ? Colors.white70
+                : technicianOrange,
           );
         }),
       ),
       child: NavigationBar(
-        selectedIndex: selectedIndex.clamp(0, 3),
+        // NavigationBar requires an index even when selection is hidden; the
+        // theme above makes that fallback visually neutral.
+        selectedIndex: selectedIndex?.clamp(0, 3) ?? 0,
         onDestinationSelected: (index) => _open(context, index),
         destinations: const [
           NavigationDestination(

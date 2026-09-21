@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../core/api_service.dart';
 import '../core/realtime_chat.dart';
 import '../attachment_actions.dart';
@@ -30,7 +31,7 @@ class _MessagesState extends State<TechnicianMessagesScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: 0),
+    bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: null),
     appBar: AppBar(
       title: const Text('Messages'),
       foregroundColor: navy,
@@ -143,7 +144,8 @@ class TechnicianConversationScreen extends StatefulWidget {
 class _ConversationState extends State<TechnicianConversationScreen> {
   static const navy = Color(0xFF001F3F),
       orange = Color(0xFFFF4500),
-      muted = Color(0xFF64748B);
+      muted = Color(0xFF64748B),
+      sentBubble = Color(0xFFFFE0D6);
   final api = ApiService();
   final draft = TextEditingController();
   late Future<dynamic> future = api.conversation(widget.conversationId);
@@ -288,9 +290,18 @@ class _ConversationState extends State<TechnicianConversationScreen> {
 
   String _lastSeen(Map other) =>
       '${other['last_seen_display'] ?? other['last_seen_at'] ?? other['last_seen'] ?? 'Offline'}';
+
+  Future<void> _openAttachment(String value, String name) async {
+    final uri = Uri.tryParse(api.resolveImageUrl(value));
+    if (uri == null ||
+        !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      _notice('Could not open ${name.isEmpty ? 'the attachment' : name}.');
+    }
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
-    bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: 0),
+    bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: null),
     appBar: AppBar(
       title: const Text('Conversation'),
       foregroundColor: navy,
@@ -449,28 +460,24 @@ class _ConversationState extends State<TechnicianConversationScreen> {
                                 margin: const EdgeInsets.only(bottom: 8),
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: mine ? orange : Colors.white,
+                                  color: mine ? sentBubble : Colors.white,
                                   borderRadius: BorderRadius.circular(15),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     if (text.isNotEmpty)
-                                      Text(
-                                        text,
-                                        style: TextStyle(
-                                          color: mine ? Colors.white : navy,
-                                        ),
-                                      ),
+                                      Text(text, style: TextStyle(color: navy)),
                                     if (url.isNotEmpty)
                                       InkWell(
-                                        onTap: () => _notice(
-                                          'Attachment: ${m['attachment_name'] ?? 'file'}',
+                                        onTap: () => _openAttachment(
+                                          url,
+                                          '${m['attachment_name'] ?? ''}',
                                         ),
                                         child: Text(
                                           'Attachment: ${m['attachment_name'] ?? 'Attachment'}',
                                           style: TextStyle(
-                                            color: mine ? Colors.white : orange,
+                                            color: orange,
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
@@ -482,9 +489,7 @@ class _ConversationState extends State<TechnicianConversationScreen> {
                                         Text(
                                           _time(m['created_at']),
                                           style: TextStyle(
-                                            color: mine
-                                                ? Colors.white70
-                                                : muted,
+                                            color: muted,
                                             fontSize: 10,
                                           ),
                                         ),
@@ -495,9 +500,7 @@ class _ConversationState extends State<TechnicianConversationScreen> {
                                                 ? Icons.done_all
                                                 : Icons.done,
                                             size: 14,
-                                            color: read
-                                                ? Colors.white
-                                                : Colors.white70,
+                                            color: read ? orange : muted,
                                           ),
                                         ],
                                       ],
@@ -519,32 +522,30 @@ class _ConversationState extends State<TechnicianConversationScreen> {
                   style: const TextStyle(color: muted),
                 ),
               ),
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: sending ? null : _pick,
-                      icon: const Icon(Icons.attach_file, color: orange),
-                    ),
-                    Expanded(
-                      child: TextField(
-                        controller: draft,
-                        textInputAction: TextInputAction.send,
-                        onSubmitted: (_) => _send(),
-                        decoration: const InputDecoration(
-                          hintText: 'Write a message',
-                          border: OutlineInputBorder(),
-                        ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: sending ? null : _pick,
+                    icon: const Icon(Icons.attach_file, color: orange),
+                  ),
+                  Expanded(
+                    child: TextField(
+                      controller: draft,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _send(),
+                      decoration: const InputDecoration(
+                        hintText: 'Write a message',
+                        border: OutlineInputBorder(),
                       ),
                     ),
-                    IconButton(
-                      onPressed: sending ? null : _send,
-                      icon: const Icon(Icons.send, color: orange),
-                    ),
-                  ],
-                ),
+                  ),
+                  IconButton(
+                    onPressed: sending ? null : _send,
+                    icon: const Icon(Icons.send, color: orange),
+                  ),
+                ],
               ),
             ),
           ],

@@ -42,19 +42,35 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   String? _readTier(Map<String, dynamic> profile) {
-    final raw = profile['subscription_tier'] ??
+    final raw =
+        profile['subscription_tier'] ??
         profile['tier'] ??
         profile['user']?['subscription_tier'];
     return raw?.toString().toUpperCase();
   }
 
-  double get balance => double.tryParse(
+  double get balance =>
+      double.tryParse(
         '${wallet['available_balance'] ?? wallet['balance'] ?? 0}',
       ) ??
       0;
 
   Future<void> upgrade(String tier, String name, double price) async {
     if (currentTier == tier) return;
+    // The website backend currently implements subscription debits from the
+    // wallet only. Its "direct" source is UI-only and would mark an upgrade
+    // successful without charging anything, so do not expose that unsafe path
+    // in the app.
+    if (balance < price) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Top up your wallet before upgrading this plan.'),
+          ),
+        );
+      }
+      return;
+    }
     final cycle = annual ? 'yearly' : 'monthly';
     final confirmed = await showDialog<bool>(
       context: context,
@@ -82,7 +98,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       await api.upgradeSubscriptionPlan({
         'tier': tier,
         'billing_cycle': cycle,
-        'payment_source': balance >= price ? 'wallet' : 'direct',
+        'payment_source': 'wallet',
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -92,9 +108,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upgrade failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Upgrade failed: $e')));
       }
     } finally {
       if (mounted) setState(() => upgrading = false);
@@ -112,7 +128,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       ),
       backgroundColor: subscriptionBg,
       body: loading
-          ? const Center(child: CircularProgressIndicator(color: subscriptionOrange))
+          ? const Center(
+              child: CircularProgressIndicator(color: subscriptionOrange),
+            )
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -122,12 +140,18 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     padding: const EdgeInsets.all(18),
                     child: Row(
                       children: [
-                        const Icon(Icons.account_balance_wallet_outlined, color: Colors.white),
+                        const Icon(
+                          Icons.account_balance_wallet_outlined,
+                          color: Colors.white,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             'Wallet balance: ${balance.toStringAsFixed(2)} $currency',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                         IconButton(
@@ -142,20 +166,42 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 const SizedBox(height: 14),
                 SwitchListTile(
                   value: annual,
-                  onChanged: upgrading ? null : (value) => setState(() => annual = value),
+                  onChanged: upgrading
+                      ? null
+                      : (value) => setState(() => annual = value),
                   title: const Text('Annual billing'),
-                  subtitle: const Text('Use the yearly prices shown on the website.'),
+                  subtitle: const Text(
+                    'Use the yearly prices shown on the website.',
+                  ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                 ),
                 _plan('Free', 'FREE', 0, 'Current basic access', false),
-                _plan('Pro Plan', 'PRO', annual ? 190 : 19, 'Professional access', true),
-                _plan('Enterprise Plan', 'ENTERPRISE', annual ? 1490 : 149, 'Enterprise access', true),
+                _plan(
+                  'Pro Plan',
+                  'PRO',
+                  annual ? 190 : 19,
+                  'Professional access',
+                  true,
+                ),
+                _plan(
+                  'Enterprise Plan',
+                  'ENTERPRISE',
+                  annual ? 1490 : 149,
+                  'Enterprise access',
+                  true,
+                ),
               ],
             ),
     );
   }
 
-  Widget _plan(String name, String tier, double price, String description, bool actionable) {
+  Widget _plan(
+    String name,
+    String tier,
+    double price,
+    String description,
+    bool actionable,
+  ) {
     final selected = currentTier == tier;
     return Card(
       elevation: 0,
@@ -165,21 +211,38 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(name, style: const TextStyle(color: subscriptionNavy, fontSize: 20, fontWeight: FontWeight.w800)),
+            Text(
+              name,
+              style: const TextStyle(
+                color: subscriptionNavy,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
             const SizedBox(height: 5),
             Text(description),
             const SizedBox(height: 8),
             Text(
-              price == 0 ? 'Free' : '${price.toStringAsFixed(0)} / ${annual ? 'year' : 'month'}',
-              style: const TextStyle(color: subscriptionNavy, fontSize: 18, fontWeight: FontWeight.w700),
+              price == 0
+                  ? 'Free'
+                  : '${price.toStringAsFixed(0)} / ${annual ? 'year' : 'month'}',
+              style: const TextStyle(
+                color: subscriptionNavy,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             if (actionable) ...[
               const SizedBox(height: 14),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: upgrading || selected ? null : () => upgrade(tier, name, price),
-                  style: FilledButton.styleFrom(backgroundColor: subscriptionOrange),
+                  onPressed: upgrading || selected
+                      ? null
+                      : () => upgrade(tier, name, price),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: subscriptionOrange,
+                  ),
                   child: Text(selected ? 'Current plan' : 'Upgrade'),
                 ),
               ),

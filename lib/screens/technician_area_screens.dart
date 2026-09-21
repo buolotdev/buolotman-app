@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/services.dart';
 import '../core/api_service.dart';
 import '../attachment_actions.dart';
 import 'login_screen.dart';
+import 'technician_messages_screen.dart';
 import 'technician_navigation.dart';
 
 const _navy = Color(0xFF001F3F),
@@ -201,10 +205,45 @@ class _TasksGateState extends State<TechnicianTasksScreen> {
   final api = ApiService();
   late Future<Map<String, dynamic>> profile = api.profile();
   late Future<dynamic> tasks = api.tasks();
+  List<String> _websiteCategories = const [];
   String query = '', category = 'all', urgency = 'all', city = 'all';
   double? minBudget, maxBudget;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWebsiteCategories();
+  }
+
+  Future<void> _loadWebsiteCategories() async {
+    try {
+      final raw = await rootBundle.loadString('assets/category_catalog.json');
+      final catalog = jsonDecode(raw) as Map<String, dynamic>;
+      if (!mounted) return;
+      setState(() => _websiteCategories = catalog.keys.toList(growable: false));
+    } catch (_) {
+      // The task feed remains usable if the bundled taxonomy cannot be read.
+    }
+  }
+
   bool _bool(dynamic value) =>
       value == true || value.toString().toLowerCase() == 'true' || value == 1;
+
+  String _normalizedUrgency(dynamic value) {
+    switch ('$value'.trim().toLowerCase()) {
+      case 'standard':
+      case 'flexible':
+        return 'flexible';
+      case 'programmed':
+      case 'scheduled':
+        return 'scheduled';
+      case 'urgent':
+        return 'urgent';
+      default:
+        return '$value'.trim().toLowerCase();
+    }
+  }
+
   List<dynamic> _filtered(List<dynamic> source) => source.where((raw) {
     if (raw is! Map) return false;
     final x = raw;
@@ -223,7 +262,7 @@ class _TasksGateState extends State<TechnicianTasksScreen> {
         categoryName != category.toLowerCase() &&
         '${x['category'] ?? ''}' != category)
       return false;
-    if (urgency != 'all' && '${x['urgency'] ?? ''}'.toLowerCase() != urgency)
+    if (urgency != 'all' && _normalizedUrgency(x['urgency']) != urgency)
       return false;
     if (city != 'all' &&
         !'${x['city'] ?? ''} ${x['location'] ?? ''}'.toLowerCase().contains(
@@ -266,7 +305,7 @@ class _TasksGateState extends State<TechnicianTasksScreen> {
           ),
           backgroundColor: _bg,
           bottomNavigationBar: const TechnicianBottomNavigation(
-            selectedIndex: 0,
+            selectedIndex: null,
           ),
           body: _center(
             'Task browsing and bidding unlock after admin verification.',
@@ -282,7 +321,9 @@ class _TasksGateState extends State<TechnicianTasksScreen> {
           ],
         ),
         backgroundColor: _bg,
-        bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: 0),
+        bottomNavigationBar: const TechnicianBottomNavigation(
+          selectedIndex: null,
+        ),
         body: FutureBuilder<dynamic>(
           future: tasks,
           builder: (_, snapshot) {
@@ -295,15 +336,6 @@ class _TasksGateState extends State<TechnicianTasksScreen> {
             final cities = all
                 .whereType<Map>()
                 .map((x) => '${x['city'] ?? ''}')
-                .where((x) => x.isNotEmpty)
-                .toSet()
-                .toList();
-            final categories = all
-                .whereType<Map>()
-                .map(
-                  (x) =>
-                      '${x['category_name'] ?? (x['category'] is Map ? x['category']['name'] : x['category'] ?? '')}',
-                )
                 .where((x) => x.isNotEmpty)
                 .toSet()
                 .toList();
@@ -323,25 +355,37 @@ class _TasksGateState extends State<TechnicianTasksScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _select('Category', category, [
-                        'all',
-                        ...categories,
-                      ], (v) => setState(() => category = v)),
-                      _select('Urgency', urgency, const [
-                        'all',
-                        'urgent',
-                        'flexible',
-                        'scheduled',
-                      ], (v) => setState(() => urgency = v)),
-                      _select('City', city, [
-                        'all',
-                        ...cities,
-                      ], (v) => setState(() => city = v)),
-                    ],
+                  LayoutBuilder(
+                    builder: (_, constraints) {
+                      final fieldWidth = (constraints.maxWidth - 8) / 2;
+                      return Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _select(
+                            'Category',
+                            category,
+                            ['all', ..._websiteCategories],
+                            (v) => setState(() => category = v),
+                            fieldWidth,
+                          ),
+                          _select(
+                            'Urgency',
+                            urgency,
+                            const ['all', 'urgent', 'flexible', 'scheduled'],
+                            (v) => setState(() => urgency = v),
+                            fieldWidth,
+                          ),
+                          _select(
+                            'City',
+                            city,
+                            ['all', ...cities],
+                            (v) => setState(() => city = v),
+                            fieldWidth,
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 10),
                   Row(
@@ -437,10 +481,12 @@ class _TasksGateState extends State<TechnicianTasksScreen> {
     String label,
     String value,
     List<String> values,
-    ValueChanged<String> onChanged,
-  ) => SizedBox(
-    width: 160,
+    ValueChanged<String> onChanged, [
+    double? width,
+  ]) => SizedBox(
+    width: width ?? 160,
     child: DropdownButtonFormField<String>(
+      isExpanded: true,
       initialValue: values.contains(value) ? value : 'all',
       decoration: InputDecoration(
         labelText: label,
@@ -452,7 +498,7 @@ class _TasksGateState extends State<TechnicianTasksScreen> {
           .map(
             (v) => DropdownMenuItem(
               value: v,
-              child: Text(v, overflow: TextOverflow.ellipsis),
+              child: Text(v, maxLines: 1, overflow: TextOverflow.ellipsis),
             ),
           )
           .toList(),
@@ -1195,8 +1241,43 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
     if (client == null)
       return _notice('Client messaging is unavailable for this project.');
     try {
-      await api.createConversation(client, taskId: widget.taskId);
-      _notice('Conversation opened.');
+      final created = await api.createConversation(
+        client,
+        taskId: widget.taskId,
+      );
+      final conversation = created is Map
+          ? (created['conversation'] is Map
+                ? created['conversation'] as Map
+                : created)
+          : const <String, dynamic>{};
+      dynamic conversationId =
+          conversation['id'] ??
+          (created is Map ? created['conversation_id'] : null);
+      if (conversationId == null) {
+        final existing = await api.conversations();
+        for (final raw in existing) {
+          if (raw is! Map) continue;
+          final rawTask = raw['task_id'] ?? raw['task'];
+          if ('$rawTask' == '${widget.taskId}' && raw['id'] != null) {
+            conversationId = raw['id'];
+            break;
+          }
+        }
+      }
+      if (conversationId == null) {
+        throw const ApiException(
+          'The conversation was created but no chat ID was returned.',
+          500,
+        );
+      }
+      if (mounted)
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                TechnicianConversationScreen(conversationId: conversationId),
+          ),
+        );
     } catch (_) {
       _notice('We could not open a conversation with the client.');
     }
@@ -1475,29 +1556,32 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
                           decimal: true,
                         ),
                       ),
-                      DropdownButtonFormField<String>(
-                        initialValue: duration,
-                        decoration: const InputDecoration(
-                          labelText: 'Delivery duration',
-                          border: OutlineInputBorder(),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: DropdownButtonFormField<String>(
+                          initialValue: duration,
+                          decoration: const InputDecoration(
+                            labelText: 'Delivery duration',
+                            border: OutlineInputBorder(),
+                          ),
+                          items:
+                              const [
+                                    '1 Day',
+                                    '2 Days',
+                                    '3 Days',
+                                    '5 Days',
+                                    '1 Week',
+                                  ]
+                                  .map(
+                                    (v) => DropdownMenuItem(
+                                      value: v,
+                                      child: Text(v),
+                                    ),
+                                  )
+                                  .toList(),
+                          onChanged: (v) =>
+                              setState(() => duration = v ?? '3 Days'),
                         ),
-                        items:
-                            const [
-                                  '1 Day',
-                                  '2 Days',
-                                  '3 Days',
-                                  '5 Days',
-                                  '1 Week',
-                                ]
-                                .map(
-                                  (v) => DropdownMenuItem(
-                                    value: v,
-                                    child: Text(v),
-                                  ),
-                                )
-                                .toList(),
-                        onChanged: (v) =>
-                            setState(() => duration = v ?? '3 Days'),
                       ),
                       _field(proposal, 'Proposal message', lines: 4),
                       _field(extraNotes, 'Extra notes (optional)', lines: 3),
@@ -1530,52 +1614,66 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
   );
 }
 
-Widget _detailGrid(Map t) => Wrap(
-  spacing: 10,
-  runSpacing: 10,
-  children: [
-    _detail(
+Widget _detailGrid(Map t) {
+  final details = <(String, dynamic)>[
+    (
       'Category',
       t['category_name'] ??
           (t['category'] is Map ? t['category']['name'] : t['category']),
     ),
-    _detail('Budget mode', t['budget_mode']),
-    _detail('Budget minimum', t['budget_min']),
-    _detail('Budget maximum', t['budget_max']),
-    _detail('Urgency', t['urgency']),
-    _detail('Service type', t['service_type']),
-    _detail('Schedule', t['schedule']),
-    _detail('Deadline', t['deadline'] ?? t['due_date']),
-    _detail('City', t['city']),
-    _detail('Location', t['location']),
-    _detail('Latitude', t['latitude']),
-    _detail('Longitude', t['longitude']),
-    _detail(
+    ('Budget mode', t['budget_mode']),
+    ('Budget minimum', t['budget_min']),
+    ('Budget maximum', t['budget_max']),
+    ('Urgency', t['urgency']),
+    ('Service type', t['service_type']),
+    ('Schedule', t['schedule']),
+    ('Deadline', t['deadline'] ?? t['due_date']),
+    ('City', t['city']),
+    ('Location', t['location']),
+    ('Latitude', t['latitude']),
+    ('Longitude', t['longitude']),
+    (
       'Materials provided',
       t['materials_provided'] == null
           ? null
           : (t['materials_provided'] == true ? 'Yes' : 'No'),
     ),
-    _detail(
+    (
       'Contact methods',
       t['contact_methods'] is List
           ? (t['contact_methods'] as List).join(', ')
           : t['contact_methods'],
     ),
-    _detail('Bid count', t['bids_count'] ?? t['bid_count'] ?? 0),
-    _detail('Task views', t['views_count'] ?? t['views'] ?? 0),
-    _detail(
+    ('Bid count', t['bids_count'] ?? t['bid_count'] ?? 0),
+    ('Task views', t['views_count'] ?? t['views'] ?? 0),
+    (
       'Escrow status',
       t['escrow_status'] ?? (t['has_escrow'] == true ? 'Funded' : 'Not funded'),
     ),
-    _detail(
+    (
       'Milestones',
       t['milestones'] is List
           ? '${(t['milestones'] as List).length} milestone(s)'
           : t['milestones'],
     ),
-  ],
-);
+  ];
+  return LayoutBuilder(
+    builder: (_, constraints) {
+      final twoColumns = constraints.maxWidth >= 420;
+      final width = twoColumns
+          ? (constraints.maxWidth - 10) / 2
+          : constraints.maxWidth;
+      return Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: details
+            .map((item) => _detail(item.$1, item.$2, width: width))
+            .toList(),
+      );
+    },
+  );
+}
+
 Widget _clientDetails(Map t) {
   final client = t['client_details'] is Map
       ? t['client_details'] as Map
@@ -1638,8 +1736,8 @@ Widget _clientDetails(Map t) {
   );
 }
 
-Widget _detail(String label, dynamic value) => SizedBox(
-  width: 145,
+Widget _detail(String label, dynamic value, {double? width}) => SizedBox(
+  width: width,
   child: Container(
     padding: const EdgeInsets.all(10),
     decoration: BoxDecoration(

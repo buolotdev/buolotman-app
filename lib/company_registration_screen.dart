@@ -155,7 +155,11 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
           ),
           const SizedBox(height: 24),
           _buildLabel("Business Email"),
-          _buildTextField(_emailController, "e.g. contact@company.com"),
+          _buildTextField(
+            _emailController,
+            "e.g. contact@company.com",
+            keyboardType: TextInputType.emailAddress,
+          ),
           const SizedBox(height: 24),
           _buildLabel("Company Website (Optional)"),
           _buildTextField(_websiteController, "e.g. www.company.com"),
@@ -246,10 +250,16 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
     TextEditingController controller,
     String hint, {
     int maxLines = 1,
+    TextInputType? keyboardType,
   }) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
+      keyboardType: keyboardType,
+      autocorrect: keyboardType == TextInputType.emailAddress ? false : true,
+      textCapitalization: keyboardType == TextInputType.emailAddress
+          ? TextCapitalization.none
+          : TextCapitalization.sentences,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
@@ -337,6 +347,48 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
                       if (_currentStep < 3) {
                         setState(() => _currentStep++);
                       } else {
+                        final email = _emailController.text.trim();
+                        final website = _websiteController.text.trim();
+                        if (_companyNameController.text.trim().isEmpty ||
+                            _industryController.text.trim().isEmpty ||
+                            _registrationNumberController.text.trim().isEmpty ||
+                            _taxIdController.text.trim().isEmpty ||
+                            _addressController.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Complete all required company details.',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+                        if (!RegExp(
+                          r'^[^\s@]+@[^\s@]+\.[^\s@]+$',
+                        ).hasMatch(email)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Enter a valid company email.'),
+                            ),
+                          );
+                          return;
+                        }
+                        final websiteUri = website.isEmpty
+                            ? null
+                            : Uri.tryParse(
+                                website.startsWith(RegExp(r'https?://'))
+                                    ? website
+                                    : 'https://$website',
+                              );
+                        if (website.isNotEmpty &&
+                            (websiteUri == null || websiteUri.host.isEmpty)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Enter a valid company website.'),
+                            ),
+                          );
+                          return;
+                        }
                         setState(() {
                           _isLoading = true;
                         });

@@ -18,6 +18,7 @@ class _State extends State<TechnicianPortfolioScreen> {
       value = TextEditingController(),
       completionDate = TextEditingController();
   String? imageUrl;
+  dynamic editingId;
   PlatformFile? preview;
   bool saving = false;
   List<dynamic> projects = [];
@@ -60,11 +61,7 @@ class _State extends State<TechnicianPortfolioScreen> {
                   value,
                   keyboardType: TextInputType.number,
                 ),
-                _input(
-                  'Completion date (YYYY-MM-DD)',
-                  completionDate,
-                  keyboardType: TextInputType.datetime,
-                ),
+                _dateInput(),
                 if (preview != null)
                   GestureDetector(
                     onTap: () => showDialog(
@@ -146,6 +143,53 @@ class _State extends State<TechnicianPortfolioScreen> {
       ),
     ),
   );
+
+  Widget _dateInput() => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: TextField(
+      controller: completionDate,
+      readOnly: true,
+      onTap: _pickCompletionDate,
+      decoration: InputDecoration(
+        labelText: 'Completion date',
+        hintText: 'Select completion date',
+        suffixIcon: const Icon(Icons.calendar_month_outlined),
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: orange, width: 1.5),
+        ),
+      ),
+    ),
+  );
+
+  Future<void> _pickCompletionDate() async {
+    final today = DateTime.now();
+    final existing = DateTime.tryParse(completionDate.text.trim());
+    final firstDate = DateTime(1900);
+    final initialDate =
+        existing != null &&
+            !existing.isBefore(firstDate) &&
+            !existing.isAfter(today)
+        ? existing
+        : today;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: today,
+      helpText: 'Select completion date',
+    );
+    if (picked == null || !mounted) return;
+    final month = picked.month.toString().padLeft(2, '0');
+    final day = picked.day.toString().padLeft(2, '0');
+    setState(() {
+      completionDate.text = '${picked.year}-$month-$day';
+    });
+  }
+
   Future<void> _pickFromDevice() async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
@@ -201,24 +245,57 @@ class _State extends State<TechnicianPortfolioScreen> {
         subtitle: Text(
           '${item['category'] ?? ''} • ${item['completed_date'] ?? 'Date not provided'}',
         ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_outline, color: Colors.red),
-          onPressed: () async {
-            try {
-              await api.deletePortfolio(item['id']);
-              if (mounted) setState(() {});
-            } catch (e) {
-              if (mounted)
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('We could not delete this project.'),
-                  ),
-                );
-            }
-          },
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, color: navy),
+              onPressed: () => _editProject(item),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              onPressed: () async {
+                try {
+                  await api.deletePortfolio(item['id']);
+                  if (mounted) setState(() {});
+                } catch (e) {
+                  if (mounted)
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('We could not delete this project.'),
+                      ),
+                    );
+                }
+              },
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  void _editProject(dynamic raw) {
+    final item = raw is Map ? raw : const <String, dynamic>{};
+    editingId = item['id'];
+    title.text = '${item['title'] ?? ''}';
+    category.text = '${item['category'] ?? ''}';
+    final savedDescription = '${item['description'] ?? ''}';
+    final locationValue = item['project_location'] ?? item['location'] ?? '';
+    if (locationValue.toString().trim().isEmpty &&
+        savedDescription.contains('\nLocation: ')) {
+      final parts = savedDescription.split('\nLocation: ');
+      description.text = parts.first;
+      location.text = parts.skip(1).join('\nLocation: ');
+    } else {
+      description.text = savedDescription;
+      location.text = '$locationValue';
+    }
+    value.text = '${item['project_value'] ?? ''}';
+    completionDate.text = '${item['completed_date'] ?? ''}';
+    imageUrl = '${item['image_url'] ?? ''}'.isEmpty
+        ? null
+        : '${item['image_url']}';
+    setState(() {});
   }
 
   Future<void> _save() async {
@@ -235,6 +312,17 @@ class _State extends State<TechnicianPortfolioScreen> {
       );
       return;
     }
+    final projectValue = value.text.trim().isEmpty
+        ? null
+        : double.tryParse(value.text.trim());
+    if (value.text.trim().isNotEmpty &&
+        (projectValue == null || projectValue < 0)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Project value must be a valid number.')),
+      );
+      return;
+    }
+    final wasEditing = editingId != null;
     setState(() => saving = true);
     try {
       if (preview != null)
@@ -242,20 +330,29 @@ class _State extends State<TechnicianPortfolioScreen> {
           bytes: preview!.bytes!,
           filename: preview!.name,
         );
-      await api.createPortfolio({
+      final payload = <String, dynamic>{
         'title': title.text.trim(),
-        'description':
-            '${description.text.trim()}${location.text.trim().isEmpty ? '' : '\nLocation: ${location.text.trim()}'}',
+        'description': description.text.trim(),
         'category': category.text.trim(),
-        'project_value': value.text.trim().isEmpty
-            ? null
-            : double.tryParse(value.text.trim()),
+        'project_location': location.text.trim(),
+        'project_value': projectValue,
         'completed_date': date.isEmpty ? null : date,
         'image_url': imageUrl ?? '',
-      });
+      };
+      if (wasEditing) {
+        await api.updatePortfolio(editingId, payload);
+      } else {
+        await api.createPortfolio(payload);
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Portfolio project saved.')),
+          SnackBar(
+            content: Text(
+              wasEditing
+                  ? 'Portfolio project updated.'
+                  : 'Portfolio project saved.',
+            ),
+          ),
         );
         title.clear();
         description.clear();
@@ -264,6 +361,7 @@ class _State extends State<TechnicianPortfolioScreen> {
         value.clear();
         completionDate.clear();
         setState(() {
+          editingId = null;
           preview = null;
           imageUrl = null;
         });
