@@ -7,6 +7,7 @@ import 'screens/client_dashboard_screen.dart';
 import 'screens/company_dashboard_screen.dart';
 import 'core/api_service.dart';
 import 'app_state.dart';
+import 'api_service.dart' as legacy_api;
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -27,6 +28,12 @@ void main() async {
   // login, password reset, and post-auth screens share the same state.
   if (!Get.isRegistered<AppState>()) {
     Get.put(AppState(), permanent: true);
+  }
+  if (!Get.isRegistered<legacy_api.ApiService>()) {
+    Get.put<legacy_api.ApiService>(
+      legacy_api.ApiService.instance,
+      permanent: true,
+    );
   }
   runApp(const MyApp());
 }

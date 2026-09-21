@@ -78,13 +78,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         await AppStateScope.of(context).syncAll();
         final appState = AppStateScope.of(context);
 
-        // Auto-navigate to ProfileSetup if not verified
-        if (appState.verificationStatus != 'Verified' && mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ProfileSetupScreen()),
-          );
-        }
+        // Keep the dashboard and its onboarding tour visible after login.
+        // Profile completion remains available from the dashboard card instead
+        // of unexpectedly replacing the dashboard for every unverified user.
       } finally {
         if (mounted) {
           setState(() {
@@ -430,40 +426,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Row(
             children: [
-              IconButton(
-                icon: const Icon(Icons.menu, color: Color(0xFF001F3F)),
-                onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-              ),
-              const SizedBox(width: 4),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Welcome back, $greetingName",
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF64748B),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
                   Row(
                     children: [
-                      const Icon(
-                        Icons.location_on,
-                        size: 18,
-                        color: Color(0xFFFF4500),
+                      IconButton(
+                        icon: const Icon(Icons.menu, color: Color(0xFF001F3F)),
+                        onPressed: () =>
+                            _scaffoldKey.currentState?.openDrawer(),
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        location,
+                        "Welcome back, $greetingName",
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 17,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF001F3F),
+                          color: Color(0xFF64748B),
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 2),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 60),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on,
+                          size: 18,
+                          color: Color(0xFFFF4500),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          location,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF001F3F),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
