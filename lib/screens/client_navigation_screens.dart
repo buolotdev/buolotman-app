@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 import '../core/api_service.dart';
 import '../verification_utils.dart';
 import 'login_screen.dart';
@@ -177,7 +178,7 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    verified ? 'Verified' : 'Pending',
+                    verified ? 'Verified' : 'Required',
                     style: TextStyle(
                       color: verified ? Colors.green.shade700 : clientOrange,
                       fontWeight: FontWeight.w600,
@@ -190,10 +191,27 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
             Text(
               verified
                   ? 'Your account has been approved by the Boulot Man administration team.'
-                  : 'Account approval is handled by the administration team after registration. No client documents are required here.',
+                  : 'Submit one government-issued ID so the administration team can review your account.',
               style: const TextStyle(color: clientMuted, height: 1.4),
             ),
             const SizedBox(height: 14),
+            OutlinedButton.icon(
+              onPressed: verified
+                  ? null
+                  : () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ClientVerificationScreen(),
+                      ),
+                    ),
+              icon: Icon(verified ? Icons.verified : Icons.upload_file),
+              label: Text(verified ? 'Approved' : 'Submit identity documents'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: verified ? Colors.green : clientOrange,
+                side: BorderSide(color: verified ? Colors.green : clientOrange),
+              ),
+            ),
+            const SizedBox(height: 4),
             const Row(
               children: [
                 Icon(
@@ -1417,12 +1435,14 @@ class _ClientProfileState extends State<ClientProfileScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    trailing: Text(
-                      verified ? 'Approved' : 'Pending',
-                      style: TextStyle(
-                        color: verified ? Colors.green : clientOrange,
-                        fontWeight: FontWeight.w600,
+                    trailing: TextButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ClientVerificationScreen(),
+                        ),
                       ),
+                      child: Text(verified ? 'View status' : 'Verify now'),
                     ),
                   );
                 },
@@ -2370,10 +2390,6 @@ class ClientVerificationScreen extends StatefulWidget {
 
 class _ClientVerificationState extends State<ClientVerificationScreen> {
   final api = ApiService();
-  // The website does not expose a client document-upload contract. Client
-  // verification is an account/admin status, so never send client data to the
-  // technician-document endpoint.
-  static const clientDocumentSubmissionEnabled = false;
   final idNumber = TextEditingController();
   String idType = 'national_id';
   String? filename;
@@ -2395,9 +2411,25 @@ class _ClientVerificationState extends State<ClientVerificationScreen> {
   Future<void> _load() async {
     try {
       final p = await api.profile();
+      final documents = await api.technicianDocuments();
+      final hasSubmission = documents.any((document) {
+        if (document is! Map) return false;
+        final type = '${document['document_type'] ?? ''}'.toLowerCase();
+        final title = '${document['title'] ?? ''}'.toLowerCase();
+        return type == 'id' ||
+            title.contains('client national id') ||
+            title.contains('client identity');
+      });
+      final prefs = await SharedPreferences.getInstance();
       if (mounted)
         setState(() {
           verified = isVerifiedProfile(p);
+          submitted =
+              hasSubmission ||
+              prefs.getBool('client_verification_submitted') == true;
+          idType = prefs.getString('client_verification_id_type') ?? idType;
+          idNumber.text =
+              prefs.getString('client_verification_id_number') ?? '';
           loading = false;
         });
     } catch (_) {
@@ -2406,7 +2438,22 @@ class _ClientVerificationState extends State<ClientVerificationScreen> {
   }
 
   Future<void> _pick() async {
-    _notice('Client identity documents are reviewed by the administrator.');
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+      withData: true,
+    );
+    if (result == null || result.files.single.bytes == null) return;
+    final file = result.files.single;
+    const maxBytes = 8 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      _notice('The identity document must be 8 MB or smaller.', error: true);
+      return;
+    }
+    setState(() {
+      filename = file.name;
+      bytes = file.bytes;
+    });
   }
 
   void _notice(String message, {bool error = false}) =>
@@ -2417,7 +2464,47 @@ class _ClientVerificationState extends State<ClientVerificationScreen> {
         ),
       );
   Future<void> _submit() async {
-    _notice('Client identity verification is managed by the administrator.');
+    final number = idNumber.text.trim();
+    if (number.isEmpty) {
+      _notice('Enter your identification number.', error: true);
+      return;
+    }
+    if (bytes == null || filename == null) {
+      _notice(
+        'Attach a clear photo, scan, or PDF of your government ID.',
+        error: true,
+      );
+      return;
+    }
+    setState(() => submitting = true);
+    try {
+      final upload = await api.uploadTechnicianDocumentBytes(
+        bytes: bytes!,
+        filename: filename!,
+      );
+      final url = '${upload['file_url'] ?? upload['url'] ?? ''}'.trim();
+      if (url.isEmpty) throw Exception('The uploaded document has no URL.');
+      await api.createTechnicianDocument(
+        title: 'Client National ID / Passport',
+        documentType: 'id',
+        fileUrl: url,
+      );
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('client_verification_submitted', true);
+      await prefs.setString('client_verification_id_type', idType);
+      await prefs.setString('client_verification_id_number', number);
+      if (!mounted) return;
+      setState(() {
+        submitted = true;
+        submitting = false;
+      });
+      _notice('Identity documents submitted for review.');
+    } catch (e) {
+      if (mounted) {
+        setState(() => submitting = false);
+        _notice('Unable to submit identity documents: $e', error: true);
+      }
+    }
   }
 
   @override
@@ -2449,7 +2536,11 @@ class _ClientVerificationState extends State<ClientVerificationScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    verified ? 'Verified client' : 'Verification pending',
+                    verified
+                        ? 'Verified client'
+                        : submitted
+                        ? 'Verification pending'
+                        : 'Identity verification required',
                     style: const TextStyle(
                       color: clientNavy,
                       fontSize: 21,
@@ -2461,7 +2552,9 @@ class _ClientVerificationState extends State<ClientVerificationScreen> {
                   Text(
                     verified
                         ? 'Your identity has been approved by an administrator.'
-                        : 'Your account is awaiting administrator verification. The status will update here after review.',
+                        : submitted
+                        ? 'Your identity documents are awaiting administrator review.'
+                        : 'Submit one government-issued ID to request Tier 2 verification.',
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: clientMuted, height: 1.4),
                   ),
@@ -2469,7 +2562,7 @@ class _ClientVerificationState extends State<ClientVerificationScreen> {
               ),
             ),
           ),
-          if (clientDocumentSubmissionEnabled && !verified && !submitted) ...[
+          if (!verified && !submitted) ...[
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               value: idType,

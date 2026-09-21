@@ -572,6 +572,17 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
           ),
           _drawerItem(
             closeContext,
+            Icons.verified_user_outlined,
+            'Identity verification',
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ClientVerificationScreen(),
+              ),
+            ),
+          ),
+          _drawerItem(
+            closeContext,
             Icons.support_agent,
             'Support Tickets',
             () => Navigator.push(
