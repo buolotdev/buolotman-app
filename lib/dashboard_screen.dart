@@ -76,7 +76,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         await AppStateScope.of(context).syncAll();
-        final appState = AppStateScope.of(context);
 
         // Keep the dashboard and its onboarding tour visible after login.
         // Profile completion remains available from the dashboard card instead
@@ -421,8 +420,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildHeader(String greetingName, String location, AppState appState) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 24, 20, 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
@@ -439,6 +438,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(width: 4),
                       Text(
                         "Welcome back, $greetingName",
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
@@ -474,6 +474,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
               GestureDetector(
                 onTap: () => _handleRefresh(appState),
