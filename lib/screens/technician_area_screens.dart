@@ -139,7 +139,7 @@ class _ProjectsState extends State<TechnicianProjectsScreen> {
                 '${projects.length} projects',
                 style: const TextStyle(
                   color: _navy,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 8),
@@ -176,7 +176,7 @@ class _ProjectsState extends State<TechnicianProjectsScreen> {
                         '${x['title'] ?? 'Project'}',
                         style: const TextStyle(
                           color: _navy,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       subtitle: Text(
@@ -428,7 +428,7 @@ class _TasksGateState extends State<TechnicianTasksScreen> {
                     '${list.length} available tasks',
                     style: const TextStyle(
                       color: _navy,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -456,7 +456,7 @@ class _TasksGateState extends State<TechnicianTasksScreen> {
                             '${x['title'] ?? 'Task'}',
                             style: const TextStyle(
                               color: _navy,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                           subtitle: Text(
@@ -610,7 +610,7 @@ class _BidsState extends State<TechnicianBidsScreen> {
                               'Task #${x['task_id'] ?? x['task'] ?? x['id'] ?? ''}',
                               style: const TextStyle(
                                 color: _navy,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                             subtitle: Text(
@@ -688,7 +688,7 @@ class _ListPage extends StatelessWidget {
                 title: Text(
                   '${x['title'] ?? (title == 'My Bids' ? 'Task #${x['task_id'] ?? x['id'] ?? ''}' : title.substring(0, title.length - 1))}',
                   style: const TextStyle(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: _navy,
                   ),
                 ),
@@ -874,7 +874,7 @@ class _ServicesState extends State<LegacyTechnicianServicesScreen> {
                 title: Text(
                   '${x['title'] ?? 'Service'}',
                   style: const TextStyle(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: _navy,
                   ),
                 ),
@@ -1352,7 +1352,7 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
               style: const TextStyle(
                 color: _navy,
                 fontSize: 24,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
@@ -1405,7 +1405,7 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
                           style: TextStyle(
                             color: _navy,
                             fontSize: 18,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -1472,7 +1472,7 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
                         style: TextStyle(
                           color: _navy,
                           fontSize: 18,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1711,7 +1711,7 @@ Widget _clientDetails(Map t) {
                   style: TextStyle(
                     color: _muted,
                     fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -1720,7 +1720,7 @@ Widget _clientDetails(Map t) {
                   style: const TextStyle(
                     color: _navy,
                     fontSize: 16,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
@@ -1752,13 +1752,13 @@ Widget _detail(String label, dynamic value, {double? width}) => SizedBox(
           style: const TextStyle(
             color: _muted,
             fontSize: 11,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 3),
         Text(
           value == null || '$value'.isEmpty ? 'Not provided' : '$value',
-          style: const TextStyle(color: _navy, fontWeight: FontWeight.w700),
+          style: const TextStyle(color: _navy, fontWeight: FontWeight.w600),
         ),
       ],
     ),
@@ -1789,12 +1789,12 @@ Widget _feePreview(double amount) {
           children: [
             const Text(
               'Estimated payout',
-              style: TextStyle(fontWeight: FontWeight.w800, color: _navy),
+              style: TextStyle(fontWeight: FontWeight.w600, color: _navy),
             ),
             Text(
               '${money(payout)} XOF',
               style: const TextStyle(
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
                 color: _orange,
               ),
             ),
@@ -1817,7 +1817,7 @@ Widget _skills(List values) => Card(
           style: TextStyle(
             color: _navy,
             fontSize: 18,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 8),
@@ -1852,7 +1852,7 @@ Widget _attachments(List values) => Card(
           style: TextStyle(
             color: _navy,
             fontSize: 18,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 8),
@@ -1893,7 +1893,7 @@ Widget _locked(String title, String message) => Card(
     leading: const Icon(Icons.lock_outline, color: _orange),
     title: Text(
       title,
-      style: const TextStyle(color: _navy, fontWeight: FontWeight.w700),
+      style: const TextStyle(color: _navy, fontWeight: FontWeight.w600),
     ),
     subtitle: Text(message, style: const TextStyle(color: _muted)),
   ),

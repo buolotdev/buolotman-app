@@ -121,7 +121,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                 "Select Category",
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -235,7 +235,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                 "Select Payment Method",
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -334,7 +334,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                                     "Select Subcategory",
                                     style: TextStyle(
                                       fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w600,
                                       color: Color(0xFF001F3F),
                                     ),
                                   ),
@@ -512,7 +512,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
             "Post a Task",
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -538,7 +538,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                 "Step 1 of 2",
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFFFF4500),
                 ),
               ),
@@ -757,7 +757,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                     ? const Color(0xFF1E8E3E)
                     : const Color(0xFF64748B),
                 fontWeight: _base64Image != null
-                    ? FontWeight.bold
+                    ? FontWeight.w600
                     : FontWeight.normal,
               ),
             ),
@@ -789,7 +789,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                   style: TextStyle(
                     color: Color(0xFFDC2626),
                     fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -876,7 +876,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: _budgetMode == "fixed"
                           ? Colors.white
                           : const Color(0xFF64748B),
@@ -902,7 +902,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: _budgetMode == "range"
                           ? Colors.white
                           : const Color(0xFF64748B),
@@ -970,7 +970,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                             "\$",
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               color: Color(0xFF001F3F),
                             ),
                           ),
@@ -1013,7 +1013,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                             "\$",
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               color: Color(0xFF001F3F),
                             ),
                           ),
@@ -1123,7 +1123,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
           children: const [
             Text(
               "Next (Preview)",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             SizedBox(width: 12),
             Icon(Icons.arrow_forward, size: 20),
@@ -1155,7 +1155,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: isActive ? Colors.white : const Color(0xFF64748B),
                 ),
               ),

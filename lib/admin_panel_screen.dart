@@ -43,7 +43,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
               "Admin Panel",
               style: TextStyle(
                 color: Colors.white,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 fontSize: 22,
               ),
             ),
@@ -120,7 +120,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                         name,
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -137,7 +137,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                           role,
                           style: const TextStyle(
                             fontSize: 11,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF001F3F),
                           ),
                         ),
@@ -261,7 +261,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                         title,
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                         maxLines: 1,
@@ -272,7 +272,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                       "\$${maxB > 0 ? maxB.toStringAsFixed(0) : minB.toStringAsFixed(0)}",
                       style: const TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFFFF4500),
                       ),
                     ),
@@ -294,7 +294,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                         statusText,
                         style: TextStyle(
                           fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: _getStatusColor(statusText),
                         ),
                       ),
@@ -386,7 +386,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 32,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               SizedBox(height: 12),
@@ -402,7 +402,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
           "Recent Platform Transactions",
           style: TextStyle(
             fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Color(0xFF001F3F),
           ),
         ),
@@ -431,7 +431,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                 trailing: Text(
                   tx.amount,
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: tx.isIncome
                         ? const Color(0xFF1E8E3E)
                         : const Color(0xFFEF4444),

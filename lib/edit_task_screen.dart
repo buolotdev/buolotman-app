@@ -166,7 +166,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                 "Select Category",
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -274,7 +274,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                 "Select Urgency Level",
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -330,7 +330,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                 "Select Payment Method",
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -507,7 +507,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                                     "Select Subcategory",
                                     style: TextStyle(
                                       fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w600,
                                       color: Color(0xFF001F3F),
                                     ),
                                   ),
@@ -624,7 +624,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                             "Save Changes",
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -662,7 +662,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                 "Edit Task Details",
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -680,7 +680,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
         text,
         style: const TextStyle(
           fontSize: 15,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
           color: Color(0xFF001F3F),
         ),
       ),
@@ -780,7 +780,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                 tab,
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: active ? Colors.white : const Color(0xFF64748B),
                 ),
               ),
@@ -887,7 +887,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                     ? const Color(0xFF1E8E3E)
                     : const Color(0xFF64748B),
                 fontWeight: _base64Image != null
-                    ? FontWeight.bold
+                    ? FontWeight.w600
                     : FontWeight.normal,
               ),
             ),
@@ -919,7 +919,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                   style: TextStyle(
                     color: Color(0xFFDC2626),
                     fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),

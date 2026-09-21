@@ -208,7 +208,7 @@ class _CompanyProjectsState extends State<CompanyProjectsScreen> {
                         '${p['title'] ?? 'Project'}',
                         style: const TextStyle(
                           color: companyNavy,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       subtitle: Text(
@@ -341,7 +341,7 @@ class _CompanyQuotesState extends State<CompanyQuotesScreen> {
                       '${q['service'] ?? 'Quote request'}',
                       style: const TextStyle(
                         color: companyNavy,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                         fontSize: 17,
                       ),
                     ),
@@ -606,7 +606,7 @@ class _CompanyInsightsState extends State<CompanyInsightsScreen> {
                           : 'Rating distribution',
                       style: TextStyle(
                         color: companyNavy,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                         fontSize: 18,
                       ),
                     ),
@@ -631,7 +631,7 @@ class _CompanyInsightsState extends State<CompanyInsightsScreen> {
         '${value ?? 0}',
         style: const TextStyle(
           color: companyNavy,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w600,
           fontSize: 20,
         ),
       ),
@@ -767,7 +767,7 @@ class _CompanyProjectDetailsState extends State<CompanyProjectDetailsScreen> {
             style: const TextStyle(
               color: companyNavy,
               fontSize: 24,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),
@@ -1079,7 +1079,7 @@ class _CompanyWalletState extends State<CompanyWalletScreen> {
                           '${x['available_balance'] ?? x['balance'] ?? 0} ${x['currency'] ?? 'XAF'}',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w600,
                             fontSize: 26,
                           ),
                         ),
@@ -1134,7 +1134,7 @@ class _CompanyWalletState extends State<CompanyWalletScreen> {
               'Transactions',
               style: TextStyle(
                 color: companyNavy,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
                 fontSize: 18,
               ),
             ),

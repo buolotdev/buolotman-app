@@ -392,7 +392,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 color: _role == value
                     ? const Color(0xFFFF4500)
                     : const Color(0xFF001F3F),
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 fontSize: 12,
               ),
             ),
@@ -465,7 +465,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     'Select your country',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -545,7 +545,7 @@ class _SignupScreenState extends State<SignupScreen> {
             'Join Boulot Man',
             style: TextStyle(
               fontSize: 28,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),

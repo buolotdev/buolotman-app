@@ -39,7 +39,7 @@ class PostTaskScreen extends StatelessWidget {
                         "",
                         style: TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -100,7 +100,7 @@ class PostTaskScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 32,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFF001F3F),
                         letterSpacing: -0.5,
                       ),
@@ -165,7 +165,7 @@ class PostTaskScreen extends StatelessWidget {
                               "Start Posting",
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                             SizedBox(width: 12),
@@ -205,7 +205,7 @@ class PostTaskScreen extends StatelessWidget {
                 title,
                 style: const TextStyle(
                   fontSize: 15,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),

@@ -71,7 +71,7 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
               hasBid ? 'Update Bid' : 'Submit a Bid',
               style: const TextStyle(
                 color: Color(0xFF001F3F),
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
               ),
             ),
             leading: IconButton(
@@ -145,7 +145,7 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
             task.title,
             style: const TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -170,7 +170,7 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
         text,
         style: const TextStyle(
           fontSize: 14,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: Color(0xFF001F3F),
         ),
       ),

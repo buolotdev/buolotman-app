@@ -47,7 +47,7 @@ class BrowseTasksScreen extends StatelessWidget {
                               const Text(
                                 'Contract Terminated / Deleted',
                                 style: TextStyle(
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
                                   color: Color(0xFF991B1B),
                                   fontSize: 14,
                                 ),
@@ -136,7 +136,7 @@ class BrowseTasksScreen extends StatelessWidget {
                     'Browse Tasks',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -230,7 +230,7 @@ class BrowseTasksScreen extends StatelessWidget {
                   '${task.budget.toStringAsFixed(0)} XOF',
                   style: const TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFF001F3F),
                   ),
                 ),
@@ -242,7 +242,7 @@ class BrowseTasksScreen extends StatelessWidget {
             task.title,
             style: const TextStyle(
               fontSize: 26,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
               height: 1.25,
             ),
@@ -367,7 +367,7 @@ class BrowseTasksScreen extends StatelessWidget {
             'Scope of work',
             style: TextStyle(
               fontSize: 17,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -386,7 +386,7 @@ class BrowseTasksScreen extends StatelessWidget {
               "Task Attachment",
               style: TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),
@@ -422,7 +422,7 @@ class BrowseTasksScreen extends StatelessWidget {
             'Client information',
             style: TextStyle(
               fontSize: 17,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -449,7 +449,7 @@ class BrowseTasksScreen extends StatelessWidget {
                           task.clientName,
                           style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF001F3F),
                           ),
                         ),
@@ -559,7 +559,7 @@ class BrowseTasksScreen extends StatelessWidget {
             title: const Text(
               'Submit Work',
               style: TextStyle(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),
@@ -770,7 +770,7 @@ class BrowseTasksScreen extends StatelessWidget {
               'EXCEEDED BY ${difference.abs()} D',
               style: const TextStyle(
                 fontSize: 8,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFFB91C1C),
               ),
             ),
@@ -794,7 +794,7 @@ class BrowseTasksScreen extends StatelessWidget {
               'DUE TODAY',
               style: TextStyle(
                 fontSize: 8,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFFB45309),
               ),
             ),
@@ -822,7 +822,7 @@ class BrowseTasksScreen extends StatelessWidget {
               '$difference D LEFT',
               style: const TextStyle(
                 fontSize: 8,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF0369A1),
               ),
             ),

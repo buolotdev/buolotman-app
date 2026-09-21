@@ -99,7 +99,7 @@ class _TechnicianPayoutSettingsScreenState
               const Text(
                 'Payment Verification Status',
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF64748B),
                 ),
               ),
@@ -124,7 +124,7 @@ class _TechnicianPayoutSettingsScreenState
                     Text(
                       _verificationStatus,
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         color: _verificationStatus == 'Verified'
                             ? Colors.green
                             : Colors.orange,
@@ -141,7 +141,7 @@ class _TechnicianPayoutSettingsScreenState
               const SizedBox(height: 24),
               const Text(
                 'Payout Method',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
@@ -159,7 +159,7 @@ class _TechnicianPayoutSettingsScreenState
               const SizedBox(height: 16),
               const Text(
                 'Payout Currency',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
@@ -178,7 +178,7 @@ class _TechnicianPayoutSettingsScreenState
               if (_preferredPayoutMethod == 'Bank Account') ...[
                 const Text(
                   'Bank Name',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -195,7 +195,7 @@ class _TechnicianPayoutSettingsScreenState
                 const SizedBox(height: 16),
                 const Text(
                   'Account Holder Name',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -212,7 +212,7 @@ class _TechnicianPayoutSettingsScreenState
                 const SizedBox(height: 16),
                 const Text(
                   'Bank Account Number',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -238,7 +238,7 @@ class _TechnicianPayoutSettingsScreenState
               if (_preferredPayoutMethod == 'Mobile Money') ...[
                 const Text(
                   'Mobile Money Number',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(

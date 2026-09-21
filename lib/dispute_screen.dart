@@ -47,7 +47,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
           'Open a Dispute',
           style: TextStyle(
             color: Color(0xFF001F3F),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
           ),
         ),
         centerTitle: true,
@@ -62,7 +62,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
               'What went wrong?',
               style: TextStyle(
                 fontSize: 22,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),
@@ -142,7 +142,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
           'Dispute Status',
           style: TextStyle(
             color: Color(0xFF001F3F),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
           ),
         ),
         centerTitle: true,
@@ -181,7 +181,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                     'Dispute Opened',
                     style: TextStyle(
                       fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -224,7 +224,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                           _referenceId,
                           style: const TextStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF001F3F),
                             letterSpacing: 1,
                           ),
@@ -245,7 +245,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                       'Under Review',
                       style: TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFFB45309),
                       ),
                     ),
@@ -260,7 +260,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
               'Dispute Timeline',
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),
@@ -318,7 +318,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                             step['label'] as String,
                             style: TextStyle(
                               fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               color: isDone || isActive
                                   ? const Color(0xFF001F3F)
                                   : const Color(0xFF94A3B8),
@@ -359,7 +359,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                     'What to Expect',
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF0284C7),
                     ),
                   ),
@@ -394,7 +394,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
                 ),
                 child: const Text(
                   'Back to App',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                 ),
               ),
             ),
@@ -413,7 +413,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
         label,
         style: const TextStyle(
           fontSize: 14,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
           color: Color(0xFF001F3F),
         ),
       ),
@@ -569,7 +569,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
         ),
         child: const Text(
           'Submit Dispute',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
     );

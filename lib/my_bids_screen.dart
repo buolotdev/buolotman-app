@@ -72,7 +72,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
                         'Filter & Sort Bids',
                         style: TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -191,7 +191,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
                         'Apply Options',
                         style: TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           fontSize: 16,
                         ),
                       ),
@@ -311,7 +311,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
                 'My Bids',
                 style: TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -446,7 +446,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
             value,
             style: const TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -533,7 +533,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
             'No bids found for this view',
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -683,7 +683,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
                   status.toUpperCase(),
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: statusColor,
                     letterSpacing: 0.5,
                   ),
@@ -696,7 +696,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
             task?.title ?? 'Unknown task',
             style: const TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               height: 1.4,
             ),
           ),
@@ -779,7 +779,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
           value,
           style: TextStyle(
             fontSize: isAmount ? 18 : 14,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: isAmount ? const Color(0xFFFF4500) : const Color(0xFF001F3F),
           ),
         ),
@@ -834,7 +834,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
           'Contract Terminated / Deleted by Client',
           style: TextStyle(
             color: Color(0xFFDC2626),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             fontSize: 13,
           ),
         ),
@@ -897,7 +897,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
               ),
               child: const Text(
                 'Workspace',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
           ),
@@ -953,7 +953,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
             ),
             child: const Text(
               'Update Bid',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
         ),

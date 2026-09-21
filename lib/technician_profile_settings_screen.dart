@@ -1052,7 +1052,7 @@ class _TechnicianProfileSettingsScreenState
           'Edit Profile',
           style: TextStyle(
             color: Color(0xFF001F3F),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             fontSize: 18,
           ),
         ),
@@ -1108,7 +1108,7 @@ class _TechnicianProfileSettingsScreenState
               'Preview',
               style: TextStyle(
                 color: Color(0xFFFF4500),
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -1296,7 +1296,7 @@ class _TechnicianProfileSettingsScreenState
                         'Emergency Contact',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -1440,7 +1440,7 @@ class _TechnicianProfileSettingsScreenState
                         'Tools & Equipment',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -1460,7 +1460,7 @@ class _TechnicianProfileSettingsScreenState
                         'Identity Verification',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -1513,7 +1513,7 @@ class _TechnicianProfileSettingsScreenState
                         'Professional Verification',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -1567,7 +1567,7 @@ class _TechnicianProfileSettingsScreenState
             ),
             child: const Text(
               'Save Changes',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
             ),
           ),
         ),
@@ -1586,7 +1586,7 @@ class _TechnicianProfileSettingsScreenState
               'Portfolio & Previous Work',
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),
@@ -1612,7 +1612,7 @@ class _TechnicianProfileSettingsScreenState
                       child: ListTile(
                         title: Text(
                           item['title'] ?? 'Project',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         subtitle: Text(item['description'] ?? ''),
                         trailing: IconButton(
@@ -1650,7 +1650,7 @@ class _TechnicianProfileSettingsScreenState
           'Payout Settings',
           style: TextStyle(
             fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Color(0xFF001F3F),
           ),
         ),
@@ -1737,7 +1737,7 @@ class _TechnicianProfileSettingsScreenState
                   'Professional References',
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFF001F3F),
                   ),
                 ),
@@ -1788,7 +1788,7 @@ class _TechnicianProfileSettingsScreenState
                         title: Text(
                           r['reference_name'] ?? 'Unknown Reference',
                           style: const TextStyle(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF001F3F),
                           ),
                         ),
@@ -1817,7 +1817,7 @@ class _TechnicianProfileSettingsScreenState
                                 r['status'] ?? 'Pending',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
                                   color: r['status'] == 'Verified'
                                       ? Colors.green.shade800
                                       : Colors.orange.shade800,
@@ -1906,7 +1906,7 @@ class _TechnicianProfileSettingsScreenState
                 'Add Reference',
                 style: TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -1972,7 +1972,7 @@ class _TechnicianProfileSettingsScreenState
                   },
                   child: const Text(
                     'Add Reference',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ),

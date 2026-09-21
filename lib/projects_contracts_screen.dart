@@ -53,7 +53,7 @@ class _ProjectsContractsScreenState extends State<ProjectsContractsScreen>
               'Projects & Contracts',
               style: TextStyle(
                 color: Color(0xFF001F3F),
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 fontSize: 18,
               ),
             ),
@@ -85,7 +85,7 @@ class _ProjectsContractsScreenState extends State<ProjectsContractsScreen>
               unselectedLabelColor: const Color(0xFF94A3B8),
               indicatorColor: const Color(0xFFFF4500),
               labelStyle: const TextStyle(
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),
               tabs: [
@@ -111,7 +111,7 @@ class _ProjectsContractsScreenState extends State<ProjectsContractsScreen>
               'New Contract',
               style: TextStyle(
                 color: Colors.white,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -148,7 +148,7 @@ class _ProjectsContractsScreenState extends State<ProjectsContractsScreen>
               'No contracts here',
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),
@@ -244,7 +244,7 @@ class _ProjectsContractsScreenState extends State<ProjectsContractsScreen>
                           title,
                           style: const TextStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF001F3F),
                           ),
                         ),
@@ -276,7 +276,7 @@ class _ProjectsContractsScreenState extends State<ProjectsContractsScreen>
                         '\$${budget.toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -307,7 +307,7 @@ class _ProjectsContractsScreenState extends State<ProjectsContractsScreen>
                         '$progress%',
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           color: statusColor,
                         ),
                       ),
@@ -445,7 +445,7 @@ class _ProjectsContractsScreenState extends State<ProjectsContractsScreen>
         label,
         style: TextStyle(
           fontSize: 11,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: color,
         ),
       ),
@@ -468,7 +468,7 @@ class _ProjectsContractsScreenState extends State<ProjectsContractsScreen>
         label,
         style: TextStyle(
           fontSize: 11,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: color,
         ),
       ),
@@ -546,7 +546,7 @@ class _ProjectDetailSheetState extends State<_ProjectDetailSheet> {
                                   title,
                                   style: const TextStyle(
                                     fontSize: 20,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w600,
                                     color: Color(0xFF001F3F),
                                   ),
                                 ),
@@ -625,7 +625,7 @@ class _ProjectDetailSheetState extends State<_ProjectDetailSheet> {
                             '\$${budget.toStringAsFixed(0)}',
                             style: const TextStyle(
                               fontSize: 22,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               color: Color(0xFFFF4500),
                             ),
                           ),
@@ -665,7 +665,7 @@ class _ProjectDetailSheetState extends State<_ProjectDetailSheet> {
                         'Milestone Tracking',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -682,7 +682,7 @@ class _ProjectDetailSheetState extends State<_ProjectDetailSheet> {
                         'Payment / Escrow',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -701,7 +701,7 @@ class _ProjectDetailSheetState extends State<_ProjectDetailSheet> {
                         'Contract Status',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -769,7 +769,7 @@ class _ProjectDetailSheetState extends State<_ProjectDetailSheet> {
                 '${total > 0 ? ((completed / total) * 100).round() : 0}%',
                 style: const TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFFFF4500),
                 ),
               ),
@@ -1080,7 +1080,7 @@ class _ProjectDetailSheetState extends State<_ProjectDetailSheet> {
                     opt['label'] as String,
                     style: TextStyle(
                       fontSize: 11,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: isSelected ? Colors.white : color,
                     ),
                   ),
@@ -1217,7 +1217,7 @@ class _CreateContractSheetState extends State<_CreateContractSheet> {
                 'New Contract',
                 style: TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -1288,7 +1288,7 @@ class _CreateContractSheetState extends State<_CreateContractSheet> {
                         '$_milestonesTotal milestones',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           fontSize: 15,
                           color: Color(0xFF001F3F),
                         ),
@@ -1332,7 +1332,7 @@ class _CreateContractSheetState extends State<_CreateContractSheet> {
                       : const Text(
                           'Create Contract',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             fontSize: 16,
                           ),
                         ),
@@ -1353,7 +1353,7 @@ class _CreateContractSheetState extends State<_CreateContractSheet> {
         text,
         style: const TextStyle(
           fontSize: 13,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: Color(0xFF001F3F),
         ),
       ),

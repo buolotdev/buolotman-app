@@ -257,7 +257,7 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
           elevation: 0,
           title: const Text(
             'Edit Company Profile',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
           ),
           actions: [
             if (_isSaving)
@@ -279,7 +279,7 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
                   'Save',
                   style: TextStyle(
                     color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     fontSize: 16,
                   ),
                 ),
@@ -479,7 +479,7 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
                         : const Text(
                             'Save Changes',
                             style: TextStyle(
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               fontSize: 16,
                             ),
                           ),
@@ -499,7 +499,7 @@ class _EditCompanyProfileScreenState extends State<EditCompanyProfileScreen> {
       label,
       style: const TextStyle(
         fontSize: 16,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w600,
         color: Color(0xFF001F3F),
       ),
     );

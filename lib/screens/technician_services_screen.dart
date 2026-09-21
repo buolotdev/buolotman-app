@@ -320,7 +320,7 @@ class _ServicesState extends State<TechnicianServicesScreen> {
               ),
         title: Text(
           '${item['title'] ?? 'Service'}',
-          style: const TextStyle(color: navy, fontWeight: FontWeight.w700),
+          style: const TextStyle(color: navy, fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
           '${item['is_active'] == true ? 'Active' : 'Inactive'} • ${item['coverage_area'] ?? 'Coverage not set'}\n${item['description'] ?? ''}',

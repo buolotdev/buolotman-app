@@ -150,7 +150,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         widget.name,
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -359,7 +359,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     'Attachment Preview',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -721,7 +721,7 @@ class _ChatScreenState extends State<ChatScreen> {
               'Share a File',
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),

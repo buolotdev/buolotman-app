@@ -237,7 +237,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         'Almost there!',
                         style: TextStyle(
                           fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -331,7 +331,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         const Text(
                           'Work Preferences',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             fontSize: 16,
                           ),
                         ),
@@ -365,7 +365,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         const Text(
                           'Tools & Equipment',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             fontSize: 16,
                           ),
                         ),
@@ -398,7 +398,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         const Text(
                           'Identity Verification Documents',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             fontSize: 16,
                           ),
                         ),
@@ -460,7 +460,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         const Text(
                           'Verification Documents',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             fontSize: 16,
                           ),
                         ),
@@ -498,7 +498,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           'Save Profile',
                           style: TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),

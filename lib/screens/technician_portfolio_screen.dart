@@ -48,7 +48,7 @@ class _State extends State<TechnicianPortfolioScreen> {
                   style: TextStyle(
                     color: navy,
                     fontSize: 19,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -112,7 +112,7 @@ class _State extends State<TechnicianPortfolioScreen> {
                   style: TextStyle(
                     color: navy,
                     fontSize: 19,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -240,7 +240,7 @@ class _State extends State<TechnicianPortfolioScreen> {
               ),
         title: Text(
           '${item['title'] ?? 'Project'}',
-          style: const TextStyle(color: navy, fontWeight: FontWeight.w700),
+          style: const TextStyle(color: navy, fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
           '${item['category'] ?? ''} • ${item['completed_date'] ?? 'Date not provided'}',

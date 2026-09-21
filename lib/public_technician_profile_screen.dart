@@ -20,7 +20,7 @@ class PublicTechnicianProfileScreen extends StatelessWidget {
           'Technician Profile',
           style: TextStyle(
             color: Color(0xFF001F3F),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
           ),
         ),
         actions: [
@@ -105,7 +105,7 @@ class PublicTechnicianProfileScreen extends StatelessWidget {
                     : '${technicianData['first_name'] ?? ''} ${technicianData['last_name'] ?? ''}',
                 style: const TextStyle(
                   fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -129,7 +129,7 @@ class PublicTechnicianProfileScreen extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 '${technicianData['average_rating'] ?? '0.0'} (127 reviews)',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(width: 12),
               const Icon(Icons.location_on, color: Colors.grey, size: 18),
@@ -193,7 +193,7 @@ class PublicTechnicianProfileScreen extends StatelessWidget {
             text,
             style: const TextStyle(
               color: Colors.green,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               fontSize: 12,
             ),
           ),
@@ -230,7 +230,7 @@ class PublicTechnicianProfileScreen extends StatelessWidget {
           value,
           style: const TextStyle(
             fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Color(0xFF001F3F),
           ),
         ),
@@ -287,7 +287,7 @@ class PublicTechnicianProfileScreen extends StatelessWidget {
           'About Me',
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Color(0xFF001F3F),
           ),
         ),
@@ -303,7 +303,7 @@ class PublicTechnicianProfileScreen extends StatelessWidget {
           'Pricing',
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Color(0xFF001F3F),
           ),
         ),

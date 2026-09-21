@@ -131,7 +131,7 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
             'Browse Categories',
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -266,7 +266,7 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
             'Categories',
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -363,7 +363,7 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
                 'Top Professionals',
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -511,7 +511,7 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
             'Featured Services',
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -581,7 +581,7 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
                                       service['badge'],
                                       style: const TextStyle(
                                         fontSize: 12,
-                                        fontWeight: FontWeight.w700,
+                                        fontWeight: FontWeight.w600,
                                         color: Color(0xFFFF4500),
                                       ),
                                     ),
@@ -604,7 +604,7 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
                                     service['title'],
                                     style: const TextStyle(
                                       fontSize: 16,
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: FontWeight.w600,
                                       color: Color(0xFF001F3F),
                                     ),
                                   ),
@@ -614,7 +614,7 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
                                   service['price'],
                                   style: const TextStyle(
                                     fontSize: 16,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w600,
                                     color: Color(0xFFFF4500),
                                   ),
                                 ),
@@ -646,7 +646,7 @@ class _CategoryBrowsingScreenState extends State<CategoryBrowsingScreen> {
                                         ratingVal.toStringAsFixed(1),
                                         style: const TextStyle(
                                           fontSize: 14,
-                                          fontWeight: FontWeight.w700,
+                                          fontWeight: FontWeight.w600,
                                           color: Color(0xFF001F3F),
                                         ),
                                       ),

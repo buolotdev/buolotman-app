@@ -251,7 +251,7 @@ class _WalletState extends State<TechnicianWalletScreen> {
                   style: TextStyle(
                     color: navy,
                     fontSize: 19,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -285,7 +285,7 @@ class _WalletState extends State<TechnicianWalletScreen> {
                             trailing: Text(
                               '${x['amount'] ?? 0} $currency',
                               style: const TextStyle(
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                                 color: navy,
                               ),
                             ),
@@ -314,7 +314,7 @@ class _WalletState extends State<TechnicianWalletScreen> {
         style: const TextStyle(
           color: navy,
           fontSize: 24,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w600,
         ),
       ),
     ),

@@ -85,7 +85,7 @@ class ProfileScreen extends StatelessWidget {
                 'Profile',
                 style: TextStyle(
                   color: Color(0xFF001F3F),
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               leading: IconButton(
@@ -192,7 +192,7 @@ class ProfileScreen extends StatelessWidget {
                             '${appState.currentUser.yearsExperience} years of experience',
                             style: const TextStyle(
                               fontSize: 15,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               color: Color(0xFFFF4500),
                             ),
                           ),
@@ -292,7 +292,7 @@ class ProfileScreen extends StatelessWidget {
                             appState.currentUser.availabilityStatus
                                 .toUpperCase(),
                             style: const TextStyle(
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               color: Color(0xFF001F3F),
                             ),
                           ),
@@ -338,7 +338,7 @@ class ProfileScreen extends StatelessWidget {
                           child: Text(
                             'Service Radius: ${appState.currentUser.serviceRadiusKm} km',
                             style: const TextStyle(
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               color: Color(0xFF001F3F),
                             ),
                           ),
@@ -354,7 +354,7 @@ class ProfileScreen extends StatelessWidget {
                           '\$${appState.currentUser.startingPrice.toStringAsFixed(2)} starting price',
                           style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFFFF4500),
                           ),
                         ),
@@ -365,7 +365,7 @@ class ProfileScreen extends StatelessWidget {
                           '\$${appState.currentUser.hourlyRate.toStringAsFixed(2)} / hour',
                           style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFFFF4500),
                           ),
                         ),
@@ -376,7 +376,7 @@ class ProfileScreen extends StatelessWidget {
                           '\$${appState.currentUser.dailyRate.toStringAsFixed(2)} / day',
                           style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFFFF4500),
                           ),
                         ),
@@ -387,7 +387,7 @@ class ProfileScreen extends StatelessWidget {
                           '\$${appState.currentUser.fixedPrice.toStringAsFixed(2)} fixed project price',
                           style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFFFF4500),
                           ),
                         ),
@@ -398,7 +398,7 @@ class ProfileScreen extends StatelessWidget {
                           '\$${appState.currentUser.inspectionFee.toStringAsFixed(2)} inspection fee',
                           style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFFFF4500),
                           ),
                         ),
@@ -585,7 +585,7 @@ class ProfileScreen extends StatelessWidget {
             displayName,
             style: const TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -633,7 +633,7 @@ class ProfileScreen extends StatelessWidget {
                 'Edit Profile Details',
                 style: TextStyle(
                   color: Color(0xFFFF4500),
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   fontSize: 13,
                 ),
               ),
@@ -856,7 +856,7 @@ class ProfileScreen extends StatelessWidget {
               'Log Out',
               style: TextStyle(
                 color: Color(0xFFB91C1C),
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
             style: OutlinedButton.styleFrom(
@@ -899,7 +899,7 @@ class ProfileScreen extends StatelessWidget {
           title: const Text(
             'Delete Account?',
             style: TextStyle(
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -915,7 +915,7 @@ class ProfileScreen extends StatelessWidget {
               const Text(
                 'Type DELETE to confirm',
                 style: TextStyle(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF991B1B),
                 ),
               ),
@@ -979,7 +979,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: const Text(
                 'Delete permanently',
-                style: TextStyle(fontWeight: FontWeight.w700),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -1011,7 +1011,7 @@ class ProfileScreen extends StatelessWidget {
                   title,
                   style: const TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFF001F3F),
                   ),
                 ),
@@ -1069,7 +1069,7 @@ class ProfileScreen extends StatelessWidget {
       title: Text(
         title,
         style: const TextStyle(
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: Color(0xFF001F3F),
         ),
       ),
@@ -1102,7 +1102,7 @@ class ProfileScreen extends StatelessWidget {
           title: const Text(
             'Edit Profile Info',
             style: TextStyle(
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -1223,7 +1223,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: const Text(
                 'Save Changes',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -1416,7 +1416,7 @@ class ProfileScreen extends StatelessWidget {
               title: const Text(
                 'Add Portfolio Item',
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),

@@ -256,7 +256,7 @@ class _SignupScreenState extends State<SignupScreen> {
             "Create Account",
             style: TextStyle(
               fontSize: 28,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -470,7 +470,7 @@ class _SignupScreenState extends State<SignupScreen> {
             "What are you looking for?",
             style: TextStyle(
               fontSize: 28,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -517,7 +517,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: isSelected
-                            ? FontWeight.bold
+                            ? FontWeight.w600
                             : FontWeight.w500,
                         color: const Color(0xFF001F3F),
                       ),
@@ -564,7 +564,7 @@ class _SignupScreenState extends State<SignupScreen> {
             "Location",
             style: TextStyle(
               fontSize: 28,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),

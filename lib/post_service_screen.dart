@@ -109,7 +109,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
           'Post a Service',
           style: TextStyle(
             color: Color(0xFF001F3F),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
           ),
         ),
         centerTitle: true,
@@ -175,7 +175,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
                             color: isActive
                                 ? Colors.white
                                 : const Color(0xFF94A3B8),
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             fontSize: 13,
                           ),
                         ),
@@ -186,7 +186,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
                 labels[step - 1],
                 style: TextStyle(
                   fontSize: 10,
-                  fontWeight: isActive ? FontWeight.w700 : FontWeight.normal,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                   color: isActive
                       ? const Color(0xFF001F3F)
                       : const Color(0xFF94A3B8),
@@ -381,7 +381,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
                       Text(
                         m['label'] as String,
                         style: TextStyle(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           color: isSelected
                               ? Colors.white
                               : const Color(0xFF001F3F),
@@ -484,7 +484,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
                 const Text(
                   'Price Preview',
                   style: TextStyle(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFF0284C7),
                     fontSize: 12,
                   ),
@@ -493,7 +493,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
                 Text(
                   _buildPriceLabel(),
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFF001F3F),
                     fontSize: 16,
                   ),
@@ -596,7 +596,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
                     t['label'] as String,
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: isSelected
                           ? Colors.white
                           : const Color(0xFF001F3F),
@@ -675,7 +675,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
             '–',
             style: TextStyle(
               color: Color(0xFF64748B),
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
@@ -766,7 +766,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
                       ? _titleController.text
                       : 'Service Title',
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: Colors.white,
                     fontSize: 16,
                   ),
@@ -777,7 +777,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
               Text(
                 priceLabel,
                 style: const TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFFFF4500),
                   fontSize: 15,
                 ),
@@ -840,7 +840,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
           title,
           style: const TextStyle(
             fontSize: 20,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Color(0xFF001F3F),
           ),
         ),
@@ -860,7 +860,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
         text,
         style: const TextStyle(
           fontSize: 13,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: Color(0xFF001F3F),
         ),
       ),
@@ -948,7 +948,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
               child: Text(
                 _currentStep == _totalSteps ? 'Publish Service' : 'Next',
                 style: const TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   fontSize: 15,
                 ),
               ),

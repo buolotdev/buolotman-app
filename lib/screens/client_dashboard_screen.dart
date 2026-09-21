@@ -177,7 +177,7 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
             style: const TextStyle(
               color: navy,
               fontSize: 26,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 6),
@@ -243,17 +243,25 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
   }
 
   Widget _top(String title) => Row(
+    crossAxisAlignment: CrossAxisAlignment.center,
     children: [
-      IconButton(
-        onPressed: _openAnimatedDrawer,
-        icon: const Icon(Icons.menu, color: navy),
+      SizedBox(
+        width: 48,
+        height: 48,
+        child: IconButton(
+          padding: EdgeInsets.zero,
+          alignment: Alignment.centerLeft,
+          onPressed: _openAnimatedDrawer,
+          icon: const Icon(Icons.menu, color: navy, size: 28),
+        ),
       ),
+      const SizedBox(width: 4),
       Text(
         title,
         style: const TextStyle(
           color: navy,
           fontSize: 22,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w600,
         ),
       ),
       const Spacer(),
@@ -310,7 +318,7 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
             style: TextStyle(
               color: Colors.white,
               fontSize: 20,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),
@@ -370,7 +378,7 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
         ),
         title: Text(
           '${x['title'] ?? 'Task'}',
-          style: const TextStyle(color: navy, fontWeight: FontWeight.w700),
+          style: const TextStyle(color: navy, fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
           '${x['status'] ?? 'draft'} • ${x['city'] ?? x['location'] ?? 'Location not specified'}',
@@ -400,7 +408,7 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
       style: const TextStyle(
         color: navy,
         fontSize: 19,
-        fontWeight: FontWeight.w800,
+        fontWeight: FontWeight.w600,
       ),
     ),
   );
@@ -419,7 +427,7 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
               style: const TextStyle(
                 color: navy,
                 fontSize: 18,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
               ),
             ),
             Text(
@@ -495,7 +503,7 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 22,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 2),

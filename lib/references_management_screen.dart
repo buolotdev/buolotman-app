@@ -105,7 +105,7 @@ class _ReferencesManagementScreenState
           'Professional References',
           style: TextStyle(
             color: Color(0xFF001F3F),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             fontSize: 18,
           ),
         ),
@@ -126,7 +126,7 @@ class _ReferencesManagementScreenState
                     'Add a Professional Reference',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -242,7 +242,7 @@ class _ReferencesManagementScreenState
                                   : const Text(
                                       'Submit Reference',
                                       style: TextStyle(
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.w600,
                                         fontSize: 16,
                                       ),
                                     ),
@@ -257,7 +257,7 @@ class _ReferencesManagementScreenState
                     'My References',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -281,7 +281,7 @@ class _ReferencesManagementScreenState
                           title: Text(
                             '\${r["reference_name"]} (\${r["employer_name"]})',
                             style: const TextStyle(
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               color: Color(0xFF001F3F),
                             ),
                           ),
@@ -306,7 +306,7 @@ class _ReferencesManagementScreenState
                                   style: TextStyle(
                                     color: statusColor,
                                     fontSize: 12,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),

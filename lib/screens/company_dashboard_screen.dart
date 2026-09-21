@@ -283,7 +283,7 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
           style: const TextStyle(
             color: navy,
             fontSize: 23,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -355,7 +355,7 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 23,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 7),
@@ -492,7 +492,7 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
                       '${x is Map ? (x['title'] ?? x['company_name'] ?? x['subject'] ?? 'Item') : 'Item'}',
                       style: const TextStyle(
                         color: navy,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     subtitle: Text(
@@ -515,7 +515,7 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
           color: s.contains(WidgetState.selected)
               ? Colors.white
               : Colors.white70,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           fontSize: 12,
         ),
       ),
@@ -570,7 +570,7 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
             Text(
               value,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: navy, fontWeight: FontWeight.w800),
+              style: const TextStyle(color: navy, fontWeight: FontWeight.w600),
             ),
             Text(label, style: const TextStyle(color: muted, fontSize: 11)),
           ],
@@ -591,7 +591,7 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
             style: const TextStyle(
               color: navy,
               fontSize: 18,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),
@@ -607,7 +607,7 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
       leading: Icon(icon, color: orange),
       title: Text(
         '${x['title'] ?? x['text'] ?? x['company_name'] ?? 'Item'}',
-        style: const TextStyle(color: navy, fontWeight: FontWeight.w700),
+        style: const TextStyle(color: navy, fontWeight: FontWeight.w600),
       ),
       subtitle: Text(
         '${x['status'] ?? x['description'] ?? ''}',
@@ -683,7 +683,7 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 17,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -793,7 +793,7 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
       label,
       style: TextStyle(
         color: danger ? Colors.red : navy,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
       ),
     ),
     onTap: () {
@@ -846,7 +846,7 @@ class CompanyPlaceholderScreen extends StatelessWidget {
                   style: const TextStyle(
                     color: Color(0xFF001F3F),
                     fontSize: 18,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 8),

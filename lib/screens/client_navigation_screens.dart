@@ -128,7 +128,7 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
             style: const TextStyle(
               color: clientNavy,
               fontSize: 19,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 14),
@@ -161,7 +161,7 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
                     style: TextStyle(
                       color: clientNavy,
                       fontSize: 19,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -180,7 +180,7 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
                     verified ? 'Verified' : 'Pending',
                     style: TextStyle(
                       color: verified ? Colors.green.shade700 : clientOrange,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -424,7 +424,7 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
                   style: const TextStyle(
                     color: clientNavy,
                     fontSize: 24,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -1005,7 +1005,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
     prefix: prefix,
     prefixStyle: const TextStyle(
       color: clientNavy,
-      fontWeight: FontWeight.w700,
+      fontWeight: FontWeight.w600,
     ),
     filled: true,
     fillColor: Colors.white,
@@ -1031,7 +1031,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
             style: const TextStyle(
               color: clientNavy,
               fontSize: 20,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 14),
@@ -1222,7 +1222,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
                   '$_selectedDialCode ',
                   style: const TextStyle(
                     color: clientNavy,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 formatters: [phoneInputFormatter(country)],
@@ -1300,7 +1300,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
                     '$_selectedDialCode ',
                     style: const TextStyle(
                       color: clientNavy,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   formatters: [phoneInputFormatter(country)],
@@ -1407,7 +1407,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: clientNavy,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 subtitle: Text(
@@ -1433,7 +1433,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: clientNavy,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     trailing: TextButton(
@@ -1718,7 +1718,7 @@ class _SavedState extends State<ClientSavedScreen> {
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     color: clientNavy,
-                                    fontWeight: FontWeight.w800,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
@@ -1864,7 +1864,7 @@ class _PublicProfessionalState extends State<ClientPublicProfessionalScreen> {
                       style: const TextStyle(
                         color: clientNavy,
                         fontSize: 23,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     Text(
@@ -1920,7 +1920,7 @@ class _PublicProfessionalState extends State<ClientPublicProfessionalScreen> {
               style: const TextStyle(
                 color: clientNavy,
                 fontSize: 18,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
@@ -2053,7 +2053,7 @@ class _ClientSettingsState extends State<ClientSettingsScreen> {
                   style: TextStyle(
                     color: clientNavy,
                     fontSize: 19,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -2101,7 +2101,7 @@ class _ClientSettingsState extends State<ClientSettingsScreen> {
           child: ListTile(
             title: const Text(
               'Language',
-              style: TextStyle(color: clientNavy, fontWeight: FontWeight.w700),
+              style: TextStyle(color: clientNavy, fontWeight: FontWeight.w600),
             ),
             trailing: DropdownButton<String>(
               value: language,
@@ -2307,7 +2307,7 @@ class _SupportState extends State<ClientSupportScreen> {
                     style: const TextStyle(
                       color: clientNavy,
                       fontSize: 20,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   Text(
@@ -2474,7 +2474,7 @@ class _ClientVerificationState extends State<ClientVerificationScreen> {
                     style: const TextStyle(
                       color: clientNavy,
                       fontSize: 21,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -2661,7 +2661,7 @@ class _ClientListScreen extends StatelessWidget {
                     '${x['title'] ?? 'Project'}',
                     style: const TextStyle(
                       color: clientNavy,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   subtitle: Text(

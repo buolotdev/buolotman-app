@@ -380,7 +380,7 @@ class _ListingScreenState extends State<ListingScreen> {
               'No matching services or tasks',
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),
@@ -451,7 +451,7 @@ class _ListingScreenState extends State<ListingScreen> {
                       service.title,
                       style: const TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFF001F3F),
                       ),
                     ),
@@ -481,7 +481,7 @@ class _ListingScreenState extends State<ListingScreen> {
                 service.priceLabel,
                 style: const TextStyle(
                   fontSize: 15,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFFFF4500),
                 ),
               ),
@@ -606,7 +606,7 @@ class _ListingScreenState extends State<ListingScreen> {
             task.title,
             style: const TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -635,7 +635,7 @@ class _ListingScreenState extends State<ListingScreen> {
                 '\$${task.budget.toStringAsFixed(0)}',
                 style: const TextStyle(
                   fontSize: 15,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFFFF4500),
                 ),
               ),

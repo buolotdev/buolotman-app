@@ -122,7 +122,7 @@ class _ClientProjectsState extends State<ClientProjectsScreen> {
                       style: TextStyle(
                         color: projectNavy,
                         fontSize: 19,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -148,7 +148,7 @@ class _ClientProjectsState extends State<ClientProjectsScreen> {
           '${x['title'] ?? 'Company project'}',
           style: const TextStyle(
             color: projectNavy,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
           ),
         ),
         subtitle: Text(
@@ -172,7 +172,7 @@ class _ClientProjectsState extends State<ClientProjectsScreen> {
           style: TextStyle(
             color: Colors.white,
             fontSize: 23,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
           ),
         ),
         SizedBox(height: 8),
@@ -204,7 +204,7 @@ class _ClientProjectsState extends State<ClientProjectsScreen> {
               value,
               style: const TextStyle(
                 color: projectNavy,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
                 fontSize: 19,
               ),
             ),
@@ -270,7 +270,7 @@ class _ClientProjectsState extends State<ClientProjectsScreen> {
                       style: const TextStyle(
                         color: projectNavy,
                         fontSize: 18,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -296,7 +296,7 @@ class _ClientProjectsState extends State<ClientProjectsScreen> {
                     budget == null ? 'Negotiable' : '$budget XOF',
                     style: const TextStyle(
                       color: projectNavy,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -328,7 +328,7 @@ class _ClientProjectsState extends State<ClientProjectsScreen> {
                     'Open workspace',
                     style: TextStyle(
                       color: projectOrange,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       fontSize: 12,
                     ),
                   ),
@@ -361,7 +361,7 @@ class _ClientProjectsState extends State<ClientProjectsScreen> {
       style: TextStyle(
         color: value == 'completed' ? Colors.green.shade700 : projectNavy,
         fontSize: 10,
-        fontWeight: FontWeight.w800,
+        fontWeight: FontWeight.w600,
       ),
     ),
   );
@@ -373,7 +373,7 @@ class _ClientProjectsState extends State<ClientProjectsScreen> {
         SizedBox(height: 12),
         Text(
           'No projects in this view.',
-          style: TextStyle(color: projectNavy, fontWeight: FontWeight.w700),
+          style: TextStyle(color: projectNavy, fontWeight: FontWeight.w600),
         ),
         SizedBox(height: 5),
         Text(
@@ -564,7 +564,7 @@ class _ClientWorkspaceState extends State<ClientProjectWorkspaceScreen> {
           style: TextStyle(
             color: Colors.white60,
             fontSize: 11,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
             letterSpacing: 1,
           ),
         ),
@@ -574,7 +574,7 @@ class _ClientWorkspaceState extends State<ClientProjectWorkspaceScreen> {
           style: const TextStyle(
             color: Colors.white,
             fontSize: 24,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 10),
@@ -667,7 +667,7 @@ class _ClientWorkspaceState extends State<ClientProjectWorkspaceScreen> {
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: projectNavy,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
             fontSize: 13,
           ),
         ),
@@ -732,7 +732,7 @@ class _ClientWorkspaceState extends State<ClientProjectWorkspaceScreen> {
                 title,
                 style: const TextStyle(
                   color: projectNavy,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 3),
@@ -747,7 +747,7 @@ class _ClientWorkspaceState extends State<ClientProjectWorkspaceScreen> {
           '$amount XOF',
           style: const TextStyle(
             color: projectNavy,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
             fontSize: 12,
           ),
         ),
@@ -802,7 +802,7 @@ class _ClientWorkspaceState extends State<ClientProjectWorkspaceScreen> {
         const SizedBox(height: 8),
         const Text(
           'Actions unlock after you accept a professional’s proposal.',
-          style: TextStyle(color: projectNavy, fontWeight: FontWeight.w700),
+          style: TextStyle(color: projectNavy, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 4),
         const Text(
@@ -919,7 +919,7 @@ class _ClientWorkspaceState extends State<ClientProjectWorkspaceScreen> {
             style: const TextStyle(
               color: projectNavy,
               fontSize: 18,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 13),

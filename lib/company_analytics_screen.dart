@@ -84,7 +84,7 @@ class CompanyAnalyticsScreen extends StatelessWidget {
                                     Text(
                                       service['title']?.toString() ?? 'Service',
                                       style: const TextStyle(
-                                        fontWeight: FontWeight.w700,
+                                        fontWeight: FontWeight.w600,
                                         color: Color(0xFF062B52),
                                       ),
                                     ),
@@ -163,7 +163,7 @@ class CompanyAnalyticsScreen extends StatelessWidget {
       title,
       style: const TextStyle(
         fontSize: 22,
-        fontWeight: FontWeight.w800,
+        fontWeight: FontWeight.w600,
         color: Color(0xFF062B52),
       ),
     ),
@@ -193,7 +193,7 @@ class CompanyAnalyticsScreen extends StatelessWidget {
                       m.value,
                       style: const TextStyle(
                         fontSize: 23,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFF062B52),
                       ),
                     ),
@@ -217,7 +217,7 @@ class CompanyAnalyticsScreen extends StatelessWidget {
             title,
             style: const TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF062B52),
             ),
           ),
@@ -240,7 +240,7 @@ class CompanyAnalyticsScreen extends StatelessWidget {
             Text(
               count,
               style: const TextStyle(
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF062B52),
               ),
             ),

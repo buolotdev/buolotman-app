@@ -195,7 +195,7 @@ class _ApplicantDossierModalState extends State<ApplicantDossierModal> {
                     "Applicant Dossier & KYC Details",
                     style: TextStyle(
                       fontSize: 22,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -239,7 +239,7 @@ class _ApplicantDossierModalState extends State<ApplicantDossierModal> {
                                 name,
                                 style: const TextStyle(
                                   fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
                                   color: Color(0xFF001F3F),
                                 ),
                               ),
@@ -260,7 +260,7 @@ class _ApplicantDossierModalState extends State<ApplicantDossierModal> {
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 10,
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ),
@@ -296,7 +296,7 @@ class _ApplicantDossierModalState extends State<ApplicantDossierModal> {
                     "CONTACT INFORMATION",
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF64748B),
                     ),
                   ),
@@ -381,7 +381,7 @@ class _ApplicantDossierModalState extends State<ApplicantDossierModal> {
                                 verificationStatus,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
                                   color: statusColor,
                                 ),
                               ),
@@ -399,7 +399,7 @@ class _ApplicantDossierModalState extends State<ApplicantDossierModal> {
                     "IDENTITY & COMPLIANCE DOCUMENTS (0)",
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF64748B),
                     ),
                   ),

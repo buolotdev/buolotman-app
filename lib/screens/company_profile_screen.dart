@@ -408,7 +408,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                 saving ? 'Saving...' : 'Save',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -461,7 +461,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
               style: TextStyle(
                 color: navy,
                 fontSize: 20,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 12),
@@ -535,7 +535,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
             style: const TextStyle(
               color: navy,
               fontSize: 20,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 12),
@@ -608,7 +608,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
         ),
         title: Text(
           verified ? 'Approved' : 'Pending admin verification',
-          style: const TextStyle(color: navy, fontWeight: FontWeight.w800),
+          style: const TextStyle(color: navy, fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
           verified
@@ -685,7 +685,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                   title,
                   style: const TextStyle(
                     color: navy,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 4),

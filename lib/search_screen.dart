@@ -270,7 +270,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           "Filter Results",
                           style: TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF001F3F),
                           ),
                         ),
@@ -286,7 +286,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       "Result Type",
                       style: TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFF001F3F),
                       ),
                     ),
@@ -320,7 +320,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       "Budget Range",
                       style: TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFF001F3F),
                       ),
                     ),
@@ -376,7 +376,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                         child: const Text(
                           "Apply Filters",
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ),
                     ),
@@ -407,7 +407,7 @@ class _SearchScreenState extends State<SearchScreen> {
           label,
           style: TextStyle(
             color: active ? Colors.white : const Color(0xFF001F3F),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             fontSize: 13,
           ),
         ),
@@ -427,7 +427,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 'Recent Searches',
                 style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -495,7 +495,7 @@ class _SearchScreenState extends State<SearchScreen> {
             'Suggested Categories',
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -618,7 +618,7 @@ class _SearchScreenState extends State<SearchScreen> {
             'Popular Right Now',
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -741,7 +741,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 'Top Pros Nearby',
                 style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -789,7 +789,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         pro['name'] as String,
                         style: const TextStyle(
                           fontSize: 14,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                         overflow: TextOverflow.ellipsis,

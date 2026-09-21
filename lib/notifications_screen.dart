@@ -26,7 +26,7 @@ class NotificationsScreen extends StatelessWidget {
               'Notifications',
               style: TextStyle(
                 color: Color(0xFF001F3F),
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
             centerTitle: true,
@@ -69,7 +69,7 @@ class NotificationsScreen extends StatelessWidget {
                             item['title'] as String,
                             style: const TextStyle(
                               fontSize: 15,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                               color: Color(0xFF001F3F),
                             ),
                           ),

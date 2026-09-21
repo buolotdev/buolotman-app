@@ -75,7 +75,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
               isClient ? 'My Tasks' : 'Projects & Contracts',
               style: const TextStyle(
                 color: Color(0xFF001F3F),
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
               ),
             ),
             centerTitle: true,
@@ -371,7 +371,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                 service.title,
                 style: const TextStyle(
                   fontSize: 17,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -460,7 +460,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                       task.status.toUpperCase(),
                       style: const TextStyle(
                         fontSize: 10,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFF1E8E3E),
                       ),
                     ),
@@ -482,7 +482,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
             task.title,
             style: const TextStyle(
               fontSize: 17,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -504,7 +504,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                 '\$${task.budget.toStringAsFixed(0)}',
                 style: const TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFFFF4500),
                 ),
               ),
@@ -575,7 +575,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                             title: const Text(
                               'Complete Task',
                               style: TextStyle(
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
                                 color: Color(0xFF001F3F),
                               ),
                             ),
@@ -800,7 +800,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
               'EXCEEDED BY ${difference.abs()} D',
               style: const TextStyle(
                 fontSize: 8,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFFB91C1C),
               ),
             ),
@@ -824,7 +824,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
               'DUE TODAY',
               style: TextStyle(
                 fontSize: 8,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFFB45309),
               ),
             ),
@@ -852,7 +852,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
               '$difference D LEFT',
               style: const TextStyle(
                 fontSize: 8,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF0369A1),
               ),
             ),
@@ -888,7 +888,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
               '${(progress * 100).toInt()}%',
               style: const TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),
@@ -920,7 +920,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
         title: const Text(
           'Delete Task',
           style: TextStyle(
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Color(0xFFB91C1C),
           ),
         ),
@@ -1003,7 +1003,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
             'No contracts yet',
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -1063,7 +1063,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                       child: Text(
                         contract['title'] ?? '',
                         style: const TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           fontSize: 16,
                         ),
                       ),
@@ -1086,7 +1086,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                               ? Colors.green.shade700
                               : Colors.orange.shade700,
                           fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -1202,7 +1202,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                       'Escrow Released',
                       style: TextStyle(
                         color: Colors.green,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   )

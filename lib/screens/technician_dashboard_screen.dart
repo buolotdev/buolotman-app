@@ -190,7 +190,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
                   style: TextStyle(
                     fontSize: 22,
                     height: 1.15,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                     color: ink,
                   ),
                 ),
@@ -228,7 +228,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 9,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -335,7 +335,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 19,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const Text(
@@ -438,7 +438,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
       label,
       style: TextStyle(
         color: locked ? muted : navy,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
       ),
     ),
     trailing: locked
@@ -637,7 +637,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 22,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -663,7 +663,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
               verified ? 'Verified' : 'Pending verification',
               style: const TextStyle(
                 color: Colors.white,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const Spacer(),
@@ -733,7 +733,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
                       : 'Account pending admin verification',
                   style: const TextStyle(
                     fontSize: 17,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                     color: ink,
                   ),
                 ),
@@ -810,7 +810,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
               color: ink,
             ),
           ),
@@ -830,7 +830,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
         title,
         style: const TextStyle(
           fontSize: 18,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w600,
           color: ink,
         ),
       ),
@@ -845,7 +845,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
           ),
           child: Text(
             action,
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
           ),
         ),
     ],
@@ -872,7 +872,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
       ),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.w700, color: ink),
+        style: const TextStyle(fontWeight: FontWeight.w600, color: ink),
       ),
       subtitle: Text(text, style: const TextStyle(color: muted)),
     ),

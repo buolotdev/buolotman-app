@@ -54,7 +54,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
               'Messages',
               style: TextStyle(
                 color: Color(0xFF001F3F),
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
               ),
             ),
             centerTitle: true,
@@ -83,7 +83,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           color: Color(0xFF64748B),
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -119,7 +119,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               'Delete Conversation',
                               style: TextStyle(
                                 color: Color(0xFF001F3F),
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                             content: const Text(
@@ -141,7 +141,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                   'Delete',
                                   style: TextStyle(
                                     color: Color(0xFFEF4444),
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
@@ -209,7 +209,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                           thread.name,
                                           style: const TextStyle(
                                             fontSize: 16,
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w600,
                                             color: Color(0xFF001F3F),
                                           ),
                                         ),

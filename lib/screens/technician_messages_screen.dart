@@ -87,7 +87,7 @@ class _MessagesState extends State<TechnicianMessagesScreen> {
                     '${other['initials'] ?? 'C'}',
                     style: const TextStyle(
                       color: navy,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -95,7 +95,7 @@ class _MessagesState extends State<TechnicianMessagesScreen> {
                   '${other['name'] ?? 'Conversation'}',
                   style: TextStyle(
                     color: navy,
-                    fontWeight: unread > 0 ? FontWeight.w800 : FontWeight.w600,
+                    fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.w600,
                   ),
                 ),
                 subtitle: Text(
@@ -391,7 +391,7 @@ class _ConversationState extends State<TechnicianConversationScreen> {
                             '${otherMap['name'] ?? otherMap['email'] ?? 'Conversation'}',
                             style: const TextStyle(
                               color: navy,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                           if ('${otherMap['username'] ?? ''}'.trim().isNotEmpty)
@@ -478,7 +478,7 @@ class _ConversationState extends State<TechnicianConversationScreen> {
                                           'Attachment: ${m['attachment_name'] ?? 'Attachment'}',
                                           style: TextStyle(
                                             color: orange,
-                                            fontWeight: FontWeight.w700,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                       ),
@@ -618,7 +618,7 @@ class _ConversationState extends State<TechnicianConversationScreen> {
             style: const TextStyle(
               color: muted,
               fontSize: 12,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),

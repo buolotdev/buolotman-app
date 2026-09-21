@@ -185,7 +185,7 @@ class _ClientWalletState extends State<ClientWalletScreen> {
                   style: TextStyle(
                     color: payNavy,
                     fontSize: 19,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -216,7 +216,7 @@ class _ClientWalletState extends State<ClientWalletScreen> {
                           '${x['description'] ?? x['category'] ?? 'Transaction'}',
                           style: const TextStyle(
                             color: payNavy,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         subtitle: Text(
@@ -227,7 +227,7 @@ class _ClientWalletState extends State<ClientWalletScreen> {
                           '${x['amount'] ?? ''}',
                           style: const TextStyle(
                             color: payNavy,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -256,7 +256,7 @@ class _ClientWalletState extends State<ClientWalletScreen> {
                   style: const TextStyle(
                     color: payNavy,
                     fontSize: 22,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -402,7 +402,7 @@ class _EscrowPaymentState extends State<ClientEscrowPaymentScreen> {
                   style: TextStyle(
                     color: payNavy,
                     fontSize: 21,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 8),

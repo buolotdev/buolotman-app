@@ -141,7 +141,7 @@ class _NotificationsState extends State<TechnicianNotificationsScreen> {
                     '$unread unread notification${unread == 1 ? '' : 's'}',
                     style: const TextStyle(
                       color: navy,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -180,7 +180,7 @@ class _NotificationsState extends State<TechnicianNotificationsScreen> {
                         '${item['title'] ?? 'Notification'}',
                         style: TextStyle(
                           color: navy,
-                          fontWeight: read ? FontWeight.w600 : FontWeight.w800,
+                          fontWeight: read ? FontWeight.w600 : FontWeight.w600,
                         ),
                       ),
                       subtitle: Text(

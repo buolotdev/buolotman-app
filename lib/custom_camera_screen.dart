@@ -127,7 +127,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> {
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
               ),
             ),

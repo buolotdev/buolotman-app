@@ -92,7 +92,7 @@ class _ClientTasksState extends State<ClientTasksScreen> {
                       '${x['title'] ?? 'Task'}',
                       style: const TextStyle(
                         color: taskNavy,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     subtitle: Text(
@@ -398,7 +398,7 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
               const SizedBox(height: 16),
               const Text(
                 'Description',
-                style: TextStyle(color: taskNavy, fontWeight: FontWeight.w800),
+                style: TextStyle(color: taskNavy, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
               Text(
@@ -437,7 +437,7 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
                   'Required skills',
                   style: TextStyle(
                     color: taskNavy,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -568,7 +568,7 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
             style: const TextStyle(
               color: taskNavy,
               fontSize: 19,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 12),
@@ -647,7 +647,7 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
       text,
       style: const TextStyle(
         color: taskNavy,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
         fontSize: 12,
       ),
     ),
@@ -791,7 +791,7 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
-              textStyle: const TextStyle(fontWeight: FontWeight.w700),
+              textStyle: const TextStyle(fontWeight: FontWeight.w600),
             ),
           )
         : FilledButton.icon(
@@ -804,7 +804,7 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
-              textStyle: const TextStyle(fontWeight: FontWeight.w700),
+              textStyle: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
   );
@@ -819,7 +819,7 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
       value.replaceAll('_', ' ').toUpperCase(),
       style: const TextStyle(
         color: taskOrange,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
         fontSize: 12,
       ),
     ),
@@ -859,7 +859,7 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
                   initials,
                   style: const TextStyle(
                     color: taskOrange,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -870,7 +870,7 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
                   style: const TextStyle(
                     color: taskNavy,
                     fontSize: 16,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -883,7 +883,7 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
             style: const TextStyle(
               color: taskOrange,
               fontSize: 17,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           if (message.isNotEmpty) ...[
@@ -995,7 +995,7 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
         style: TextStyle(
           color: color,
           fontSize: 11,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -1419,7 +1419,7 @@ class _ClientTaskEditState extends State<ClientTaskEditScreen> {
           style: TextStyle(
             color: taskNavy,
             fontSize: 16,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
           ),
         ),
         Wrap(
@@ -1435,7 +1435,7 @@ class _ClientTaskEditState extends State<ClientTaskEditScreen> {
             (widget.task['attachments'] as List).isNotEmpty) ...[
           const Text(
             'Existing attachments',
-            style: TextStyle(color: taskNavy, fontWeight: FontWeight.w700),
+            style: TextStyle(color: taskNavy, fontWeight: FontWeight.w600),
           ),
           ...(widget.task['attachments'] as List).map(
             (a) => ListTile(

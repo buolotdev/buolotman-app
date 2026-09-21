@@ -138,7 +138,7 @@ class _GoogleRoleSelectionScreenState extends State<GoogleRoleSelectionScreen> {
                     title,
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: isSelected
                           ? const Color(0xFFFF4500)
                           : const Color(0xFF001F3F),
@@ -237,7 +237,7 @@ class _GoogleRoleSelectionScreenState extends State<GoogleRoleSelectionScreen> {
                         "How do you want to use Boulot Man?",
                         style: TextStyle(
                           fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -278,7 +278,7 @@ class _GoogleRoleSelectionScreenState extends State<GoogleRoleSelectionScreen> {
                           "Professional Details",
                           style: TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF001F3F),
                           ),
                         ),
@@ -314,7 +314,7 @@ class _GoogleRoleSelectionScreenState extends State<GoogleRoleSelectionScreen> {
                           "Company Details",
                           style: TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF001F3F),
                           ),
                         ),
@@ -364,7 +364,7 @@ class _GoogleRoleSelectionScreenState extends State<GoogleRoleSelectionScreen> {
                             "Complete Profile",
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),
                           ),

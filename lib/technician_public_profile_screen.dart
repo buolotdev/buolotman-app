@@ -182,7 +182,7 @@ class _TechnicianPublicProfileScreenState
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -374,7 +374,7 @@ class _TechnicianPublicProfileScreenState
               displayName,
               style: const TextStyle(
                 color: Color(0xFF001F3F),
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 fontSize: 18,
               ),
             ),
@@ -761,7 +761,7 @@ class _TechnicianPublicProfileScreenState
                               child: Text(
                                 'Service Radius: ${_clean(dataMap["service_radius_km"], fallback: '0')} km',
                                 style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
                                   color: Color(0xFF001F3F),
                                 ),
                               ),
@@ -978,7 +978,7 @@ class _TechnicianPublicProfileScreenState
                       _displayName(_isLoading ? widget.rawData : _fullData),
                       style: const TextStyle(
                         fontSize: 22,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFF001F3F),
                       ),
                     ),
@@ -1008,7 +1008,7 @@ class _TechnicianPublicProfileScreenState
                             Text(
                               ratingText,
                               style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
                                 fontSize: 13,
                               ),
                             ),
@@ -1064,7 +1064,7 @@ class _TechnicianPublicProfileScreenState
                             verificationBadge,
                             style: TextStyle(
                               fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               color: verificationBadge == 'Unverified'
                                   ? const Color(0xFF64748B)
                                   : const Color(0xFF0284C7),
@@ -1133,7 +1133,7 @@ class _TechnicianPublicProfileScreenState
               "Message",
               style: TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),
             ),
@@ -1159,7 +1159,7 @@ class _TechnicianPublicProfileScreenState
                   title: const Text(
                     "Hire Professional",
                     style: TextStyle(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -1201,7 +1201,7 @@ class _TechnicianPublicProfileScreenState
               "Hire Now",
               style: TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFFFF5500),
               ),
             ),
@@ -1223,7 +1223,7 @@ class _TechnicianPublicProfileScreenState
       title,
       style: const TextStyle(
         fontSize: 16,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
         color: Color(0xFF001F3F),
       ),
     );
@@ -1360,7 +1360,7 @@ class _TechnicianPublicProfileScreenState
                 title,
                 style: TextStyle(
                   fontSize: 15,
-                  fontWeight: isVerified ? FontWeight.bold : FontWeight.w500,
+                  fontWeight: isVerified ? FontWeight.w600 : FontWeight.w500,
                   color: isVerified
                       ? const Color(0xFF001F3F)
                       : const Color(0xFF64748B),
@@ -1467,7 +1467,7 @@ class _TechnicianPublicProfileScreenState
                     child: Text(
                       serviceName,
                       style: const TextStyle(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         fontSize: 16,
                         color: Color(0xFF0F172A),
                       ),
@@ -1497,7 +1497,7 @@ class _TechnicianPublicProfileScreenState
                             style: TextStyle(
                               color: Colors.green,
                               fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -1602,7 +1602,7 @@ class _TechnicianPublicProfileScreenState
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -1684,7 +1684,7 @@ class _TechnicianPublicProfileScreenState
                       reviewer,
                       style: const TextStyle(
                         fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFF001F3F),
                       ),
                     ),
@@ -1700,7 +1700,7 @@ class _TechnicianPublicProfileScreenState
                           score.toString(),
                           style: const TextStyle(
                             fontSize: 13,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],

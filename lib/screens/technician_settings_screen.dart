@@ -467,7 +467,7 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
             style: const TextStyle(
               color: navy,
               fontSize: 19,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),

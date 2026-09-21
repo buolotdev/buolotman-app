@@ -130,7 +130,7 @@ class _ClientMessagesState extends State<ClientMessagesScreen> {
                       style: TextStyle(
                         color: messageNavy,
                         fontSize: 17,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     SizedBox(height: 6),
@@ -256,7 +256,7 @@ class _ClientMessagesState extends State<ClientMessagesScreen> {
                   '${other['initials'] ?? '?'}',
                   style: const TextStyle(
                     color: messageOrange,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -267,7 +267,7 @@ class _ClientMessagesState extends State<ClientMessagesScreen> {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: messageNavy,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   fontSize: 12,
                 ),
               ),
@@ -283,7 +283,7 @@ class _ClientMessagesState extends State<ClientMessagesScreen> {
                   '$unread unread',
                   style: const TextStyle(
                     color: messageOrange,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     fontSize: 10,
                   ),
                 ),
@@ -566,7 +566,7 @@ class _ClientConversationState extends State<ClientConversationScreen> {
                           '${other is Map ? other['initials'] ?? '?' : '?'}',
                           style: const TextStyle(
                             color: messageOrange,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w600,
                           ),
                         )
                       : null,
@@ -581,7 +581,7 @@ class _ClientConversationState extends State<ClientConversationScreen> {
                       '${other is Map ? other['name'] ?? other['email'] ?? 'Conversation' : 'Conversation'}',
                       style: const TextStyle(
                         color: messageNavy,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     if ('${otherMap['username'] ?? ''}'.trim().isNotEmpty)
@@ -778,7 +778,7 @@ class _ClientConversationState extends State<ClientConversationScreen> {
                                 : attachmentName,
                             style: const TextStyle(
                               color: messageOrange,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -875,7 +875,7 @@ class _ClientConversationState extends State<ClientConversationScreen> {
             style: const TextStyle(
               color: messageMuted,
               fontSize: 12,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),

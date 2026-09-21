@@ -275,7 +275,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
                       style: const TextStyle(
                         color: navy,
                         fontSize: 22,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -500,7 +500,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
             style: const TextStyle(
               color: navy,
               fontSize: 19,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 10),
@@ -537,7 +537,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
               style: TextStyle(
                 color: navy,
                 fontSize: 19,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 12),
@@ -574,7 +574,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
               const SizedBox(height: 16),
               const Text(
                 'Skills',
-                style: TextStyle(color: navy, fontWeight: FontWeight.w800),
+                style: TextStyle(color: navy, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 7),
               _chips(skillList),
@@ -583,7 +583,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
               const SizedBox(height: 14),
               const Text(
                 'Tools and equipment',
-                style: TextStyle(color: navy, fontWeight: FontWeight.w800),
+                style: TextStyle(color: navy, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 7),
               _chips(toolList),
@@ -591,7 +591,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
             const SizedBox(height: 14),
             const Text(
               'Pricing',
-              style: TextStyle(color: navy, fontWeight: FontWeight.w800),
+              style: TextStyle(color: navy, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 6),
             Text(
@@ -602,7 +602,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
               const SizedBox(height: 14),
               const Text(
                 'Portfolio',
-                style: TextStyle(color: navy, fontWeight: FontWeight.w800),
+                style: TextStyle(color: navy, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
               ...savedPortfolio.map(
@@ -613,7 +613,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
                     '${item['title'] ?? 'Project'}',
                     style: const TextStyle(
                       color: navy,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   subtitle: Text(
@@ -637,7 +637,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
     ),
     child: Text(
       text,
-      style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12),
+      style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12),
     ),
   );
   Widget _portfolioGallery() => Card(
@@ -653,7 +653,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
             style: TextStyle(
               color: navy,
               fontSize: 19,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 10),
@@ -698,7 +698,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
                       '${item['title'] ?? 'Project'}',
                       style: const TextStyle(
                         color: navy,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -728,7 +728,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
             const SizedBox(height: 12),
             Text(
               '${item['category'] ?? ''}',
-              style: const TextStyle(color: muted, fontWeight: FontWeight.w700),
+              style: const TextStyle(color: muted, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Text('${item['description'] ?? 'No description provided.'}'),
@@ -744,7 +744,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
         style: const TextStyle(
           color: navy,
           fontSize: 18,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w600,
         ),
       ),
       const SizedBox(height: 3),
@@ -894,7 +894,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
                 dialCode,
                 style: const TextStyle(
                   color: navy,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),

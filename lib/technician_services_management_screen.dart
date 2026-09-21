@@ -141,7 +141,7 @@ class _TechnicianServicesManagementScreenState
           'My Services (Hierarchy)',
           style: TextStyle(
             color: Color(0xFF001F3F),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             fontSize: 18,
           ),
         ),
@@ -162,7 +162,7 @@ class _TechnicianServicesManagementScreenState
                     'Link a New Service',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -279,7 +279,7 @@ class _TechnicianServicesManagementScreenState
                                 : const Text(
                                     'Link Service',
                                     style: TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w600,
                                       fontSize: 16,
                                     ),
                                   ),
@@ -293,7 +293,7 @@ class _TechnicianServicesManagementScreenState
                     'My Linked Services',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -315,7 +315,7 @@ class _TechnicianServicesManagementScreenState
                               title: Text(
                                 s['service_name'] ?? 'Unknown',
                                 style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
                                   color: Color(0xFF001F3F),
                                 ),
                               ),
@@ -342,7 +342,7 @@ class _TechnicianServicesManagementScreenState
                                         style: TextStyle(
                                           color: Colors.green,
                                           fontSize: 12,
-                                          fontWeight: FontWeight.bold,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
                                     )
@@ -361,7 +361,7 @@ class _TechnicianServicesManagementScreenState
                                         style: TextStyle(
                                           color: Colors.orange,
                                           fontSize: 12,
-                                          fontWeight: FontWeight.bold,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
                                     ),

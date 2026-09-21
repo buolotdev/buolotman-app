@@ -61,7 +61,7 @@ class _CompanyReviewsScreenState extends State<CompanyReviewsScreen> {
                       average,
                       style: const TextStyle(
                         fontSize: 42,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFF062B52),
                       ),
                     ),
@@ -120,7 +120,7 @@ class _CompanyReviewsScreenState extends State<CompanyReviewsScreen> {
                   child: Text(
                     review['reviewer_name']?.toString() ?? 'Client',
                     style: const TextStyle(
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF062B52),
                     ),
                   ),
@@ -128,7 +128,7 @@ class _CompanyReviewsScreenState extends State<CompanyReviewsScreen> {
                 Text(
                   '${review['rating'] ?? 0}/5',
                   style: const TextStyle(
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFFF59E0B),
                   ),
                 ),

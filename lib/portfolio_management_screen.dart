@@ -150,7 +150,7 @@ class _PortfolioManagementScreenState extends State<PortfolioManagementScreen> {
                         'Add Portfolio Item',
                         style: TextStyle(
                           fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -333,7 +333,7 @@ class _PortfolioManagementScreenState extends State<PortfolioManagementScreen> {
           'Manage Portfolio',
           style: TextStyle(
             color: Color(0xFF001F3F),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             fontSize: 18,
           ),
         ),
@@ -426,7 +426,7 @@ class _PortfolioManagementScreenState extends State<PortfolioManagementScreen> {
                                       item['title'] ?? '',
                                       style: const TextStyle(
                                         fontSize: 18,
-                                        fontWeight: FontWeight.bold,
+                                        fontWeight: FontWeight.w600,
                                         color: Color(0xFF001F3F),
                                       ),
                                     ),

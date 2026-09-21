@@ -98,7 +98,7 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
                         'Filters',
                         style: TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -175,7 +175,7 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
                         'Apply Filters',
                         style: TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           fontSize: 16,
                         ),
                       ),
@@ -335,7 +335,7 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
                   'Technician Feed',
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFF001F3F),
                   ),
                 ),
@@ -531,7 +531,7 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
                         task.urgency.toUpperCase(),
                         style: TextStyle(
                           fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: task.urgency == 'Urgent'
                               ? const Color(0xFFB91C1C)
                               : const Color(0xFF64748B),
@@ -558,7 +558,7 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
               task.title,
               style: const TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),
@@ -664,7 +664,7 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
                   '${task.budget.toStringAsFixed(0)} XOF',
                   style: const TextStyle(
                     fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFFFF4500),
                   ),
                 ),
@@ -733,7 +733,7 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
               'EXCEEDED BY ${difference.abs()} D',
               style: const TextStyle(
                 fontSize: 8,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFFB91C1C),
               ),
             ),
@@ -757,7 +757,7 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
               'DUE TODAY',
               style: TextStyle(
                 fontSize: 8,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFFB45309),
               ),
             ),
@@ -785,7 +785,7 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
               '$difference D LEFT',
               style: const TextStyle(
                 fontSize: 8,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF0369A1),
               ),
             ),

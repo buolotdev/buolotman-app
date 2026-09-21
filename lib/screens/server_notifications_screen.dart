@@ -64,7 +64,7 @@ class _ServerNotificationsState extends State<ServerNotificationsScreen> {
                   ),
                   title: Text(
                     '${n['title'] ?? 'Notification'}',
-                    style: const TextStyle(fontWeight: FontWeight.w700),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   subtitle: Text(
                     '${n['body'] ?? n['message'] ?? ''}\n${n['created_at'] ?? ''}',

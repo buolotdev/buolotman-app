@@ -66,7 +66,7 @@ class _CompanyTasksState extends State<CompanyTasksScreen> {
                 const SizedBox(height: 16),
                 Text(
                   '${tasks.length} available tasks',
-                  style: const TextStyle(fontWeight: FontWeight.w800),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 if (tasks.isEmpty)
@@ -98,7 +98,7 @@ class _CompanyTasksState extends State<CompanyTasksScreen> {
         contentPadding: const EdgeInsets.all(16),
         title: Text(
           '${task['title'] ?? 'Untitled task'}',
-          style: const TextStyle(fontWeight: FontWeight.w800),
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 8),
@@ -262,7 +262,7 @@ class _CompanyTaskDetailState extends State<CompanyTaskDetailScreen> {
               '${task['title'] ?? 'Task'}',
               style: const TextStyle(
                 fontSize: 24,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),
@@ -297,7 +297,7 @@ class _CompanyTaskDetailState extends State<CompanyTaskDetailScreen> {
                       '${task['budget_min'] ?? task['budget'] ?? 'Quote-based'} XOF${task['budget_max'] == null ? '' : ' - ${task['budget_max']} XOF'}',
                       style: const TextStyle(
                         fontSize: 18,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],

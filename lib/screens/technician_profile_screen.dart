@@ -271,7 +271,7 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
                   style: TextStyle(
                     color: navy,
                     fontSize: 22,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -329,7 +329,7 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
                         : 'Verification pending\nUpload documents for administrator review.',
                     style: const TextStyle(
                       color: navy,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       height: 1.35,
                     ),
                   ),
@@ -367,7 +367,7 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
                     slot.$2,
                     style: const TextStyle(
                       color: navy,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -425,7 +425,7 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
         style: TextStyle(
           color: color,
           fontSize: 11,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -512,7 +512,7 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
               title,
               style: const TextStyle(
                 color: Colors.white,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),

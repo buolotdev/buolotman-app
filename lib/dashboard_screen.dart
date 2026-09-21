@@ -380,7 +380,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Text(
                   'Complete Your Profile',
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFF001F3F),
                   ),
                 ),
@@ -441,7 +441,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 17,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF64748B),
                         ),
                       ),
@@ -462,7 +462,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           location,
                           style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF001F3F),
                           ),
                         ),
@@ -680,7 +680,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -710,7 +710,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               child: Text(
                 buttonText,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -733,7 +733,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             title,
             style: const TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -869,7 +869,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   service['rating']!,
                                   style: const TextStyle(
                                     fontSize: 12,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w600,
                                     color: Color(0xFF001F3F),
                                   ),
                                 ),
@@ -899,7 +899,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           service['price']!,
                           style: const TextStyle(
                             fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFFFF4500),
                           ),
                         ),
@@ -1009,7 +1009,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   "LIVE",
                                   style: TextStyle(
                                     fontSize: 10,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w600,
                                     color: Color(0xFFEF4444),
                                   ),
                                 ),
@@ -1022,7 +1022,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         budget,
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -1175,7 +1175,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF001F3F),
                           ),
                         ),
@@ -1212,7 +1212,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         '\$${task.budget.toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontSize: 15,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -1230,7 +1230,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           task.status,
                           style: TextStyle(
                             fontSize: 11,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             color: statusColor,
                           ),
                         ),
@@ -1352,7 +1352,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFF001F3F),
                   ),
                 ),
@@ -1479,7 +1479,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFF001F3F),
                   ),
                 ),
@@ -1488,7 +1488,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   svc.priceLabel,
                   style: const TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFFFF4500),
                   ),
                 ),
@@ -1540,7 +1540,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     "100% Secure Escrow Payments",
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -1670,7 +1670,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             pro['name'] as String,
                             style: const TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                               color: Color(0xFF001F3F),
                             ),
                           ),
@@ -1716,7 +1716,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       pro['price'] as String,
                       style: const TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFF001F3F),
                       ),
                     ),
@@ -1871,7 +1871,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           co['name']!,
                           style: const TextStyle(
                             fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF001F3F),
                           ),
                           maxLines: 2,
@@ -1897,7 +1897,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               co['rating']!,
                               style: const TextStyle(
                                 fontSize: 12,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
@@ -1934,7 +1934,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             "Company Overview",
             style: TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -1991,7 +1991,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 16,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
@@ -2042,7 +2042,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 4),
@@ -2086,7 +2086,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               value,
               style: const TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),
@@ -2154,7 +2154,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 16,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -2201,7 +2201,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               style: const TextStyle(
                                 color: Color(0xFFFF4500),
                                 fontSize: 12,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
@@ -2411,7 +2411,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title.toUpperCase(),
         style: const TextStyle(
           fontSize: 11,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: Color(0xFF94A3B8),
           letterSpacing: 1.2,
         ),
@@ -2501,7 +2501,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       "\$${balance.toStringAsFixed(2)}",
                       style: const TextStyle(
                         fontSize: 20,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFF001F3F),
                       ),
                     ),
@@ -2520,7 +2520,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 "Fund Wallet",
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
               ),
@@ -2651,7 +2651,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF001F3F),
                           ),
                         ),
@@ -2671,7 +2671,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 task.status.toUpperCase(),
                                 style: const TextStyle(
                                   fontSize: 9,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
                                   color: Color(0xFF1E8E3E),
                                 ),
                               ),
@@ -2695,7 +2695,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     "\$${task.budget.toStringAsFixed(0)}",
                     style: const TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -2829,7 +2829,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 14,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                               color: Color(0xFF001F3F),
                             ),
                           ),
@@ -2867,7 +2867,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       priceLabel,
                       style: const TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFFFF4500),
                       ),
                     ),
@@ -2891,7 +2891,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         style: TextStyle(
                           color: Color(0xFF001F3F),
                           fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),

@@ -115,7 +115,7 @@ class _ChatContactProfileState extends State<ChatContactProfileScreen> {
                     style: const TextStyle(
                       color: navy,
                       fontSize: 24,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   if (username.isNotEmpty)

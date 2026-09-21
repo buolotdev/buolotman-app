@@ -40,7 +40,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               "Withdraw Funds",
               style: TextStyle(
                 color: Color(0xFF001F3F),
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
               ),
             ),
             centerTitle: true,
@@ -57,7 +57,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                   "Withdrawal Amount",
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFF001F3F),
                   ),
                 ),
@@ -68,7 +68,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                   "Select Method",
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFF001F3F),
                   ),
                 ),
@@ -127,7 +127,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                 "\$${appState.walletBalance.toStringAsFixed(2)}",
                 style: const TextStyle(
                   fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -143,7 +143,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               "Escrow Protected",
               style: TextStyle(
                 fontSize: 11,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF16A34A),
               ),
             ),
@@ -159,20 +159,20 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
       keyboardType: TextInputType.number,
       style: const TextStyle(
         fontSize: 28,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w600,
         color: Color(0xFF001F3F),
       ),
       decoration: InputDecoration(
         prefixText: "\$ ",
         prefixStyle: const TextStyle(
           fontSize: 28,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
           color: Color(0xFF001F3F),
         ),
         hintText: "0.00",
         hintStyle: TextStyle(
           fontSize: 28,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
           color: const Color(0xFF001F3F).withValues(alpha: 0.2),
         ),
         filled: true,
@@ -228,7 +228,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                     title,
                     style: const TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -305,7 +305,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
         ),
         child: const Text(
           "Confirm Withdrawal",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -338,7 +338,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               "Withdrawal Initiated",
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),

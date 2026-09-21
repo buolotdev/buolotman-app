@@ -103,7 +103,7 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
               "Browse Professionals",
               style: TextStyle(
                 color: Color(0xFF001F3F),
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 fontSize: 18,
               ),
             ),
@@ -251,7 +251,7 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
                 cat,
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: active ? Colors.white : const Color(0xFF001F3F),
                 ),
               ),
@@ -340,7 +340,7 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               color: Color(0xFF001F3F),
                             ),
                           ),
@@ -378,7 +378,7 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
                           ratingLabel,
                           style: const TextStyle(
                             fontSize: 13,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF001F3F),
                           ),
                         ),
@@ -434,7 +434,7 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
                 priceLabel,
                 style: const TextStyle(
                   fontSize: 15,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -467,7 +467,7 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
                 ),
                 child: const Text(
                   "View Profile",
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -490,7 +490,7 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
               "No professionals found",
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),

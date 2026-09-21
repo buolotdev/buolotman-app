@@ -103,7 +103,7 @@ class _OTPScreenState extends State<OTPScreen> {
                 isForgotPassword ? "Reset Password" : "Verification Code",
                 style: const TextStyle(
                   fontSize: 28,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -393,7 +393,7 @@ class _OTPScreenState extends State<OTPScreen> {
                     isForgotPassword ? "Reset Password" : "Verify & Continue",
                     style: const TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
                   ),
@@ -473,7 +473,7 @@ class _OTPScreenState extends State<OTPScreen> {
                     "Resend Code",
                     style: TextStyle(
                       color: Color(0xFF001F3F),
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -507,7 +507,7 @@ class _OTPScreenState extends State<OTPScreen> {
           maxLength: 1,
           style: const TextStyle(
             fontSize: 24,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Color(0xFF001F3F),
           ),
           decoration: const InputDecoration(

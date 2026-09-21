@@ -255,8 +255,7 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
                   () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                    builder: (_) =>
-                          const CompanyWalletScreen(),
+                      builder: (_) => const CompanyWalletScreen(),
                     ),
                   ),
                 ),
@@ -308,7 +307,7 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
             style: const TextStyle(
               color: navy,
               fontSize: 19,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 14),

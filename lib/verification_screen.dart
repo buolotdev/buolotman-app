@@ -51,7 +51,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
           isCompany ? 'Company Verification' : 'Get Verified',
           style: const TextStyle(
             color: Color(0xFF001F3F),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
           ),
         ),
         centerTitle: true,
@@ -124,7 +124,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
             "Business Registration",
             style: TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -158,7 +158,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
             "Compliance Review",
             style: TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -200,7 +200,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
             "Identity Verification",
             style: TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -225,7 +225,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
             "Skill Screening",
             style: TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -260,7 +260,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
             "Certifications",
             style: TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -328,7 +328,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
         label,
         style: const TextStyle(
           fontSize: 14,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
           color: Color(0xFF001F3F),
         ),
       ),
@@ -482,7 +482,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
               "Under Review",
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),

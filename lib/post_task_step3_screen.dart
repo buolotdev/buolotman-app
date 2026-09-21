@@ -64,7 +64,7 @@ class PostTaskStep3Screen extends StatelessWidget {
             "Post a Task",
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -90,7 +90,7 @@ class PostTaskStep3Screen extends StatelessWidget {
                 "Step 2 of 2",
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFFFF4500),
                 ),
               ),
@@ -136,7 +136,7 @@ class PostTaskStep3Screen extends StatelessWidget {
           "Review your task before publishing",
           style: TextStyle(
             fontSize: 24,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
             color: Color(0xFF001F3F),
             height: 1.2,
           ),
@@ -184,7 +184,7 @@ class PostTaskStep3Screen extends StatelessWidget {
                     "Ready to publish",
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
                   ),
@@ -222,7 +222,7 @@ class PostTaskStep3Screen extends StatelessWidget {
             "Task overview",
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF64748B),
             ),
           ),
@@ -231,7 +231,7 @@ class PostTaskStep3Screen extends StatelessWidget {
             draft.title,
             style: TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
               height: 1.3,
             ),
@@ -253,7 +253,7 @@ class PostTaskStep3Screen extends StatelessWidget {
             "Description",
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF64748B),
             ),
           ),
@@ -273,7 +273,7 @@ class PostTaskStep3Screen extends StatelessWidget {
               "Task Attachment Preview",
               style: TextStyle(
                 fontSize: 13,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF64748B),
               ),
             ),
@@ -353,7 +353,7 @@ class PostTaskStep3Screen extends StatelessWidget {
             label,
             style: const TextStyle(
               fontSize: 12,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF64748B),
             ),
           ),
@@ -363,7 +363,7 @@ class PostTaskStep3Screen extends StatelessWidget {
               value,
               style: const TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
                 height: 1.2,
               ),
@@ -391,7 +391,7 @@ class PostTaskStep3Screen extends StatelessWidget {
             "Reference photos",
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF64748B),
             ),
           ),
@@ -443,7 +443,7 @@ class PostTaskStep3Screen extends StatelessWidget {
             "Requirements",
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF64748B),
             ),
           ),
@@ -479,7 +479,7 @@ class PostTaskStep3Screen extends StatelessWidget {
             "What professionals will see",
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF64748B),
             ),
           ),
@@ -553,7 +553,7 @@ class PostTaskStep3Screen extends StatelessWidget {
             "Secure hiring note",
             style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -601,7 +601,7 @@ class PostTaskStep3Screen extends StatelessWidget {
                     "Edit",
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -665,7 +665,7 @@ class PostTaskStep3Screen extends StatelessWidget {
                 children: const [
                   Text(
                     "Publish Task",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(width: 8),
                   Icon(Icons.arrow_forward, size: 18),

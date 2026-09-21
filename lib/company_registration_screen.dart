@@ -56,7 +56,7 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
           "Register Business",
           style: TextStyle(
             color: Color(0xFF001F3F),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
           ),
         ),
         centerTitle: true,
@@ -109,7 +109,7 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
           step.toString(),
           style: TextStyle(
             color: isActive ? Colors.white : const Color(0xFF64748B),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -135,7 +135,7 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
             "Business Details",
             style: TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -173,7 +173,7 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
             "Legal & Tax",
             style: TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -201,7 +201,7 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
             "Document Upload",
             style: TextStyle(
               fontSize: 22,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -239,7 +239,7 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
         label,
         style: const TextStyle(
           fontSize: 14,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
           color: Color(0xFF001F3F),
         ),
       ),
@@ -478,7 +478,7 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
               "Application Submitted",
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),

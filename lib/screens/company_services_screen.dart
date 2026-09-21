@@ -221,7 +221,7 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
           style: TextStyle(
             color: navy,
             fontSize: 14,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
           ),
         ),
         SizedBox(height: 5),
@@ -230,7 +230,7 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
           style: TextStyle(
             color: navy,
             fontSize: 26,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
           ),
         ),
         SizedBox(height: 5),
@@ -288,7 +288,7 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
               style: const TextStyle(
                 color: navy,
                 fontSize: 22,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 4),
@@ -315,7 +315,7 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
             style: TextStyle(
               color: navy,
               fontSize: 20,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 14),
@@ -423,7 +423,7 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
             style: TextStyle(
               color: navy,
               fontSize: 20,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 12),
@@ -460,7 +460,7 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
               '${s['title'] ?? ''}',
               style: const TextStyle(
                 color: navy,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
                 fontSize: 16,
               ),
             ),

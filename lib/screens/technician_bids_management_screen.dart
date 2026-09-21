@@ -349,7 +349,7 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
                   '${all.length} bids found',
                   style: const TextStyle(
                     color: Color(0xFF001F3F),
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -413,7 +413,7 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
                     style: const TextStyle(
                       color: Color(0xFF001F3F),
                       fontSize: 17,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -440,7 +440,7 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
               '${bid['amount_type'] ?? 'fixed'} • ${amount.toStringAsFixed(0)} XOF • ${bid['duration'] ?? 'Duration not specified'}',
               style: const TextStyle(
                 color: Color(0xFF001F3F),
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
             if ('${bid['extra_notes'] ?? bid['extra'] ?? ''}'.isNotEmpty)

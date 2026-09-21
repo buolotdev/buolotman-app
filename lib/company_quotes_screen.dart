@@ -36,7 +36,7 @@ class _CompanyQuotesScreenState extends State<CompanyQuotesScreen> {
         appBar: AppBar(
           title: const Text(
             'Quote requests',
-            style: TextStyle(color: _quoteNavy, fontWeight: FontWeight.w800),
+            style: TextStyle(color: _quoteNavy, fontWeight: FontWeight.w600),
           ),
           backgroundColor: Colors.white,
           foregroundColor: _quoteNavy,
@@ -109,7 +109,7 @@ class _CompanyQuotesScreenState extends State<CompanyQuotesScreen> {
             style: const TextStyle(
               color: _quoteNavy,
               fontSize: 19,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 3),
@@ -139,7 +139,7 @@ class _CompanyQuotesScreenState extends State<CompanyQuotesScreen> {
             selectedColor: const Color(0xFFFFE5DC),
             labelStyle: TextStyle(
               color: selected ? _quoteOrange : const Color(0xFF475569),
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
             side: BorderSide(
               color: selected ? _quoteOrange : const Color(0xFFE2E8F0),
@@ -180,7 +180,7 @@ class _QuoteCard extends StatelessWidget {
                       style: const TextStyle(
                         color: _quoteNavy,
                         fontSize: 17,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -200,7 +200,7 @@ class _QuoteCard extends StatelessWidget {
                   'View quote details',
                   style: TextStyle(
                     color: _quoteOrange,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -253,7 +253,7 @@ class _QuoteCard extends StatelessWidget {
         style: TextStyle(
           color: color,
           fontSize: 11,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -329,7 +329,7 @@ class _QuoteDetailsState extends State<_QuoteDetails> {
               style: const TextStyle(
                 color: _quoteNavy,
                 fontSize: 23,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 18),
@@ -410,7 +410,7 @@ class _QuoteDetailsState extends State<_QuoteDetails> {
           title,
           style: const TextStyle(
             color: _quoteNavy,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 6),

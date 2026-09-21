@@ -45,7 +45,7 @@ class _WalletScreenState extends State<WalletScreen> {
                           'Recent Transactions',
                           style: TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF001F3F),
                           ),
                         ),
@@ -112,7 +112,7 @@ class _WalletScreenState extends State<WalletScreen> {
             'Wallet',
             style: TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -145,7 +145,7 @@ class _WalletScreenState extends State<WalletScreen> {
             '\$${appState.walletBalance.toStringAsFixed(2)}',
             style: const TextStyle(
               fontSize: 36,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
           ),
@@ -215,7 +215,7 @@ class _WalletScreenState extends State<WalletScreen> {
               value,
               style: const TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),
@@ -265,7 +265,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 transaction.amount,
                 style: const TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),

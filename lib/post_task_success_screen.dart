@@ -52,7 +52,7 @@ class PostTaskSuccessScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 26,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFF001F3F),
                         height: 1.3,
                       ),
@@ -101,7 +101,7 @@ class PostTaskSuccessScreen extends StatelessWidget {
                               "View Task",
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
@@ -134,7 +134,7 @@ class PostTaskSuccessScreen extends StatelessWidget {
                               "Go Home",
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),

@@ -150,7 +150,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                             'Wallet balance: ${balance.toStringAsFixed(2)} $currency',
                             style: const TextStyle(
                               color: Colors.white,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -216,7 +216,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               style: const TextStyle(
                 color: subscriptionNavy,
                 fontSize: 20,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 5),
@@ -229,7 +229,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               style: const TextStyle(
                 color: subscriptionNavy,
                 fontSize: 18,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
             if (actionable) ...[

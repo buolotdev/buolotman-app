@@ -216,7 +216,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
               'Help Center',
               style: TextStyle(
                 color: Color(0xFF001F3F),
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
               ),
             ),
             centerTitle: true,
@@ -226,7 +226,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
               unselectedLabelColor: const Color(0xFF94A3B8),
               indicatorColor: const Color(0xFFFF4500),
               labelStyle: const TextStyle(
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 fontSize: 12,
               ),
               isScrollable: true,
@@ -310,7 +310,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
             'Frequently Asked Questions',
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
             ),
           ),
@@ -353,7 +353,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
           'Step-by-Step Guides',
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Color(0xFF001F3F),
           ),
         ),
@@ -408,7 +408,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
                     guide['title'] as String,
                     style: const TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -485,7 +485,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
                               guide['title'] as String,
                               style: const TextStyle(
                                 fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
                                 color: Color(0xFF001F3F),
                               ),
                             ),
@@ -505,7 +505,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
                         'Steps',
                         style: TextStyle(
                           fontSize: 15,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFF001F3F),
                         ),
                       ),
@@ -529,7 +529,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 12,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ),
@@ -573,7 +573,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
           'Platform Policies',
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Color(0xFF001F3F),
           ),
         ),
@@ -671,7 +671,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
                       policy['title'] as String,
                       style: const TextStyle(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFF001F3F),
                       ),
                     ),
@@ -730,7 +730,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     SizedBox(height: 6),
@@ -796,7 +796,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
                   rule['title'] as String,
                   style: const TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFF001F3F),
                   ),
                 ),
@@ -837,7 +837,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
               'Still need help?',
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),

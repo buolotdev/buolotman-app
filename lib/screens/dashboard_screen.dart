@@ -44,7 +44,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: const Text(
           'Boulot Man',
-          style: TextStyle(fontWeight: FontWeight.w700),
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF001F3F),
@@ -59,7 +59,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               'Welcome${name.isEmpty ? '' : ', $name'}',
               style: const TextStyle(
                 fontSize: 28,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),
@@ -166,7 +166,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title,
         style: const TextStyle(
           fontSize: 19,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: Color(0xFF001F3F),
         ),
       ),
@@ -190,7 +190,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       title: Text(
         title,
         style: const TextStyle(
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           color: Color(0xFF001F3F),
         ),
       ),

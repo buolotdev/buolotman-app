@@ -663,7 +663,7 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
                     style: TextStyle(
                       color: navy,
                       fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   Wrap(

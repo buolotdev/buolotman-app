@@ -44,7 +44,7 @@ class TechnicianBottomNavigation extends StatelessWidget {
             color: selectedIndex == null || !selected
                 ? Colors.white70
                 : Colors.white,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
             fontSize: 12,
           );
         }),

@@ -228,7 +228,7 @@ class CompanyProfileScreen extends StatelessWidget {
                     displayName.isNotEmpty ? displayName[0].toUpperCase() : 'C',
                     style: const TextStyle(
                       fontSize: 64,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white24,
                     ),
                   ),
@@ -295,7 +295,7 @@ class CompanyProfileScreen extends StatelessWidget {
                     displayName,
                     style: const TextStyle(
                       fontSize: 22,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -363,7 +363,7 @@ class CompanyProfileScreen extends StatelessWidget {
           name.isNotEmpty ? name[0].toUpperCase() : 'C',
           style: const TextStyle(
             fontSize: 32,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Colors.white54,
           ),
         ),
@@ -398,7 +398,7 @@ class CompanyProfileScreen extends StatelessWidget {
           val,
           style: const TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Color(0xFF001F3F),
           ),
         ),
@@ -417,7 +417,7 @@ class CompanyProfileScreen extends StatelessWidget {
         title,
         style: const TextStyle(
           fontSize: 18,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
           color: Color(0xFF001F3F),
         ),
       ),
@@ -441,7 +441,7 @@ class CompanyProfileScreen extends StatelessWidget {
               title,
               style: const TextStyle(
                 fontSize: 15,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),
@@ -541,7 +541,7 @@ class CompanyProfileScreen extends StatelessWidget {
               "Capabilities & Infrastructure",
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),
@@ -737,7 +737,7 @@ class CompanyProfileScreen extends StatelessWidget {
                             Text(
                               svc.title,
                               style: const TextStyle(
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                                 color: Color(0xFF001F3F),
                                 fontSize: 14,
                               ),
@@ -755,7 +755,7 @@ class CompanyProfileScreen extends StatelessWidget {
                       Text(
                         svc.priceLabel,
                         style: const TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: Color(0xFFFF4500),
                           fontSize: 14,
                         ),
@@ -875,7 +875,7 @@ class CompanyProfileScreen extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 12,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF001F3F),
                     ),
                   ),
@@ -944,7 +944,7 @@ class CompanyProfileScreen extends StatelessWidget {
                 'Portfolio & Gallery',
                 style: TextStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -1110,7 +1110,7 @@ class CompanyProfileScreen extends StatelessWidget {
               title: const Text(
                 'Add Portfolio Item',
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
                 ),
               ),
@@ -1282,7 +1282,7 @@ class CompanyProfileScreen extends StatelessWidget {
                   ),
                   child: const Text(
                     'Add Item',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
@@ -1364,7 +1364,7 @@ class CompanyProfileScreen extends StatelessWidget {
                       avgRating.toStringAsFixed(1),
                       style: const TextStyle(
                         fontSize: 40,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
                     ),
@@ -1436,7 +1436,7 @@ class CompanyProfileScreen extends StatelessWidget {
                             ? Text(
                                 name.isNotEmpty ? name[0].toUpperCase() : '?',
                                 style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
                                   color: Color(0xFF001F3F),
                                 ),
                               )
@@ -1450,7 +1450,7 @@ class CompanyProfileScreen extends StatelessWidget {
                             Text(
                               name,
                               style: const TextStyle(
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                                 fontSize: 14,
                                 color: Color(0xFF001F3F),
                               ),
@@ -1524,7 +1524,7 @@ class CompanyProfileScreen extends StatelessWidget {
             'Edit Company Profile',
             style: TextStyle(
               color: Color(0xFF001F3F),
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
           style: OutlinedButton.styleFrom(
@@ -1649,7 +1649,7 @@ class CompanyProfileScreen extends StatelessWidget {
                 icon: const Icon(Icons.chat_bubble_outline),
                 label: const Text(
                   'Contact Company',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF001F3F),
@@ -1669,7 +1669,7 @@ class CompanyProfileScreen extends StatelessWidget {
                 icon: const Icon(Icons.request_quote_outlined),
                 label: const Text(
                   'Request quote',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: const Color(0xFFFF4500),
@@ -1711,7 +1711,7 @@ class CompanyProfileScreen extends StatelessWidget {
               ),
               child: const Text(
                 'Post Company Service',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
           ),
@@ -1763,7 +1763,7 @@ class CompanyProfileScreen extends StatelessWidget {
             'Log Out',
             style: TextStyle(
               color: Color(0xFFB91C1C),
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
           style: OutlinedButton.styleFrom(

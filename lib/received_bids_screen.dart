@@ -29,7 +29,7 @@ class ReceivedBidsScreen extends StatelessWidget {
               style: TextStyle(
                 color: Color(0xFF001F3F),
                 fontSize: 16,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
               ),
             ),
             Text(
@@ -124,7 +124,7 @@ class ReceivedBidsScreen extends StatelessWidget {
                 isAccepted ? 'ACCEPTED' : 'BEST VALUE',
                 style: const TextStyle(
                   fontSize: 10,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
               ),
@@ -155,7 +155,7 @@ class ReceivedBidsScreen extends StatelessWidget {
                       bid.bidderName,
                       style: const TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         color: Color(0xFF001F3F),
                       ),
                     ),
@@ -176,7 +176,7 @@ class ReceivedBidsScreen extends StatelessWidget {
                     '\$${bid.price.toStringAsFixed(0)}',
                     style: const TextStyle(
                       fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFFFF4500),
                     ),
                   ),
