@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_state.dart';
+import 'app_language.dart';
 
 class CompanyRegistrationScreen extends StatefulWidget {
   const CompanyRegistrationScreen({super.key});
@@ -52,8 +53,8 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
           icon: const Icon(Icons.close, color: Color(0xFF001F3F)),
           onPressed: _isLoading ? null : () => Navigator.pop(context),
         ),
-        title: const Text(
-          "Register Business",
+        title: Text(
+          AppLanguage.text("Register Business"),
           style: TextStyle(
             color: Color(0xFF001F3F),
             fontWeight: FontWeight.w600,
@@ -131,8 +132,8 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Business Details",
+          Text(
+            AppLanguage.text("Business Details"),
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w600,
@@ -140,8 +141,10 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            "Provide the legal name and basic information of your company.",
+          Text(
+            AppLanguage.text(
+              "Provide the legal name and basic information of your company.",
+            ),
             style: TextStyle(color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 32),
@@ -169,8 +172,8 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Legal & Tax",
+          Text(
+            AppLanguage.text("Legal & Tax"),
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w600,
@@ -178,8 +181,10 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            "Enter your business registration and tax details.",
+          Text(
+            AppLanguage.text(
+              "Enter your business registration and tax details.",
+            ),
             style: TextStyle(color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 32),
@@ -197,8 +202,8 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Document Upload",
+          Text(
+            AppLanguage.text("Document Upload"),
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w600,
@@ -206,8 +211,10 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            "Upload legal documents for business verification.",
+          Text(
+            AppLanguage.text(
+              "Upload legal documents for business verification.",
+            ),
             style: TextStyle(color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 32),
@@ -223,8 +230,10 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
             Icons.receipt_long_outlined,
           ),
           const SizedBox(height: 12),
-          const Text(
-            "Allowed formats: PDF, JPG, PNG (Max 10MB per file)",
+          Text(
+            AppLanguage.text(
+              "Allowed formats: PDF, JPG, PNG (Max 10MB per file)",
+            ),
             style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
           ),
         ],
@@ -236,7 +245,7 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
-        label,
+        AppLanguage.text(label),
         style: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
@@ -261,7 +270,7 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
           ? TextCapitalization.none
           : TextCapitalization.sentences,
       decoration: InputDecoration(
-        hintText: hint,
+        hintText: AppLanguage.text(hint),
         hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
         filled: true,
         fillColor: const Color(0xFFF1F5F9),
@@ -300,7 +309,7 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
           const SizedBox(width: 16),
           Expanded(
             child: Text(
-              label,
+              AppLanguage.text(label),
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -332,8 +341,8 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   side: const BorderSide(color: Color(0xFFE2E8F0)),
                 ),
-                child: const Text(
-                  "Previous",
+                child: Text(
+                  AppLanguage.text("Previous"),
                   style: TextStyle(color: Color(0xFF001F3F)),
                 ),
               ),
@@ -355,9 +364,11 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
                             _taxIdController.text.trim().isEmpty ||
                             _addressController.text.trim().isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
+                            SnackBar(
                               content: Text(
-                                'Complete all required company details.',
+                                AppLanguage.text(
+                                  'Complete all required company details.',
+                                ),
                               ),
                             ),
                           );
@@ -367,8 +378,12 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
                           r'^[^\s@]+@[^\s@]+\.[^\s@]+$',
                         ).hasMatch(email)) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Enter a valid company email.'),
+                            SnackBar(
+                              content: Text(
+                                AppLanguage.text(
+                                  'Enter a valid company email.',
+                                ),
+                              ),
                             ),
                           );
                           return;
@@ -383,8 +398,12 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
                         if (website.isNotEmpty &&
                             (websiteUri == null || websiteUri.host.isEmpty)) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Enter a valid company website.'),
+                            SnackBar(
+                              content: Text(
+                                AppLanguage.text(
+                                  'Enter a valid company website.',
+                                ),
+                              ),
                             ),
                           );
                           return;
@@ -442,7 +461,9 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
                       ),
                     )
                   : Text(
-                      _currentStep == 3 ? "Submit Application" : "Next Step",
+                      AppLanguage.text(
+                        _currentStep == 3 ? "Submit Application" : "Next Step",
+                      ),
                     ),
             ),
           ),
@@ -474,8 +495,8 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              "Application Submitted",
+            Text(
+              AppLanguage.text("Application Submitted"),
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -483,8 +504,10 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              "Your company registration is now being reviewed by our compliance team. We'll get back to you within 3-5 business days.",
+            Text(
+              AppLanguage.text(
+                "Your company registration is now being reviewed by our compliance team. We'll get back to you within 3-5 business days.",
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(color: Color(0xFF64748B), height: 1.5),
             ),
@@ -504,7 +527,7 @@ class _CompanyRegistrationScreenState extends State<CompanyRegistrationScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text("Done"),
+                child: Text(AppLanguage.text("Done")),
               ),
             ),
             const SizedBox(height: 12),

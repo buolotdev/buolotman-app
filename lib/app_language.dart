@@ -101,6 +101,30 @@ class AppLanguage {
       'Enter a valid number.': 'Saisissez un nombre valide.',
       'Required field': 'Champ obligatoire',
       'Company Verification': 'Vérification de l’entreprise',
+      'Register Business': 'Enregistrer l’entreprise',
+      'Business Details': 'Informations sur l’entreprise',
+      'Provide the legal name and basic information of your company.':
+          'Fournissez le nom légal et les informations de base de votre entreprise.',
+      'Legal & Tax': 'Informations légales et fiscales',
+      'Enter your business registration and tax details.':
+          'Saisissez les informations d’enregistrement et fiscales de votre entreprise.',
+      'Document Upload': 'Téléversement de documents',
+      'Upload legal documents for business verification.':
+          'Téléversez les documents légaux pour vérifier votre entreprise.',
+      'Allowed formats: PDF, JPG, PNG (Max 10MB per file)':
+          'Formats autorisés : PDF, JPG, PNG (10 Mo maximum par fichier)',
+      'Previous': 'Précédent',
+      'Complete all required company details.':
+          'Complétez toutes les informations obligatoires de l’entreprise.',
+      'Enter a valid company email.':
+          'Saisissez un e-mail d’entreprise valide.',
+      'Enter a valid company website.':
+          'Saisissez un site web d’entreprise valide.',
+      'Submit Application': 'Soumettre la demande',
+      'Next Step': 'Étape suivante',
+      'Application Submitted': 'Demande soumise',
+      "Your company registration is now being reviewed by our compliance team. We'll get back to you within 3-5 business days.":
+          'L’enregistrement de votre entreprise est examiné par notre équipe de conformité. Nous vous répondrons sous 3 à 5 jours ouvrés.',
       'Get Verified': 'Obtenir la vérification',
       'Business Registration': 'Enregistrement de l’entreprise',
       'Upload your official business registration documents and trade license to verify your company.':
@@ -419,6 +443,13 @@ class AppLanguage {
       'Your company registration documents are under administrative review. Publishing and managing services will unlock upon admin verification.':
           'Les documents d’enregistrement de votre entreprise sont en cours d’examen administratif. La publication et la gestion des services seront disponibles après vérification.',
       'Company profile': 'Profil de l’entreprise',
+      'Quote requests': 'Demandes de devis',
+      'No quote requests found.': 'Aucune demande de devis trouvée.',
+      'Total': 'Total',
+      'Approved': 'Approuvé',
+      'All quotes': 'Tous les devis',
+      'View quote details': 'Voir les détails du devis',
+      'N/A': 'N/D',
       'Registration Status': 'Statut d’enregistrement',
       'Verified': 'Vérifié',
       'Pending Review': 'Vérification en attente',

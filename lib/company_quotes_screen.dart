@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'app_state.dart';
 import 'chat_screen.dart';
+import 'app_language.dart';
 
 const _quoteNavy = Color(0xFF001F3F);
 const _quoteOrange = Color(0xFFFF4500);
@@ -34,8 +35,8 @@ class _CompanyQuotesScreenState extends State<CompanyQuotesScreen> {
       return Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
         appBar: AppBar(
-          title: const Text(
-            'Quote requests',
+          title: Text(
+            AppLanguage.text('Quote requests'),
             style: TextStyle(color: _quoteNavy, fontWeight: FontWeight.w600),
           ),
           backgroundColor: Colors.white,
@@ -65,11 +66,11 @@ class _CompanyQuotesScreenState extends State<CompanyQuotesScreen> {
               _filters(),
               const SizedBox(height: 16),
               if (quotes.isEmpty)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(top: 70),
                   child: Center(
                     child: Text(
-                      'No quote requests found.',
+                      AppLanguage.text('No quote requests found.'),
                       style: TextStyle(color: Color(0xFF64748B)),
                     ),
                   ),
@@ -85,10 +86,10 @@ class _CompanyQuotesScreenState extends State<CompanyQuotesScreen> {
     int n(String s) => qs.where((q) => q['status']?.toString() == s).length;
     return Row(
       children: [
-        _stat('Total', qs.length),
-        _stat('Pending', n('pending')),
-        _stat('Approved', n('approved')),
-        _stat('Rejected', n('rejected')),
+        _stat(AppLanguage.text('Total'), qs.length),
+        _stat(AppLanguage.text('Pending'), n('pending')),
+        _stat(AppLanguage.text('Approved'), n('approved')),
+        _stat(AppLanguage.text('Rejected'), n('rejected')),
       ],
     );
   }
@@ -131,8 +132,8 @@ class _CompanyQuotesScreenState extends State<CompanyQuotesScreen> {
           child: ChoiceChip(
             label: Text(
               v == 'all'
-                  ? 'All quotes'
-                  : '${v[0].toUpperCase()}${v.substring(1)}',
+                  ? AppLanguage.text('All quotes')
+                  : AppLanguage.status(v),
             ),
             selected: selected,
             onSelected: (_) => setState(() => filter = v),
@@ -197,7 +198,7 @@ class _QuoteCard extends StatelessWidget {
               Align(
                 alignment: Alignment.centerRight,
                 child: Text(
-                  'View quote details',
+                  AppLanguage.text('View quote details'),
                   style: TextStyle(
                     color: _quoteOrange,
                     fontWeight: FontWeight.w600,
@@ -218,13 +219,15 @@ class _QuoteCard extends StatelessWidget {
         SizedBox(
           width: 78,
           child: Text(
-            '$label:',
+            '${AppLanguage.text(label)}:',
             style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
           ),
         ),
         Expanded(
           child: Text(
-            value?.toString().isNotEmpty == true ? value.toString() : 'N/A',
+            value?.toString().isNotEmpty == true
+                ? value.toString()
+                : AppLanguage.text('N/A'),
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: _quoteNavy,
@@ -249,7 +252,7 @@ class _QuoteCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(7),
       ),
       child: Text(
-        value[0].toUpperCase() + value.substring(1),
+        AppLanguage.status(value),
         style: TextStyle(
           color: color,
           fontSize: 11,
