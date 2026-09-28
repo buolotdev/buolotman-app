@@ -143,6 +143,19 @@ class AppLanguage {
           'Ajouter des images, vidéos ou documents',
       'Please enter a service title.': 'Saisissez le titre du service.',
       'My Services': 'Mes services',
+      'Deactivate service?': 'Désactiver le service ?',
+      'This will remove the service from your active profile.':
+          'Ce service sera retiré de votre profil actif.',
+      'Deactivate': 'Désactiver',
+      'Service deactivated.': 'Service désactivé.',
+      'Manage services': 'Gérer les services',
+      'Services Management': 'Gestion des services',
+      'Manage Services': 'Gérer les services',
+      'Publish the services your company offers. Clients will see these on your public profile.':
+          'Publiez les services proposés par votre entreprise. Les clients les verront sur votre profil public.',
+      'Your company registration documents are under administrative review. Publishing and managing services will unlock upon admin verification.':
+          'Les documents d’enregistrement de votre entreprise sont en cours d’examen administratif. La publication et la gestion des services seront disponibles après vérification.',
+      'Company profile': 'Profil de l’entreprise',
       'Description': 'Description',
       'Category': 'Catégorie',
       'Select Category': 'Sélectionner une catégorie',

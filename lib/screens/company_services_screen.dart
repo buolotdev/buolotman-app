@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/api_service.dart';
 import 'company_profile_screen.dart';
+import '../app_language.dart';
 
 class CompanyServicesScreen extends StatefulWidget {
   const CompanyServicesScreen({super.key});
@@ -152,19 +153,21 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (d) => AlertDialog(
-        title: const Text('Deactivate service?'),
-        content: const Text(
-          'This will remove the service from your active profile.',
+        title: Text(AppLanguage.text('Deactivate service?')),
+        content: Text(
+          AppLanguage.text(
+            'This will remove the service from your active profile.',
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(d, false),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(d, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Deactivate'),
+            child: Text(AppLanguage.text('Deactivate')),
           ),
         ],
       ),
@@ -173,7 +176,7 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
     try {
       await api.deleteCompanyService(id);
       await _load();
-      if (mounted) _notice('Service deactivated.');
+      if (mounted) _notice(AppLanguage.text('Service deactivated.'));
     } catch (e) {
       if (mounted) _notice(e is ApiException ? e.message : 'Action failed.');
     }
@@ -194,7 +197,7 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
       appBar: AppBar(
         backgroundColor: navy,
         foregroundColor: Colors.white,
-        title: const Text('Manage services'),
+        title: Text(AppLanguage.text('Manage services')),
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator(color: orange))
@@ -211,13 +214,13 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
     );
   }
 
-  Widget _header() => const Padding(
+  Widget _header() => Padding(
     padding: EdgeInsets.only(bottom: 16),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Services Management',
+          AppLanguage.text('Services Management'),
           style: TextStyle(
             color: navy,
             fontSize: 14,
@@ -226,7 +229,7 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
         ),
         SizedBox(height: 5),
         Text(
-          'Manage Services',
+          AppLanguage.text('Manage Services'),
           style: TextStyle(
             color: navy,
             fontSize: 26,
@@ -235,7 +238,9 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
         ),
         SizedBox(height: 5),
         Text(
-          'Publish the services your company offers. Clients will see these on your public profile.',
+          AppLanguage.text(
+            'Publish the services your company offers. Clients will see these on your public profile.',
+          ),
           style: TextStyle(color: muted),
         ),
       ],
@@ -251,9 +256,11 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
         children: [
           const Icon(Icons.warning_amber_rounded, color: Color(0xFFD97706)),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Your company registration documents are under administrative review. Publishing and managing services will unlock upon admin verification.',
+              AppLanguage.text(
+                'Your company registration documents are under administrative review. Publishing and managing services will unlock upon admin verification.',
+              ),
               style: TextStyle(color: Color(0xFF92400E)),
             ),
           ),
@@ -262,7 +269,7 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
               context,
               MaterialPageRoute(builder: (_) => const CompanyProfileScreen()),
             ),
-            child: const Text('Company profile'),
+            child: Text(AppLanguage.text('Company profile')),
           ),
         ],
       ),
