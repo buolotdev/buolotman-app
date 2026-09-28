@@ -12,6 +12,12 @@ class AppLanguage {
   static const _translations = <String, Map<String, String>>{
     'fr': {
       'Dashboard': 'Tableau de bord',
+      'Choose task location': 'Choisir le lieu de la tâche',
+      'Search city, address, or landmark':
+          'Rechercher une ville, adresse ou lieu remarquable',
+      'Payout settings saved securely.':
+          'Paramètres de paiement enregistrés en toute sécurité.',
+      'Payment Verification Status': 'Statut de vérification du paiement',
       'Delete document?': 'Supprimer le document ?',
       'You can upload a replacement later.':
           'Vous pourrez téléverser un remplacement plus tard.',

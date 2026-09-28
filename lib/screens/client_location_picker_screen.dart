@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../app_language.dart';
 
 class SelectedTaskLocation {
   const SelectedTaskLocation({
@@ -226,7 +227,7 @@ class _ClientLocationPickerScreenState
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Choose task location'),
+      title: Text(AppLanguage.text('Choose task location')),
       foregroundColor: navy,
       backgroundColor: Colors.white,
     ),
@@ -259,7 +260,9 @@ class _ClientLocationPickerScreenState
                   controller: _search,
                   onChanged: _findPlaces,
                   decoration: InputDecoration(
-                    hintText: 'Search city, address, or landmark',
+                    hintText: AppLanguage.text(
+                      'Search city, address, or landmark',
+                    ),
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _searching
                         ? const Padding(

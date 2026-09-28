@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'app_state.dart';
 import 'api_service.dart';
 import 'phone_validation.dart';
+import 'app_language.dart';
 
 class TechnicianPayoutSettingsScreen extends StatefulWidget {
   const TechnicianPayoutSettingsScreen({super.key});
@@ -62,7 +63,9 @@ class _TechnicianPayoutSettingsScreenState
       await appState.syncProfile(); // refresh
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Payout settings saved securely.')),
+          SnackBar(
+            content: Text(AppLanguage.text('Payout settings saved securely.')),
+          ),
         );
     } catch (e) {
       if (mounted)
@@ -82,8 +85,8 @@ class _TechnicianPayoutSettingsScreenState
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9),
       appBar: AppBar(
-        title: const Text(
-          'Payout Settings',
+        title: Text(
+          AppLanguage.text('Payout Settings'),
           style: TextStyle(color: Color(0xFF001F3F)),
         ),
         backgroundColor: Colors.white,
@@ -96,8 +99,8 @@ class _TechnicianPayoutSettingsScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Payment Verification Status',
+              Text(
+                AppLanguage.text('Payment Verification Status'),
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF64748B),
