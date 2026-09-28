@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_language.dart';
 import 'package:file_picker/file_picker.dart' as fp;
 import 'dart:convert';
 
@@ -370,9 +371,9 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
     final budgetVal = double.tryParse(_budgetController.text.trim()) ?? 0.0;
 
     if (title.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Task title is required.")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLanguage.text('Task title is required.'))),
+      );
       return;
     }
     if (description.length < 30) {
@@ -387,13 +388,17 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
     }
     if (location.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Location address is required.")),
+        SnackBar(
+          content: Text(AppLanguage.text('Location address is required.')),
+        ),
       );
       return;
     }
     if (budgetVal <= 0.0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please specify a valid budget.")),
+        SnackBar(
+          content: Text(AppLanguage.text('Please specify a valid budget.')),
+        ),
       );
       return;
     }
@@ -438,7 +443,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Task updated successfully!"),
+          content: Text(AppLanguage.text('Task updated successfully!')),
           backgroundColor: Color(0xFF1E8E3E),
         ),
       );
