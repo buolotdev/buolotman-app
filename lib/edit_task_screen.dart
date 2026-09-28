@@ -682,7 +682,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
-        text,
+        AppLanguage.text(text),
         style: const TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w600,
@@ -722,7 +722,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                 color: Color(0xFF001F3F),
               ),
               decoration: InputDecoration(
-                hintText: hint,
+                hintText: AppLanguage.text(hint),
                 hintStyle: const TextStyle(color: Color(0xFFADB5BD)),
                 border: InputBorder.none,
               ),
@@ -816,7 +816,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
           children: [
             Expanded(
               child: Text(
-                value,
+                AppLanguage.text(value),
                 style: TextStyle(
                   fontSize: 15,
                   color: muted
@@ -883,9 +883,11 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              _base64Image != null
-                  ? "File attached successfully"
-                  : "Max file size 10MB",
+              AppLanguage.text(
+                _base64Image != null
+                    ? "File attached successfully"
+                    : "Max file size 10MB",
+              ),
               style: TextStyle(
                 fontSize: 12,
                 color: _base64Image != null
@@ -919,8 +921,8 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                   color: Color(0xFFDC2626),
                   size: 16,
                 ),
-                label: const Text(
-                  "Remove Attachment",
+                label: Text(
+                  AppLanguage.text("Remove Attachment"),
                   style: TextStyle(
                     color: Color(0xFFDC2626),
                     fontSize: 12,

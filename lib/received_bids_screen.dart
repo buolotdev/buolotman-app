@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app_state.dart';
 import 'technician_public_profile_screen.dart';
+import 'app_language.dart';
 
 class ReceivedBidsScreen extends StatelessWidget {
   const ReceivedBidsScreen({super.key, required this.taskId});
@@ -24,8 +25,8 @@ class ReceivedBidsScreen extends StatelessWidget {
         ),
         title: Column(
           children: [
-            const Text(
-              'Bids Received',
+            Text(
+              AppLanguage.text('Bids Received'),
               style: TextStyle(
                 color: Color(0xFF001F3F),
                 fontSize: 16,
@@ -55,7 +56,7 @@ class ReceivedBidsScreen extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Text(
-                  'Error loading bids: ${snapshot.error.toString().replaceAll('Exception: ', '')}',
+                  '${AppLanguage.text('Error loading bids')}: ${snapshot.error.toString().replaceAll('Exception: ', '')}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Color(0xFFEF4444)),
                 ),
@@ -70,8 +71,8 @@ class ReceivedBidsScreen extends StatelessWidget {
                 children: [
                   Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[300]),
                   const SizedBox(height: 12),
-                  const Text(
-                    'No bids received yet for this task.',
+                  Text(
+                    AppLanguage.text('No bids received yet for this task.'),
                     style: TextStyle(color: Color(0xFF64748B), fontSize: 15),
                   ),
                 ],
@@ -121,7 +122,7 @@ class ReceivedBidsScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                isAccepted ? 'ACCEPTED' : 'BEST VALUE',
+                AppLanguage.text(isAccepted ? 'ACCEPTED' : 'BEST VALUE'),
                 style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
@@ -235,7 +236,7 @@ class ReceivedBidsScreen extends StatelessWidget {
                       ),
                     );
                   },
-                  child: const Text('View Profile'),
+                  child: Text(AppLanguage.text('View Profile')),
                 ),
               ),
               const SizedBox(width: 12),
@@ -262,9 +263,11 @@ class ReceivedBidsScreen extends StatelessWidget {
                             if (context.mounted) {
                               Navigator.of(context).pop(); // Dismiss loading
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
+                                SnackBar(
                                   content: Text(
-                                    'Bid accepted and task moved to In Progress.',
+                                    AppLanguage.text(
+                                      'Bid accepted and task moved to In Progress.',
+                                    ),
                                   ),
                                 ),
                               );
@@ -289,7 +292,9 @@ class ReceivedBidsScreen extends StatelessWidget {
                     backgroundColor: const Color(0xFF001F3F),
                     foregroundColor: Colors.white,
                   ),
-                  child: Text(isAccepted ? 'Accepted' : 'Accept Bid'),
+                  child: Text(
+                    AppLanguage.text(isAccepted ? 'Accepted' : 'Accept Bid'),
+                  ),
                 ),
               ),
             ],

@@ -97,6 +97,8 @@ class AppLanguage {
       'Save Profile': 'Enregistrer le profil',
       'Document Uploaded': 'Document téléversé',
       'Tap to Upload': 'Appuyez pour téléverser',
+      'Tap to upload document': 'Appuyez pour téléverser un document',
+      'Enter a valid number.': 'Saisissez un nombre valide.',
       'Required field': 'Champ obligatoire',
       'Company Verification': 'Vérification de l’entreprise',
       'Get Verified': 'Obtenir la vérification',
@@ -350,6 +352,12 @@ class AppLanguage {
       'Clients cannot bid': 'Les clients ne peuvent pas faire d’offre',
       'Bid Submitted': 'Offre soumise',
       'Submit a Bid': 'Soumettre une offre',
+      'Update Bid': 'Modifier l’offre',
+      'Send Bid': 'Envoyer l’offre',
+      'Your bid amount': 'Montant de votre offre',
+      'Task budget: up to': 'Budget de la tâche : jusqu’à',
+      'Estimated completion': 'Délai estimé',
+      'Cover message': 'Message de présentation',
       'Message Client': 'Contacter le client',
       'Submitting a bid lets the client review your timeline, price, and experience before hiring.':
           'Une offre permet au client d’examiner votre délai, votre prix et votre expérience avant de vous engager.',
@@ -358,6 +366,15 @@ class AppLanguage {
       'View Bids': 'Voir les offres',
       'Submit bid': 'Soumettre une offre',
       'Bid submitted successfully.': 'Offre soumise avec succès.',
+      'Bids Received': 'Offres reçues',
+      'Error loading bids': 'Erreur lors du chargement des offres',
+      'No bids received yet for this task.':
+          'Aucune offre reçue pour cette tâche.',
+      'ACCEPTED': 'ACCEPTÉE',
+      'BEST VALUE': 'MEILLEUR RAPPORT QUALITÉ-PRIX',
+      'Bid accepted and task moved to In Progress.':
+          'Offre acceptée et tâche passée en cours.',
+      'Accept Bid': 'Accepter l’offre',
       'Please enter a valid bid amount.':
           'Saisissez un montant d’offre valide.',
       'Please write a pitch or message.':
@@ -442,6 +459,49 @@ class AppLanguage {
       'Save service': 'Enregistrer le service',
       'Service added successfully!': 'Service ajouté avec succès !',
       'Service removed.': 'Service supprimé.',
+      'Define your service offering': 'Définissez votre offre de services',
+      'Service Title *': 'Titre du service *',
+      'e.g. Professional Office Deep Cleaning':
+          'ex. Nettoyage professionnel de bureaux',
+      'Category *': 'Catégorie *',
+      'Service Description *': 'Description du service *',
+      'Describe what you offer, your process, and what clients can expect...':
+          'Décrivez votre offre, votre processus et ce que les clients peuvent attendre...',
+      'Pricing Model': 'Modèle de tarification',
+      'How do you charge for this service?':
+          'Comment facturez-vous ce service ?',
+      'Pricing Model *': 'Modèle de tarification *',
+      'Custom Price Label (optional)':
+          'Libellé de prix personnalisé (facultatif)',
+      'Leave empty to auto-generate from the amounts above.':
+          'Laissez vide pour générer automatiquement à partir des montants ci-dessus.',
+      'Fixed Price': 'Prix fixe',
+      'Hourly Rate': 'Tarif horaire',
+      'Project-Based': 'Par projet',
+      'One set price for the whole service':
+          'Un prix fixe pour tout le service',
+      'Charge per hour of work': 'Facturation à l’heure',
+      'Quote per project scope': 'Devis selon l’étendue du projet',
+      'Price Preview': 'Aperçu du prix',
+      'When and where is your service available?':
+          'Quand et où votre service est-il disponible ?',
+      'Service Delivery Type *': 'Type de prestation *',
+      'Coverage Area': 'Zone couverte',
+      'Working Days': 'Jours ouvrés',
+      'Working Hours': 'Heures de travail',
+      'On-Site': 'Sur site',
+      'You visit the client': 'Vous vous rendez chez le client',
+      'Service provided remotely': 'Service fourni à distance',
+      'Both': 'Les deux',
+      'On-site and remote available': 'Sur site et à distance disponibles',
+      'Publish Service': 'Publier le service',
+      'Please add a description for your service.':
+          'Ajoutez une description de votre service.',
+      'Please enter a price or a custom price label.':
+          'Saisissez un prix ou un libellé de prix personnalisé.',
+      'Please select at least one working day.':
+          'Sélectionnez au moins un jour ouvré.',
+      'Service Published': 'Service publié',
       'Remove Service': 'Supprimer le service',
       'Delete account permanently?': 'Supprimer définitivement le compte ?',
       'Keep editing': 'Continuer la modification',
@@ -511,6 +571,9 @@ class AppLanguage {
       'Preferred Payment Method': 'Mode de paiement préféré',
       'Step 1 of 2': 'Étape 1 sur 2',
       'Task Details (Draft)': 'Détails de la tâche (brouillon)',
+      'File attached successfully': 'Fichier joint avec succès',
+      'Max file size 10MB': 'Taille maximale du fichier : 10 Mo',
+      'Remove Attachment': 'Supprimer la pièce jointe',
       'Unable to open the legal page.':
           'Impossible d’ouvrir la page juridique.',
       'Please fill all required fields.':

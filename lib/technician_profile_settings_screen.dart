@@ -13,6 +13,7 @@ import 'package:buolot_man_app/api_service.dart';
 import 'profile_media_actions.dart';
 import 'core/api_service.dart' as core_api;
 import 'phone_validation.dart';
+import 'app_language.dart';
 
 class TechnicianProfileSettingsScreen extends StatefulWidget {
   const TechnicianProfileSettingsScreen({Key? key}) : super(key: key);
@@ -704,7 +705,7 @@ class _TechnicianProfileSettingsScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            label,
+            AppLanguage.text(label),
             style: const TextStyle(
               fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
@@ -766,7 +767,7 @@ class _TechnicianProfileSettingsScreenState
             keyboardType: keyboardType,
             inputFormatters: inputFormatters,
             decoration: InputDecoration(
-              hintText: hint,
+              hintText: hint == null ? null : AppLanguage.text(hint),
               hintStyle: const TextStyle(color: Colors.grey),
               filled: true,
               fillColor: const Color(0xFFF1F5F9),
@@ -784,7 +785,7 @@ class _TechnicianProfileSettingsScreenState
               if (value.isEmpty) return null;
               if (keyboardType == TextInputType.number &&
                   double.tryParse(value) == null) {
-                return 'Enter a valid number.';
+                return AppLanguage.text('Enter a valid number.');
               }
               return null;
             },
@@ -805,7 +806,7 @@ class _TechnicianProfileSettingsScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            label,
+            AppLanguage.text(label),
             style: const TextStyle(
               fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
@@ -877,7 +878,7 @@ class _TechnicianProfileSettingsScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            label,
+            AppLanguage.text(label),
             style: const TextStyle(
               fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
@@ -1006,8 +1007,8 @@ class _TechnicianProfileSettingsScreenState
                       currentFile != null
                           ? currentFile.path.split('/').last
                           : (currentBase64 != null && currentBase64.isNotEmpty
-                                ? 'Document Uploaded'
-                                : 'Tap to upload document'),
+                                ? AppLanguage.text('Document Uploaded')
+                                : AppLanguage.text('Tap to upload document')),
                       style: TextStyle(
                         color:
                             (currentFile != null ||

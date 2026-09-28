@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'app_state.dart';
+import 'app_language.dart';
 
 class PostServiceScreen extends StatefulWidget {
   const PostServiceScreen({super.key});
@@ -105,8 +106,8 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
           icon: const Icon(Icons.close, color: Color(0xFF001F3F)),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Post a Service',
+        title: Text(
+          AppLanguage.text('Post a Service'),
           style: TextStyle(
             color: Color(0xFF001F3F),
             fontWeight: FontWeight.w600,
@@ -837,7 +838,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          title,
+          AppLanguage.text(title),
           style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -846,7 +847,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          subtitle,
+          AppLanguage.text(subtitle),
           style: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
         ),
       ],
@@ -857,7 +858,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
-        text,
+        AppLanguage.text(text),
         style: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
@@ -879,7 +880,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
       keyboardType: keyboardType,
       onChanged: (_) => setState(() {}),
       decoration: InputDecoration(
-        hintText: hint,
+        hintText: AppLanguage.text(hint),
         hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
@@ -921,8 +922,8 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: const Text(
-                  'Back',
+                child: Text(
+                  AppLanguage.text('Back'),
                   style: TextStyle(
                     color: Color(0xFF001F3F),
                     fontWeight: FontWeight.w600,
@@ -946,7 +947,9 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
                 ),
               ),
               child: Text(
-                _currentStep == _totalSteps ? 'Publish Service' : 'Next',
+                AppLanguage.text(
+                  _currentStep == _totalSteps ? 'Publish Service' : 'Next',
+                ),
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 15,
@@ -1046,7 +1049,7 @@ class _PostServiceScreenState extends State<PostServiceScreen> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
+        content: Text(AppLanguage.text(msg)),
         backgroundColor: Colors.red.shade700,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

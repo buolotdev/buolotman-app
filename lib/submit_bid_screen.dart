@@ -69,7 +69,7 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
           appBar: AppBar(
             backgroundColor: Colors.white,
             title: Text(
-              hasBid ? 'Update Bid' : 'Submit a Bid',
+              AppLanguage.text(hasBid ? 'Update Bid' : 'Submit a Bid'),
               style: const TextStyle(
                 color: Color(0xFF001F3F),
                 fontWeight: FontWeight.w600,
@@ -87,18 +87,18 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
               children: [
                 _buildTaskCard(task),
                 const SizedBox(height: 16),
-                _buildFieldLabel('Your bid amount'),
+                _buildFieldLabel(AppLanguage.text('Your bid amount')),
                 _buildTextField(_amountController, prefix: '\$'),
                 const SizedBox(height: 8),
                 Text(
-                  'Task budget: up to \$${task.budget.toStringAsFixed(0)}',
+                  '${AppLanguage.text('Task budget: up to')} \$${task.budget.toStringAsFixed(0)}',
                   style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xFF64748B),
                   ),
                 ),
                 const SizedBox(height: 16),
-                _buildFieldLabel('Estimated completion'),
+                _buildFieldLabel(AppLanguage.text('Estimated completion')),
                 Wrap(
                   spacing: 8,
                   children: [
@@ -108,7 +108,7 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
                   ].map(_buildChoicePill).toList(),
                 ),
                 const SizedBox(height: 16),
-                _buildFieldLabel('Cover message'),
+                _buildFieldLabel(AppLanguage.text('Cover message')),
                 _buildTextField(_messageController, maxLines: 6),
                 const SizedBox(height: 20),
                 SizedBox(
@@ -120,7 +120,9 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: Text(hasBid ? 'Update Bid' : 'Send Bid'),
+                    child: Text(
+                      AppLanguage.text(hasBid ? 'Update Bid' : 'Send Bid'),
+                    ),
                   ),
                 ),
               ],
