@@ -1,1 +1,10 @@
-import 'dart:convert'; import 'package:http/http.dart' as http; void main() async { final res = await http.get(Uri.parse('https://buolotman-app.onrender.com/api/tasks/my/')); print('STATUS: \ BODY: \'); }
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
+void main() async {
+  final res = await http.get(
+    Uri.parse('https://buolotman-app.onrender.com/api/tasks/my/'),
+  );
+  print('STATUS: ${res.statusCode} BODY: ${res.body}');
+}
