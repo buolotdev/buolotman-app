@@ -84,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     final email = recoveryController.text.trim();
                     if (email.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
+                        SnackBar(
                           content: Text(
                             AppLanguage.text('Please enter your email.'),
                           ),
@@ -94,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                     if (!email.contains('@')) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
+                        SnackBar(
                           content: Text(
                             AppLanguage.text(
                               'Please enter a valid email address.',
