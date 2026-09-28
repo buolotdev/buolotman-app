@@ -6,6 +6,7 @@ import 'technician_area_screens.dart';
 import 'technician_bids_management_screen.dart';
 import 'technician_wallet_screen.dart';
 import '../role_support_screen.dart';
+import '../app_language.dart';
 
 class TechnicianNotificationsScreen extends StatefulWidget {
   const TechnicianNotificationsScreen({super.key});
@@ -19,6 +20,7 @@ class _NotificationsState extends State<TechnicianNotificationsScreen> {
   static const navy = Color(0xFF001F3F),
       orange = Color(0xFFFF4500),
       muted = Color(0xFF64748B);
+  String _t(String value) => AppLanguage.text(value);
   Future<void> _reload() async {
     setState(() => future = api.notifications());
   }
@@ -103,7 +105,7 @@ class _NotificationsState extends State<TechnicianNotificationsScreen> {
   Widget build(BuildContext context) => Scaffold(
     bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: 0),
     appBar: AppBar(
-      title: const Text('Notifications'),
+      title: Text(_t('Notifications')),
       foregroundColor: navy,
       backgroundColor: Colors.white,
       actions: [
@@ -124,12 +126,12 @@ class _NotificationsState extends State<TechnicianNotificationsScreen> {
         if (snapshot.connectionState != ConnectionState.done)
           return const Center(child: CircularProgressIndicator(color: orange));
         if (snapshot.hasError)
-          return _empty('Notifications are temporarily unavailable.');
+          return _empty(_t('Notifications are temporarily unavailable.'));
         final items = snapshot.data ?? const [];
         final unread = items
             .where((x) => x is Map && x['is_read'] != true)
             .length;
-        if (items.isEmpty) return _empty('You have no notifications yet.');
+        if (items.isEmpty) return _empty(_t('You have no notifications yet.'));
         return Column(
           children: [
             if (unread > 0)

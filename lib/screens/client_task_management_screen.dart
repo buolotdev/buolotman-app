@@ -9,6 +9,7 @@ import 'client_location_picker_screen.dart';
 import 'client_dashboard_screen.dart';
 import 'client_navigation_screens.dart';
 import '../attachment_actions.dart';
+import '../app_language.dart';
 
 const taskNavy = Color(0xFF001F3F),
     taskOrange = Color(0xFFFF4500),
@@ -53,7 +54,7 @@ class _ClientTasksState extends State<ClientTasksScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('My tasks'),
+      title: Text(AppLanguage.text('My tasks')),
       foregroundColor: taskNavy,
       backgroundColor: Colors.white,
     ),
@@ -205,16 +206,16 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
     final yes = await showDialog<bool>(
       context: context,
       builder: (d) => AlertDialog(
-        title: const Text('Cancel task?'),
-        content: const Text('This cannot be undone.'),
+        title: Text(AppLanguage.text('Cancel task?')),
+        content: Text(AppLanguage.text('This cannot be undone.')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(d),
-            child: const Text('Keep'),
+            child: Text(AppLanguage.text('Keep')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(d, true),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
         ],
       ),
@@ -237,21 +238,23 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Ask a question'),
+        title: Text(AppLanguage.text('Ask a question')),
         content: TextField(
           controller: controller,
           minLines: 3,
           maxLines: 6,
-          decoration: const InputDecoration(hintText: 'Write your question'),
+          decoration: InputDecoration(
+            hintText: AppLanguage.text('Write your question'),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Send'),
+            child: Text(AppLanguage.text('Send')),
           ),
         ],
       ),
@@ -288,18 +291,18 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
         final yes = await showDialog<bool>(
           context: context,
           builder: (d) => AlertDialog(
-            title: const Text('Accept proposal?'),
+            title: Text(AppLanguage.text('Accept proposal?')),
             content: const Text(
               'The task will move to in progress. Payment/escrow is the next step.',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(d),
-                child: const Text('Back'),
+                child: Text(AppLanguage.text('Back')),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(d, true),
-                child: const Text('Accept'),
+                child: Text(AppLanguage.text('Accept')),
               ),
             ],
           ),
@@ -366,7 +369,7 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
         : const [];
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Task details'),
+        title: Text(AppLanguage.text('Task details')),
         foregroundColor: taskNavy,
         backgroundColor: Colors.white,
         actions: [
@@ -527,7 +530,7 @@ class _ClientTaskDetailState extends State<ClientTaskDetailScreen> {
               OutlinedButton.icon(
                 onPressed: _askQuestion,
                 icon: const Icon(Icons.help_outline),
-                label: const Text('Ask a question'),
+                label: Text(AppLanguage.text('Ask a question')),
               ),
             ]),
             _card('Status actions', [
@@ -1290,7 +1293,7 @@ class _ClientTaskEditState extends State<ClientTaskEditScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Edit task'),
+      title: Text(AppLanguage.text('Edit task')),
       foregroundColor: taskNavy,
       backgroundColor: Colors.white,
     ),
@@ -1448,7 +1451,7 @@ class _ClientTaskEditState extends State<ClientTaskEditScreen> {
         OutlinedButton.icon(
           onPressed: _showAttachmentActions,
           icon: const Icon(Icons.attach_file),
-          label: const Text('Add attachments'),
+          label: Text(AppLanguage.text('Add attachments')),
           style: OutlinedButton.styleFrom(
             foregroundColor: taskOrange,
             side: const BorderSide(color: taskOrange),
@@ -1465,7 +1468,11 @@ class _ClientTaskEditState extends State<ClientTaskEditScreen> {
               backgroundColor: taskOrange,
               foregroundColor: Colors.white,
             ),
-            child: Text(saving ? 'Saving...' : 'Save changes'),
+            child: Text(
+              saving
+                  ? AppLanguage.text('Saving...')
+                  : AppLanguage.text('Save changes'),
+            ),
           ),
         ),
         const SizedBox(height: 20),

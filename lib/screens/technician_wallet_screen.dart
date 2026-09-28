@@ -3,6 +3,7 @@ import '../core/api_service.dart';
 import '../phone_validation.dart';
 import 'technician_navigation.dart';
 import 'subscription_screen.dart';
+import '../app_language.dart';
 
 class TechnicianWalletScreen extends StatefulWidget {
   const TechnicianWalletScreen({super.key, this.withBottomNavigation = true});
@@ -21,6 +22,8 @@ class _WalletState extends State<TechnicianWalletScreen> {
   late Future<Map<String, dynamic>> walletFuture = api.wallet();
   late Future<List<dynamic>> transactionsFuture = api.walletTransactions();
 
+  String _t(String value) => AppLanguage.text(value);
+
   void refresh() {
     setState(() {
       walletFuture = api.wallet();
@@ -37,7 +40,7 @@ class _WalletState extends State<TechnicianWalletScreen> {
     final submitted = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Withdraw funds'),
+        title: Text(_t('Withdraw funds')),
         content: StatefulBuilder(
           builder: (context, setDialogState) => Column(
             mainAxisSize: MainAxisSize.min,
@@ -47,22 +50,20 @@ class _WalletState extends State<TechnicianWalletScreen> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(labelText: 'Amount (XAF)'),
+                decoration: InputDecoration(labelText: _t('Amount (XAF)')),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: method,
-                decoration: const InputDecoration(
-                  labelText: 'Withdrawal method',
-                ),
-                items: const [
+                decoration: InputDecoration(labelText: _t('Withdrawal method')),
+                items: [
                   DropdownMenuItem(
                     value: 'mobile',
-                    child: Text('Mobile Money'),
+                    child: Text(_t('Mobile Money')),
                   ),
                   DropdownMenuItem(
                     value: 'bank',
-                    child: Text('Direct bank transfer'),
+                    child: Text(_t('Direct bank transfer')),
                   ),
                 ],
                 onChanged: (value) =>
@@ -74,21 +75,21 @@ class _WalletState extends State<TechnicianWalletScreen> {
                   controller: phone,
                   keyboardType: TextInputType.phone,
                   inputFormatters: [phoneInputFormatter('Cameroon')],
-                  decoration: const InputDecoration(
-                    labelText: 'Cameroon Mobile Money number',
+                  decoration: InputDecoration(
+                    labelText: _t('Cameroon Mobile Money number'),
                     prefixText: '+237 ',
                   ),
                 )
               else ...[
                 TextField(
                   controller: bankName,
-                  decoration: const InputDecoration(labelText: 'Bank name'),
+                  decoration: InputDecoration(labelText: _t('Bank name')),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: accountNumber,
-                  decoration: const InputDecoration(
-                    labelText: 'Account number / IBAN',
+                  decoration: InputDecoration(
+                    labelText: _t('Account number / IBAN'),
                   ),
                 ),
               ],
@@ -98,11 +99,11 @@ class _WalletState extends State<TechnicianWalletScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(_t('Cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Request withdrawal'),
+            child: Text(_t('Request withdrawal')),
           ),
         ],
       ),
@@ -122,9 +123,11 @@ class _WalletState extends State<TechnicianWalletScreen> {
         (method == 'bank' && !validBank)) {
       if (submitted == true && mounted)
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Enter a valid amount and payout details. Mobile Money withdrawals require at least 500 XAF.',
+              _t(
+                'Enter a valid amount and payout details. Mobile Money withdrawals require at least 500 XAF.',
+              ),
             ),
           ),
         );
@@ -153,14 +156,14 @@ class _WalletState extends State<TechnicianWalletScreen> {
       }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Withdrawal request submitted.')),
+        SnackBar(content: Text(_t('Withdrawal request submitted.'))),
       );
       refresh();
     } catch (_) {
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('We could not submit the withdrawal request.'),
+          SnackBar(
+            content: Text(_t('We could not submit the withdrawal request.')),
           ),
         );
     }
@@ -173,7 +176,7 @@ class _WalletState extends State<TechnicianWalletScreen> {
           ? const TechnicianBottomNavigation(selectedIndex: 2)
           : null,
       appBar: AppBar(
-        title: const Text('Wallet'),
+        title: Text(_t('Wallet')),
         foregroundColor: navy,
         backgroundColor: Colors.white,
       ),
@@ -182,13 +185,11 @@ class _WalletState extends State<TechnicianWalletScreen> {
         future: walletFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done)
-            return const Center(
-              child: CircularProgressIndicator(color: orange),
-            );
+            return Center(child: CircularProgressIndicator(color: orange));
           if (snapshot.hasError)
-            return const Center(
+            return Center(
               child: Text(
-                'Wallet information is temporarily unavailable.',
+                _t('Wallet information is temporarily unavailable.'),
                 style: TextStyle(color: muted),
               ),
             );
@@ -200,22 +201,22 @@ class _WalletState extends State<TechnicianWalletScreen> {
               padding: const EdgeInsets.all(20),
               children: [
                 _balance(
-                  'Available balance',
+                  _t('Available balance'),
                   wallet['available_balance'] ?? 0,
                   currency,
                 ),
                 _balance(
-                  'Pending escrow',
+                  _t('Pending escrow'),
                   wallet['pending_escrow'] ?? 0,
                   currency,
                 ),
                 _balance(
-                  'Total earned',
+                  _t('Total earned'),
                   wallet['total_earnings'] ?? 0,
                   currency,
                 ),
                 _balance(
-                  'Total withdrawn',
+                  _t('Total withdrawn'),
                   wallet['total_withdrawn'] ?? 0,
                   currency,
                 ),
@@ -224,7 +225,7 @@ class _WalletState extends State<TechnicianWalletScreen> {
                   child: ElevatedButton.icon(
                     onPressed: withdraw,
                     icon: const Icon(Icons.payments_outlined),
-                    label: const Text('Request withdrawal'),
+                    label: Text(_t('Request withdrawal')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: orange,
                       foregroundColor: Colors.white,
@@ -242,12 +243,12 @@ class _WalletState extends State<TechnicianWalletScreen> {
                       ),
                     ),
                     icon: const Icon(Icons.stars_outlined),
-                    label: const Text('Plans and subscriptions'),
+                    label: Text(_t('Plans and subscriptions')),
                   ),
                 ),
                 const SizedBox(height: 22),
-                const Text(
-                  'Transactions',
+                Text(
+                  _t('Transactions'),
                   style: TextStyle(
                     color: navy,
                     fontSize: 19,
@@ -264,8 +265,8 @@ class _WalletState extends State<TechnicianWalletScreen> {
                       );
                     final rows = tx.data ?? const <dynamic>[];
                     if (rows.isEmpty)
-                      return const Text(
-                        'No transactions yet.',
+                      return Text(
+                        _t('No transactions yet.'),
                         style: TextStyle(color: muted),
                       );
                     return Column(
@@ -308,7 +309,7 @@ class _WalletState extends State<TechnicianWalletScreen> {
     margin: const EdgeInsets.only(bottom: 12),
     child: ListTile(
       leading: const Icon(Icons.account_balance_wallet_outlined, color: orange),
-      title: Text(label, style: const TextStyle(color: muted)),
+      title: Text(_t(label), style: const TextStyle(color: muted)),
       subtitle: Text(
         '$value $currency',
         style: const TextStyle(

@@ -7,6 +7,7 @@ import 'technician_profile_screen.dart';
 import 'onboarding_screen.dart';
 import 'technician_portfolio_screen.dart';
 import 'technician_navigation.dart';
+import '../app_language.dart';
 
 class TechnicianProfileDetailsScreen extends StatefulWidget {
   const TechnicianProfileDetailsScreen({
@@ -138,6 +139,8 @@ class _State extends State<TechnicianProfileDetailsScreen> {
   bool hydrated = false;
   String _initialUsername = '';
   List<dynamic> savedPortfolio = [];
+
+  String _t(String value) => AppLanguage.text(value);
   @override
   void initState() {
     super.initState();
@@ -158,7 +161,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
         ? const TechnicianBottomNavigation(selectedIndex: 3)
         : null,
     appBar: AppBar(
-      title: const Text('Expert profile'),
+      title: Text(_t('Expert profile')),
       backgroundColor: navy,
       foregroundColor: Colors.white,
       elevation: 0,
@@ -170,8 +173,8 @@ class _State extends State<TechnicianProfileDetailsScreen> {
         if (snapshot.connectionState != ConnectionState.done)
           return const Center(child: CircularProgressIndicator());
         if (snapshot.hasError)
-          return const Center(
-            child: Text('Profile details are temporarily unavailable.'),
+          return Center(
+            child: Text(_t('Profile details are temporarily unavailable.')),
           );
         final user = snapshot.data ?? {};
         final profile = user['technician_profile'] is Map
@@ -802,7 +805,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
       maxLines: lines,
       keyboardType: keyboardType,
       decoration: InputDecoration(
-        labelText: label,
+        labelText: _t(label),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
         border: OutlineInputBorder(
@@ -824,8 +827,8 @@ class _State extends State<TechnicianProfileDetailsScreen> {
       readOnly: true,
       onTap: _pickDateOfBirth,
       decoration: InputDecoration(
-        labelText: 'Date of birth',
-        hintText: 'Select your date of birth',
+        labelText: _t('Date of birth'),
+        hintText: _t('Select your date of birth'),
         suffixIcon: const Icon(Icons.calendar_month_outlined),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
@@ -856,7 +859,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
       initialDate: initialDate,
       firstDate: firstDate,
       lastDate: today,
-      helpText: 'Select date of birth',
+      helpText: _t('Select date of birth'),
     );
     if (picked == null || !mounted) return;
     final month = picked.month.toString().padLeft(2, '0');
@@ -884,7 +887,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
                 null,
         inputFormatters: [_PhoneFormatter(groups, dialCode: dialCode)],
         decoration: InputDecoration(
-          labelText: 'Phone number ($dialCode)',
+          labelText: _t('Phone number ($dialCode)'),
           prefixIcon: Padding(
             padding: const EdgeInsets.only(left: 12, right: 8),
             child: Align(
@@ -928,7 +931,7 @@ class _State extends State<TechnicianProfileDetailsScreen> {
     child: DropdownButtonFormField<String>(
       initialValue: values.contains(value) ? value : values.first,
       decoration: InputDecoration(
-        labelText: label,
+        labelText: _t(label),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),

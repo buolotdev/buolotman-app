@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../core/api_service.dart';
 import '../phone_validation.dart';
+import '../app_language.dart';
 
 const payNavy = Color(0xFF001F3F),
     payOrange = Color(0xFFFF4500),
@@ -48,7 +49,7 @@ class _ClientWalletState extends State<ClientWalletScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Add money to wallet'),
+        title: Text(AppLanguage.text('Add money to wallet')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -57,15 +58,17 @@ class _ClientWalletState extends State<ClientWalletScreen> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              decoration: const InputDecoration(labelText: 'Amount (XAF)'),
+              decoration: InputDecoration(
+                labelText: AppLanguage.text('Amount (XAF)'),
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: phone,
               keyboardType: TextInputType.phone,
               inputFormatters: [phoneInputFormatter('Cameroon')],
-              decoration: const InputDecoration(
-                labelText: 'Cameroon Mobile Money number',
+              decoration: InputDecoration(
+                labelText: AppLanguage.text('Cameroon Mobile Money number'),
                 prefixText: '+237 ',
               ),
             ),
@@ -74,11 +77,11 @@ class _ClientWalletState extends State<ClientWalletScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Continue'),
+            child: Text(AppLanguage.text('Continue')),
           ),
         ],
       ),
@@ -141,7 +144,7 @@ class _ClientWalletState extends State<ClientWalletScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Payments and wallet'),
+      title: Text(AppLanguage.text('Payments and wallet')),
       foregroundColor: payNavy,
       backgroundColor: Colors.white,
       actions: [
@@ -175,7 +178,7 @@ class _ClientWalletState extends State<ClientWalletScreen> {
                   child: FilledButton.icon(
                     onPressed: _topUp,
                     icon: const Icon(Icons.add_card),
-                    label: const Text('Add money via Mobile Money'),
+                    label: Text(AppLanguage.text('Add money via Mobile Money')),
                     style: FilledButton.styleFrom(backgroundColor: payOrange),
                   ),
                 ),
@@ -382,7 +385,7 @@ class _EscrowPaymentState extends State<ClientEscrowPaymentScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Fund escrow'),
+      title: Text(AppLanguage.text('Fund escrow')),
       foregroundColor: payNavy,
       backgroundColor: Colors.white,
     ),
@@ -413,17 +416,17 @@ class _EscrowPaymentState extends State<ClientEscrowPaymentScreen> {
                 const SizedBox(height: 18),
                 DropdownButtonFormField<String>(
                   value: method,
-                  decoration: const InputDecoration(
-                    labelText: 'Payment method',
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('Payment method'),
                   ),
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: 'mobile',
-                      child: Text('CamPay Mobile Money'),
+                      child: Text(AppLanguage.text('CamPay Mobile Money')),
                     ),
                     DropdownMenuItem(
                       value: 'wallet',
-                      child: Text('Wallet balance'),
+                      child: Text(AppLanguage.text('Wallet balance')),
                     ),
                   ],
                   onChanged: processing
@@ -436,9 +439,9 @@ class _EscrowPaymentState extends State<ClientEscrowPaymentScreen> {
                     controller: phone,
                     keyboardType: TextInputType.phone,
                     inputFormatters: [phoneInputFormatter(country)],
-                    decoration: const InputDecoration(
-                      labelText: 'Mobile Money number',
-                      hintText: 'Enter your national number',
+                    decoration: InputDecoration(
+                      labelText: AppLanguage.text('Mobile Money number'),
+                      hintText: AppLanguage.text('Enter your national number'),
                     ).copyWith(prefix: Text(country)),
                   ),
                 ],

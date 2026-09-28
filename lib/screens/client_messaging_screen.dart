@@ -8,6 +8,7 @@ import 'client_navigation_screens.dart';
 import '../core/realtime_chat.dart';
 import '../attachment_actions.dart';
 import '../chat_contact_profile_screen.dart';
+import '../app_language.dart';
 
 const messageNavy = Color(0xFF001F3F),
     messageOrange = Color(0xFFFF4500),
@@ -98,7 +99,7 @@ class _ClientMessagesState extends State<ClientMessagesScreen> {
       });
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Messages'),
+        title: Text(AppLanguage.text('Messages')),
         foregroundColor: messageNavy,
         backgroundColor: Colors.white,
         actions: [
@@ -155,7 +156,7 @@ class _ClientMessagesState extends State<ClientMessagesScreen> {
                         child: TextButton.icon(
                           onPressed: () => setState(() => activeId = null),
                           icon: const Icon(Icons.arrow_back),
-                          label: const Text('All conversations'),
+                          label: Text(AppLanguage.text('All conversations')),
                         ),
                       ),
                       Expanded(
@@ -680,8 +681,8 @@ class _ClientConversationState extends State<ClientConversationScreen> {
                   minLines: 1,
                   maxLines: 4,
                   textInputAction: TextInputAction.newline,
-                  decoration: const InputDecoration(
-                    hintText: 'Type your message...',
+                  decoration: InputDecoration(
+                    hintText: AppLanguage.text('Type your message...'),
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(borderSide: BorderSide.none),

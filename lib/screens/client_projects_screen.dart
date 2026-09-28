@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/api_service.dart';
 import 'client_messaging_screen.dart';
 import 'client_payment_screen.dart';
+import '../app_language.dart';
 
 const projectNavy = Color(0xFF001F3F),
     projectOrange = Color(0xFFFF4500),
@@ -85,7 +86,7 @@ class _ClientProjectsState extends State<ClientProjectsScreen> {
             .length;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My projects'),
+        title: Text(AppLanguage.text('My projects')),
         foregroundColor: projectNavy,
         backgroundColor: Colors.white,
         actions: [
@@ -445,19 +446,21 @@ class _ClientWorkspaceState extends State<ClientProjectWorkspaceScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (d) => AlertDialog(
-        title: const Text('Open a dispute'),
+        title: Text(AppLanguage.text('Open a dispute')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: title,
-              decoration: const InputDecoration(labelText: 'Issue title'),
+              decoration: InputDecoration(
+                labelText: AppLanguage.text('Issue title'),
+              ),
             ),
             TextField(
               controller: description,
               maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Describe the issue',
+              decoration: InputDecoration(
+                labelText: AppLanguage.text('Describe the issue'),
               ),
             ),
           ],
@@ -465,11 +468,11 @@ class _ClientWorkspaceState extends State<ClientProjectWorkspaceScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(d),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(d, true),
-            child: const Text('Submit'),
+            child: Text(AppLanguage.text('Submit')),
           ),
         ],
       ),
@@ -521,7 +524,7 @@ class _ClientWorkspaceState extends State<ClientProjectWorkspaceScreen> {
     final escrow = task['has_escrow'] == true;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Project workspace'),
+        title: Text(AppLanguage.text('Project workspace')),
         foregroundColor: projectNavy,
         backgroundColor: Colors.white,
         actions: [
@@ -816,7 +819,7 @@ class _ClientWorkspaceState extends State<ClientProjectWorkspaceScreen> {
         OutlinedButton.icon(
           onPressed: _messages,
           icon: const Icon(Icons.message_outlined),
-          label: const Text('Message professional'),
+          label: Text(AppLanguage.text('Message professional')),
           style: OutlinedButton.styleFrom(
             foregroundColor: projectNavy,
             minimumSize: const Size.fromHeight(48),
@@ -828,7 +831,11 @@ class _ClientWorkspaceState extends State<ClientProjectWorkspaceScreen> {
         ElevatedButton.icon(
           onPressed: acting ? null : _complete,
           icon: const Icon(Icons.check_circle_outline),
-          label: Text(acting ? 'Completing...' : 'Approve completion'),
+          label: Text(
+            acting
+                ? AppLanguage.text('Completing...')
+                : AppLanguage.text('Approve completion'),
+          ),
           style: ElevatedButton.styleFrom(
             backgroundColor: projectOrange,
             foregroundColor: Colors.white,
@@ -880,7 +887,7 @@ class _ClientWorkspaceState extends State<ClientProjectWorkspaceScreen> {
                 }
               : null,
           icon: const Icon(Icons.account_balance_wallet_outlined),
-          label: const Text('Release escrow'),
+          label: Text(AppLanguage.text('Release escrow')),
           style: OutlinedButton.styleFrom(
             foregroundColor: projectOrange,
             minimumSize: const Size.fromHeight(48),
@@ -899,7 +906,7 @@ class _ClientWorkspaceState extends State<ClientProjectWorkspaceScreen> {
     OutlinedButton.icon(
       onPressed: _openDispute,
       icon: const Icon(Icons.support_agent),
-      label: const Text('Open dispute / support request'),
+      label: Text(AppLanguage.text('Open dispute / support request')),
       style: OutlinedButton.styleFrom(
         foregroundColor: projectNavy,
         minimumSize: const Size.fromHeight(48),

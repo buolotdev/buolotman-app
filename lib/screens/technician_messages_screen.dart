@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../core/api_service.dart';
+import '../app_language.dart';
 import '../core/realtime_chat.dart';
 import '../attachment_actions.dart';
 import '../chat_contact_profile_screen.dart';
@@ -15,6 +16,7 @@ class TechnicianMessagesScreen extends StatefulWidget {
 
 class _MessagesState extends State<TechnicianMessagesScreen> {
   final api = ApiService();
+  String _t(String value) => AppLanguage.text(value);
   late Future<List<dynamic>> future = api.conversations();
   static const navy = Color(0xFF001F3F),
       orange = Color(0xFFFF4500),
@@ -33,7 +35,7 @@ class _MessagesState extends State<TechnicianMessagesScreen> {
   Widget build(BuildContext context) => Scaffold(
     bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: null),
     appBar: AppBar(
-      title: const Text('Messages'),
+      title: Text(_t('Messages')),
       foregroundColor: navy,
       backgroundColor: Colors.white,
       actions: [
@@ -147,6 +149,7 @@ class _ConversationState extends State<TechnicianConversationScreen> {
       muted = Color(0xFF64748B),
       sentBubble = Color(0xFFFFE0D6);
   final api = ApiService();
+  String _t(String value) => AppLanguage.text(value);
   final draft = TextEditingController();
   late Future<dynamic> future = api.conversation(widget.conversationId);
   RealtimeChatConnection? realtime;
@@ -303,7 +306,7 @@ class _ConversationState extends State<TechnicianConversationScreen> {
   Widget build(BuildContext context) => Scaffold(
     bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: null),
     appBar: AppBar(
-      title: const Text('Conversation'),
+      title: Text(_t('Conversation')),
       foregroundColor: navy,
       backgroundColor: Colors.white,
     ),
@@ -535,8 +538,8 @@ class _ConversationState extends State<TechnicianConversationScreen> {
                       controller: draft,
                       textInputAction: TextInputAction.send,
                       onSubmitted: (_) => _send(),
-                      decoration: const InputDecoration(
-                        hintText: 'Write a message',
+                      decoration: InputDecoration(
+                        hintText: _t('Write a message'),
                         border: OutlineInputBorder(),
                       ),
                     ),
