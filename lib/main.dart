@@ -51,7 +51,7 @@ class MyApp extends StatelessWidget {
       builder: (context, language, _) => MaterialApp(
         debugShowCheckedModeBanner: false,
         locale: Locale(language),
-        supportedLocales: const [Locale('en'), Locale('fr'), Locale('rw')],
+        supportedLocales: const [Locale('en'), Locale('fr')],
         theme: ThemeData(
           useMaterial3: true,
           fontFamily: GoogleFonts.inter().fontFamily,

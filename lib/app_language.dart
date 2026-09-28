@@ -4,12 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AppLanguage {
   AppLanguage._();
 
-  static const supported = <String>['en', 'fr', 'rw'];
-  static const labels = <String, String>{
-    'en': 'English',
-    'fr': 'Français',
-    'rw': 'Kinyarwanda',
-  };
+  static const supported = <String>['en', 'fr'];
+  static const labels = <String, String>{'en': 'English', 'fr': 'Français'};
   static const _key = 'language_preference';
   static final ValueNotifier<String> current = ValueNotifier<String>('en');
 
