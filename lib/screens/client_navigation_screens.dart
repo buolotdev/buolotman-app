@@ -285,12 +285,14 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (d) => AlertDialog(
-        title: const Text('Delete account?'),
+        title: Text(AppLanguage.text('Delete account?')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'This permanently removes your account. Type DELETE to confirm.',
+            Text(
+              AppLanguage.text(
+                'This permanently removes your account. Type DELETE to confirm.',
+              ),
             ),
             TextField(controller: input),
           ],
@@ -298,11 +300,11 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(d),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(d, input.text.trim() == 'DELETE'),
-            child: const Text('Delete'),
+            child: Text(AppLanguage.text('Delete')),
           ),
         ],
       ),
@@ -333,7 +335,7 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
     if (loading)
       return Scaffold(
         appBar: AppBar(
-          title: const Text('My profile'),
+          title: Text(AppLanguage.text('My profile')),
           foregroundColor: clientNavy,
           backgroundColor: Colors.white,
         ),
@@ -359,7 +361,7 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
         'Client';
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My profile'),
+        title: Text(AppLanguage.text('My profile')),
         foregroundColor: clientNavy,
         backgroundColor: Colors.white,
         actions: [
@@ -441,7 +443,7 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
                     ),
                   ).then((_) => _load()),
                   icon: const Icon(Icons.edit_outlined),
-                  label: const Text('Edit profile'),
+                  label: Text(AppLanguage.text('Edit profile')),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: clientOrange,
                     side: const BorderSide(color: clientOrange),
@@ -507,7 +509,7 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
                 OutlinedButton.icon(
                   onPressed: _logout,
                   icon: const Icon(Icons.logout),
-                  label: const Text('Log out'),
+                  label: Text(AppLanguage.text('Log out')),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: clientNavy,
                     minimumSize: const Size.fromHeight(48),
@@ -517,7 +519,7 @@ class _ClientProfileOverviewState extends State<ClientProfileOverviewScreen> {
                 OutlinedButton.icon(
                   onPressed: _delete,
                   icon: const Icon(Icons.delete_outline),
-                  label: const Text('Delete account'),
+                  label: Text(AppLanguage.text('Delete account')),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.red,
                     side: const BorderSide(color: Colors.red),
@@ -1633,7 +1635,7 @@ class _SavedState extends State<ClientSavedScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Saved professionals'),
+      title: Text(AppLanguage.text('Saved professionals')),
       foregroundColor: clientNavy,
       backgroundColor: Colors.white,
     ),
@@ -1800,7 +1802,7 @@ class _PublicProfessionalState extends State<ClientPublicProfessionalScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Professional profile'),
+      title: Text(AppLanguage.text('Professional profile')),
       foregroundColor: clientNavy,
       backgroundColor: Colors.white,
     ),
@@ -1877,7 +1879,7 @@ class _PublicProfessionalState extends State<ClientPublicProfessionalScreen> {
                         ),
                       ),
                       icon: const Icon(Icons.message_outlined),
-                      label: const Text('Start conversation'),
+                      label: Text(AppLanguage.text('Start conversation')),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: clientOrange,
                         foregroundColor: Colors.white,
@@ -1988,7 +1990,7 @@ class _ClientSettingsState extends State<ClientSettingsScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (d) => AlertDialog(
-        title: const Text('Delete account?'),
+        title: Text(AppLanguage.text('Delete account?')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -2001,11 +2003,11 @@ class _ClientSettingsState extends State<ClientSettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(d),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(d, input.text.trim() == 'DELETE'),
-            child: const Text('Delete'),
+            child: Text(AppLanguage.text('Delete')),
           ),
         ],
       ),
@@ -2042,8 +2044,8 @@ class _ClientSettingsState extends State<ClientSettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Change password',
+                Text(
+                  AppLanguage.text('Change password'),
                   style: TextStyle(
                     color: clientNavy,
                     fontSize: 19,
@@ -2054,24 +2056,26 @@ class _ClientSettingsState extends State<ClientSettingsScreen> {
                 TextField(
                   controller: current,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Current password',
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('Current password'),
                   ),
                 ),
                 const SizedBox(height: 10),
                 TextField(
                   controller: next,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'New password (minimum 8 characters)',
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text(
+                      'New password (minimum 8 characters)',
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
                 TextField(
                   controller: confirm,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Confirm new password',
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('Confirm new password'),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -2097,13 +2101,13 @@ class _ClientSettingsState extends State<ClientSettingsScreen> {
         Card(
           elevation: 0,
           child: ListTile(
-            title: const Text(
-              'Language',
+            title: Text(
+              AppLanguage.text('Language'),
               style: TextStyle(color: clientNavy, fontWeight: FontWeight.w600),
             ),
             trailing: DropdownButton<String>(
               value: language,
-              items: const [
+              items: [
                 DropdownMenuItem(value: 'en', child: Text('English')),
                 DropdownMenuItem(value: 'fr', child: Text('Français')),
               ],
@@ -2122,7 +2126,7 @@ class _ClientSettingsState extends State<ClientSettingsScreen> {
           elevation: 0,
           child: ListTile(
             leading: const Icon(Icons.logout, color: clientOrange),
-            title: const Text('Log out'),
+            title: Text(AppLanguage.text('Log out')),
             onTap: _logout,
           ),
         ),
@@ -2130,12 +2134,14 @@ class _ClientSettingsState extends State<ClientSettingsScreen> {
           elevation: 0,
           child: ListTile(
             leading: const Icon(Icons.delete_forever, color: Colors.red),
-            title: const Text(
-              'Delete account',
+            title: Text(
+              AppLanguage.text('Delete account'),
               style: TextStyle(color: Colors.red),
             ),
-            subtitle: const Text(
-              'Type DELETE to permanently remove your account.',
+            subtitle: Text(
+              AppLanguage.text(
+                'Type DELETE to permanently remove your account.',
+              ),
             ),
             onTap: _delete,
           ),
@@ -2171,19 +2177,21 @@ class _SupportState extends State<ClientSupportScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (d) => AlertDialog(
-        title: const Text('New support ticket'),
+        title: Text(AppLanguage.text('New support ticket')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: subject,
-              decoration: const InputDecoration(labelText: 'Subject'),
+              decoration: InputDecoration(
+                labelText: AppLanguage.text('Subject'),
+              ),
             ),
             TextField(
               controller: body,
               maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Describe your issue',
+              decoration: InputDecoration(
+                labelText: AppLanguage.text('Describe your issue'),
               ),
             ),
           ],
@@ -2191,14 +2199,14 @@ class _SupportState extends State<ClientSupportScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(d),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(
               d,
               subject.text.trim().isNotEmpty && body.text.trim().isNotEmpty,
             ),
-            child: const Text('Submit'),
+            child: Text(AppLanguage.text('Submit')),
           ),
         ],
       ),
@@ -2247,7 +2255,7 @@ class _SupportState extends State<ClientSupportScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Support'),
+      title: Text(AppLanguage.text('Support')),
       foregroundColor: clientNavy,
       backgroundColor: Colors.white,
       actions: [
@@ -2272,7 +2280,7 @@ class _SupportState extends State<ClientSupportScreen> {
             child: ElevatedButton.icon(
               onPressed: _create,
               icon: const Icon(Icons.add),
-              label: const Text('Create support ticket'),
+              label: Text(AppLanguage.text('Create support ticket')),
             ),
           );
         final messages = active['messages'] is List
@@ -2343,7 +2351,7 @@ class _SupportState extends State<ClientSupportScreen> {
                       maxLines: 4,
                       textInputAction: TextInputAction.newline,
                       decoration: InputDecoration(
-                        hintText: 'Reply to Support',
+                        hintText: AppLanguage.text('Reply to Support'),
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
@@ -2516,7 +2524,7 @@ class _ClientVerificationState extends State<ClientVerificationScreen> {
       );
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Identity verification'),
+        title: Text(AppLanguage.text('Identity verification')),
         foregroundColor: clientNavy,
         backgroundColor: Colors.white,
       ),
@@ -2538,10 +2546,10 @@ class _ClientVerificationState extends State<ClientVerificationScreen> {
                   const SizedBox(height: 12),
                   Text(
                     verified
-                        ? 'Verified client'
+                        ? AppLanguage.text('Verified client')
                         : submitted
-                        ? 'Verification pending'
-                        : 'Identity verification required',
+                        ? AppLanguage.text('Verification pending')
+                        : AppLanguage.text('Identity verification required'),
                     style: const TextStyle(
                       color: clientNavy,
                       fontSize: 21,
@@ -2552,10 +2560,16 @@ class _ClientVerificationState extends State<ClientVerificationScreen> {
                   const SizedBox(height: 8),
                   Text(
                     verified
-                        ? 'Your identity has been approved by an administrator.'
+                        ? AppLanguage.text(
+                            'Your identity has been approved by an administrator.',
+                          )
                         : submitted
-                        ? 'Your identity documents are awaiting administrator review.'
-                        : 'Submit one government-issued ID to request Tier 2 verification.',
+                        ? AppLanguage.text(
+                            'Your identity documents are awaiting administrator review.',
+                          )
+                        : AppLanguage.text(
+                            'Submit one government-issued ID to request Tier 2 verification.',
+                          ),
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: clientMuted, height: 1.4),
                   ),
@@ -2567,26 +2581,30 @@ class _ClientVerificationState extends State<ClientVerificationScreen> {
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               value: idType,
-              decoration: const InputDecoration(
-                labelText: 'Identification document type',
+              decoration: InputDecoration(
+                labelText: AppLanguage.text('Identification document type'),
                 border: OutlineInputBorder(),
               ),
-              items: const [
+              items: [
                 DropdownMenuItem(
                   value: 'national_id',
-                  child: Text('National ID Card (CNI / CIP)'),
+                  child: Text(AppLanguage.text('National ID Card (CNI / CIP)')),
                 ),
                 DropdownMenuItem(
                   value: 'passport',
-                  child: Text('International Passport'),
+                  child: Text(AppLanguage.text('International Passport')),
                 ),
                 DropdownMenuItem(
                   value: 'drivers_license',
-                  child: Text("Driver's License (Permis de Conduire)"),
+                  child: Text(
+                    AppLanguage.text("Driver's License (Permis de Conduire)"),
+                  ),
                 ),
                 DropdownMenuItem(
                   value: 'residence_permit',
-                  child: Text('Residence Permit / Carte de Séjour'),
+                  child: Text(
+                    AppLanguage.text('Residence Permit / Carte de Séjour'),
+                  ),
                 ),
               ],
               onChanged: (x) => setState(() => idType = x ?? idType),
@@ -2594,9 +2612,11 @@ class _ClientVerificationState extends State<ClientVerificationScreen> {
             const SizedBox(height: 12),
             TextField(
               controller: idNumber,
-              decoration: const InputDecoration(
-                labelText: 'Document / ID number',
-                hintText: 'Enter letters and numbers as printed',
+              decoration: InputDecoration(
+                labelText: AppLanguage.text('Document / ID number'),
+                hintText: AppLanguage.text(
+                  'Enter letters and numbers as printed',
+                ),
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.text,

@@ -12,6 +12,38 @@ class AppLanguage {
   static const _translations = <String, Map<String, String>>{
     'fr': {
       'Dashboard': 'Tableau de bord',
+      'This permanently removes your account. Type DELETE to confirm.':
+          'Cette action supprime définitivement votre compte. Saisissez DELETE pour confirmer.',
+      'Edit profile': 'Modifier le profil',
+      'Personal information': 'Informations personnelles',
+      'Client & business': 'Client et entreprise',
+      'Saved service location': 'Lieu de service enregistré',
+      'Privacy & preferences': 'Confidentialité et préférences',
+      'Professional profile': 'Profil professionnel',
+      'Start conversation': 'Démarrer une conversation',
+      'New password (minimum 8 characters)':
+          'Nouveau mot de passe (8 caractères minimum)',
+      'Type DELETE to permanently remove your account.':
+          'Saisissez DELETE pour supprimer définitivement votre compte.',
+      'Describe your issue': 'Décrivez votre problème',
+      'Support': 'Assistance',
+      'Create support ticket': 'Créer un ticket d’assistance',
+      'Verified client': 'Client vérifié',
+      'Identity verification required': 'Vérification d’identité requise',
+      'Your identity has been approved by an administrator.':
+          'Votre identité a été approuvée par un administrateur.',
+      'Your identity documents are awaiting administrator review.':
+          'Vos documents d’identité attendent l’examen de l’administrateur.',
+      'Submit one government-issued ID to request Tier 2 verification.':
+          'Soumettez une pièce d’identité officielle pour demander la vérification de niveau 2.',
+      'Identification document type': 'Type de document d’identité',
+      'National ID Card (CNI / CIP)': 'Carte nationale d’identité (CNI / CIP)',
+      'International Passport': 'Passeport international',
+      "Driver's License (Permis de Conduire)": 'Permis de conduire',
+      'Residence Permit / Carte de Séjour': 'Titre de séjour',
+      'Document / ID number': 'Numéro du document / pièce d’identité',
+      'Enter letters and numbers as printed':
+          'Saisissez les lettres et chiffres tels qu’imprimés',
       'Add completed work': 'Ajouter un travail terminé',
       'Add project image': 'Ajouter une image au projet',
       'Save project': 'Enregistrer le projet',
