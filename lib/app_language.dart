@@ -12,6 +12,16 @@ class AppLanguage {
   static const _translations = <String, Map<String, String>>{
     'fr': {
       'Dashboard': 'Tableau de bord',
+      'Need help with a project?': 'Besoin d’aide pour un projet ?',
+      'Describe the work and receive proposals from professionals.':
+          'Décrivez le travail et recevez des propositions de professionnels.',
+      'Verify your account before posting a task.':
+          'Vérifiez votre compte avant de publier une tâche.',
+      'Boulot Man': 'Boulot Man',
+      'Client workspace': 'Espace client',
+      'Technician Space': 'Espace technicien',
+      'This feature unlocks after admin verification.':
+          'Cette fonctionnalité sera disponible après la vérification par l’administrateur.',
       'Post tasks easily': 'Publiez facilement des tâches',
       'Describe what you need done and receive bids from qualified professionals.':
           'Décrivez votre besoin et recevez des offres de professionnels qualifiés.',

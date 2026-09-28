@@ -342,8 +342,8 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const Text(
-                      'Technician Space',
+                    Text(
+                      AppLanguage.text('Technician Space'),
                       style: TextStyle(color: Colors.white70),
                     ),
                   ],
@@ -452,8 +452,12 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
       Navigator.pop(context);
       if (locked) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('This feature unlocks after admin verification.'),
+          SnackBar(
+            content: Text(
+              AppLanguage.text(
+                'This feature unlocks after admin verification.',
+              ),
+            ),
           ),
         );
       } else {

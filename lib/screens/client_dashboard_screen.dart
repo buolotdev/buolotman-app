@@ -322,8 +322,8 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Need help with a project?',
+          Text(
+            AppLanguage.text('Need help with a project?'),
             style: TextStyle(
               color: Colors.white,
               fontSize: 20,
@@ -331,19 +331,23 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Describe the work and receive proposals from professionals.',
+          Text(
+            AppLanguage.text(
+              'Describe the work and receive proposals from professionals.',
+            ),
             style: TextStyle(color: Colors.white70),
           ),
           if (!verified) ...[
             const SizedBox(height: 12),
-            const Row(
+            Row(
               children: [
                 Icon(Icons.lock_outline, color: Colors.amber, size: 17),
                 SizedBox(width: 7),
                 Expanded(
                   child: Text(
-                    'Verify your account before posting a task.',
+                    AppLanguage.text(
+                      'Verify your account before posting a task.',
+                    ),
                     style: TextStyle(
                       color: Colors.amber,
                       fontWeight: FontWeight.w600,
@@ -509,8 +513,8 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                const Text(
-                  'Boulot Man',
+                Text(
+                  AppLanguage.text('Boulot Man'),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 22,
@@ -518,8 +522,8 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
                   ),
                 ),
                 const SizedBox(height: 2),
-                const Text(
-                  'Client workspace',
+                Text(
+                  AppLanguage.text('Client workspace'),
                   style: TextStyle(color: Color(0xFFB8C7D9), fontSize: 14),
                 ),
               ],
