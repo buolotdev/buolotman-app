@@ -21,6 +21,7 @@ import 'portfolio_management_screen.dart';
 import 'technician_services_management_screen.dart';
 import 'references_management_screen.dart';
 import 'technician_payout_settings_screen.dart';
+import 'app_language.dart';
 
 class ProfileScreen extends StatelessWidget {
   void _previewAvatar(BuildContext context, String avatar) {
@@ -81,8 +82,8 @@ class ProfileScreen extends StatelessWidget {
             backgroundColor: const Color(0xFFFEFEFF),
             appBar: AppBar(
               backgroundColor: Colors.white,
-              title: const Text(
-                'Profile',
+              title: Text(
+                AppLanguage.text('Profile'),
                 style: TextStyle(
                   color: Color(0xFF001F3F),
                   fontWeight: FontWeight.w600,
@@ -852,8 +853,8 @@ class ProfileScreen extends StatelessWidget {
               );
             },
             icon: const Icon(Icons.logout, color: Color(0xFFB91C1C)),
-            label: const Text(
-              'Log Out',
+            label: Text(
+              AppLanguage.text('Log Out'),
               style: TextStyle(
                 color: Color(0xFFB91C1C),
                 fontWeight: FontWeight.w600,
@@ -873,8 +874,8 @@ class ProfileScreen extends StatelessWidget {
           width: double.infinity,
           child: TextButton(
             onPressed: () => _confirmDeleteAccount(context),
-            child: const Text(
-              'Delete Account',
+            child: Text(
+              AppLanguage.text('Delete Account'),
               style: TextStyle(
                 color: Color(0xFF94A3B8),
                 fontSize: 13,
@@ -896,8 +897,8 @@ class ProfileScreen extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: const Text(
-            'Delete Account?',
+          title: Text(
+            AppLanguage.text('Delete Account?'),
             style: TextStyle(
               fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
@@ -907,13 +908,15 @@ class ProfileScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'This permanently deletes your profile, documents, tasks, bids, and account data. This action cannot be undone.',
+              Text(
+                AppLanguage.text(
+                  'This permanently deletes your profile, documents, tasks, bids, and account data. This action cannot be undone.',
+                ),
                 style: TextStyle(color: Color(0xFF64748B), height: 1.5),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Type DELETE to confirm',
+              Text(
+                AppLanguage.text('Type DELETE to confirm'),
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF991B1B),
@@ -926,7 +929,7 @@ class ProfileScreen extends StatelessWidget {
                 textCapitalization: TextCapitalization.characters,
                 onChanged: (_) => setDialogState(() {}),
                 decoration: InputDecoration(
-                  hintText: 'DELETE',
+                  hintText: AppLanguage.text('DELETE'),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -937,8 +940,8 @@ class ProfileScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text(
-                'Cancel',
+              child: Text(
+                AppLanguage.text('Cancel'),
                 style: TextStyle(
                   color: Color(0xFF64748B),
                   fontWeight: FontWeight.w600,
@@ -977,8 +980,8 @@ class ProfileScreen extends StatelessWidget {
                 backgroundColor: const Color(0xFFB91C1C),
                 foregroundColor: Colors.white,
               ),
-              child: const Text(
-                'Delete permanently',
+              child: Text(
+                AppLanguage.text('Delete permanently'),
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
@@ -1008,7 +1011,7 @@ class ProfileScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  title,
+                  AppLanguage.text(title),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -1035,7 +1038,7 @@ class ProfileScreen extends StatelessWidget {
           SizedBox(
             width: 120,
             child: Text(
-              label,
+              AppLanguage.text(label),
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF64748B),
@@ -1045,7 +1048,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           Expanded(
             child: Text(
-              value.isNotEmpty ? value : 'Not provided',
+              value.isNotEmpty ? value : AppLanguage.text('Not provided'),
               style: const TextStyle(color: Color(0xFF001F3F), fontSize: 14),
             ),
           ),
@@ -1067,13 +1070,13 @@ class ProfileScreen extends StatelessWidget {
         child: Icon(icon, color: const Color(0xFF001F3F)),
       ),
       title: Text(
-        title,
+        AppLanguage.text(title),
         style: const TextStyle(
           fontWeight: FontWeight.w600,
           color: Color(0xFF001F3F),
         ),
       ),
-      subtitle: Text(subtitle),
+      subtitle: Text(AppLanguage.text(subtitle)),
       trailing: const Icon(Icons.chevron_right),
       onTap: onTap,
     );
@@ -1243,7 +1246,10 @@ class ProfileScreen extends StatelessWidget {
             size: 18,
           ),
           const SizedBox(width: 8),
-          Text(label, style: const TextStyle(color: Color(0xFF001F3F))),
+          Text(
+            AppLanguage.text(label),
+            style: const TextStyle(color: Color(0xFF001F3F)),
+          ),
         ],
       ),
     );

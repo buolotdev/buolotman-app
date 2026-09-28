@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_state.dart';
+import 'app_language.dart';
 
 class VerificationScreen extends StatefulWidget {
   const VerificationScreen({super.key});
@@ -48,7 +49,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
           onPressed: _isLoading ? null : () => Navigator.pop(context),
         ),
         title: Text(
-          isCompany ? 'Company Verification' : 'Get Verified',
+          AppLanguage.text(isCompany ? 'Company Verification' : 'Get Verified'),
           style: const TextStyle(
             color: Color(0xFF001F3F),
             fontWeight: FontWeight.w600,
@@ -120,8 +121,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Business Registration",
+          Text(
+            AppLanguage.text("Business Registration"),
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w600,
@@ -129,8 +130,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            "Upload your official business registration documents and trade license to verify your company.",
+          Text(
+            AppLanguage.text(
+              "Upload your official business registration documents and trade license to verify your company.",
+            ),
             style: TextStyle(color: Color(0xFF64748B), height: 1.5),
           ),
           const SizedBox(height: 32),
@@ -154,8 +157,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Compliance Review",
+          Text(
+            AppLanguage.text("Compliance Review"),
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w600,
@@ -163,8 +166,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            "Provide additional compliance details. This helps us ensure your company meets platform standards.",
+          Text(
+            AppLanguage.text(
+              "Provide additional compliance details. This helps us ensure your company meets platform standards.",
+            ),
             style: TextStyle(color: Color(0xFF64748B), height: 1.5),
           ),
           const SizedBox(height: 32),
@@ -196,8 +201,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Identity Verification",
+          Text(
+            AppLanguage.text("Identity Verification"),
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w600,
@@ -205,8 +210,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            "Upload a valid government-issued ID to confirm your identity.",
+          Text(
+            AppLanguage.text(
+              "Upload a valid government-issued ID to confirm your identity.",
+            ),
             style: TextStyle(color: Color(0xFF64748B), height: 1.5),
           ),
           const SizedBox(height: 32),
@@ -221,8 +228,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Skill Screening",
+          Text(
+            AppLanguage.text("Skill Screening"),
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w600,
@@ -230,8 +237,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            "Tell us more about your professional background and skills.",
+          Text(
+            AppLanguage.text(
+              "Tell us more about your professional background and skills.",
+            ),
             style: TextStyle(color: Color(0xFF64748B), height: 1.5),
           ),
           const SizedBox(height: 32),
@@ -256,8 +265,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Certifications",
+          Text(
+            AppLanguage.text("Certifications"),
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w600,
@@ -265,8 +274,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            "Add any relevant licenses or professional certifications.",
+          Text(
+            AppLanguage.text(
+              "Add any relevant licenses or professional certifications.",
+            ),
             style: TextStyle(color: Color(0xFF64748B), height: 1.5),
           ),
           const SizedBox(height: 32),
@@ -275,8 +286,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
             Icons.workspace_premium_outlined,
           ),
           const SizedBox(height: 12),
-          const Text(
-            "PNG, JPG or PDF (Max 5MB)",
+          Text(
+            AppLanguage.text("PNG, JPG or PDF (Max 5MB)"),
             style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
           ),
           const SizedBox(height: 32),
@@ -304,7 +315,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
           Icon(icon, size: 32, color: const Color(0xFF64748B)),
           const SizedBox(height: 12),
           Text(
-            label,
+            AppLanguage.text(label),
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -312,8 +323,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            "Tap to upload",
+          Text(
+            AppLanguage.text("Tap to upload"),
             style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
           ),
         ],
@@ -325,7 +336,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
-        label,
+        AppLanguage.text(label),
         style: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
@@ -378,8 +389,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
-                  "Back",
+                child: Text(
+                  AppLanguage.text("Back"),
                   style: TextStyle(color: Color(0xFF001F3F)),
                 ),
               ),
@@ -445,8 +456,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     )
                   : Text(
                       _currentStep == totalSteps
-                          ? "Submit for Review"
-                          : "Continue",
+                          ? AppLanguage.text("Submit for Review")
+                          : AppLanguage.text("Continue"),
                     ),
             ),
           ),
@@ -478,8 +489,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              "Under Review",
+            Text(
+              AppLanguage.text("Under Review"),
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -487,8 +498,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              "Your verification documents have been submitted. We'll notify you once our team has reviewed them (usually within 24-48 hours).",
+            Text(
+              AppLanguage.text(
+                "Your verification documents have been submitted. We'll notify you once our team has reviewed them (usually within 24-48 hours).",
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(color: Color(0xFF64748B), height: 1.5),
             ),
@@ -508,7 +521,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text("Done"),
+                child: Text(AppLanguage.text("Done")),
               ),
             ),
             const SizedBox(height: 12),

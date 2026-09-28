@@ -13,6 +13,7 @@ import 'notifications_screen.dart';
 import 'screens/server_notifications_screen.dart';
 import 'post_service_screen.dart';
 import 'core/api_service.dart';
+import 'app_language.dart';
 
 /// A single screen that handles two modes:
 ///   - Own profile (companyData == null): full editing, Logout, Post Service
@@ -403,7 +404,7 @@ class CompanyProfileScreen extends StatelessWidget {
           ),
         ),
         Text(
-          label,
+          AppLanguage.text(label),
           style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
         ),
       ],
@@ -414,7 +415,7 @@ class CompanyProfileScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 32, 20, 16),
       child: Text(
-        title,
+        AppLanguage.text(title),
         style: const TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w600,
@@ -438,7 +439,7 @@ class CompanyProfileScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              title,
+              AppLanguage.text(title),
               style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
@@ -447,7 +448,7 @@ class CompanyProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              subtitle,
+              AppLanguage.text(subtitle),
               style: const TextStyle(
                 fontSize: 13,
                 color: Color(0xFF64748B),
@@ -588,7 +589,7 @@ class CompanyProfileScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                label,
+                AppLanguage.text(label),
                 style: const TextStyle(
                   fontSize: 11,
                   color: Color(0xFF94A3B8),

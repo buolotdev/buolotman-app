@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'app_state.dart';
 import 'chat_screen.dart';
 import 'submit_bid_screen.dart';
+import 'app_language.dart';
 
 class BrowseTasksScreen extends StatelessWidget {
   const BrowseTasksScreen({super.key, required this.taskId});
@@ -44,8 +45,10 @@ class BrowseTasksScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Contract Terminated / Deleted',
+                              Text(
+                                AppLanguage.text(
+                                  'Contract Terminated / Deleted',
+                                ),
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   color: Color(0xFF991B1B),
@@ -54,7 +57,9 @@ class BrowseTasksScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'This task has been cancelled and deleted by the client. Any escrow hold funds have been refunded to the client\'s wallet.',
+                                AppLanguage.text(
+                                  'This task has been cancelled and deleted by the client. Any escrow hold funds have been refunded to the client\'s wallet.',
+                                ),
                                 style: TextStyle(
                                   color: const Color(0xFFB91C1C),
                                   fontSize: 12,
@@ -121,11 +126,11 @@ class BrowseTasksScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Task details',
+                    AppLanguage.text('Task details'),
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
@@ -133,7 +138,7 @@ class BrowseTasksScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Browse Tasks',
+                    AppLanguage.text('Browse Tasks'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -543,11 +548,11 @@ class BrowseTasksScreen extends StatelessWidget {
     Color buttonColor;
 
     if (isDeleted) {
-      buttonText = 'Contract Terminated';
+      buttonText = AppLanguage.text('Contract Terminated');
       buttonColor = const Color(0xFFCBD5E1);
       buttonOnTap = null;
     } else if (showSubmitWork) {
-      buttonText = 'Submit Work';
+      buttonText = AppLanguage.text('Submit Work');
       buttonColor = const Color(0xFFFF4500);
       buttonOnTap = () {
         showDialog(
@@ -556,20 +561,22 @@ class BrowseTasksScreen extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
-            title: const Text(
-              'Submit Work',
+            title: Text(
+              AppLanguage.text('Submit Work'),
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF001F3F),
               ),
             ),
-            content: const Text(
-              'Are you sure you want to mark this task as done and submit it for client review?',
+            content: Text(
+              AppLanguage.text(
+                'Are you sure you want to mark this task as done and submit it for client review?',
+              ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel'),
+                child: Text(AppLanguage.text('Cancel')),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -590,9 +597,11 @@ class BrowseTasksScreen extends StatelessWidget {
                     if (context.mounted) {
                       Navigator.pop(context); // dismiss spinner
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
+                        SnackBar(
                           content: Text(
-                            'Work submitted successfully! Client has been notified.',
+                            AppLanguage.text(
+                              'Work submitted successfully! Client has been notified.',
+                            ),
                           ),
                         ),
                       );
@@ -601,7 +610,11 @@ class BrowseTasksScreen extends StatelessWidget {
                     if (context.mounted) {
                       Navigator.pop(context); // dismiss spinner
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed to submit work: $e')),
+                        SnackBar(
+                          content: Text(
+                            '${AppLanguage.text('Failed to submit work')}: $e',
+                          ),
+                        ),
                       );
                     }
                   }
@@ -610,22 +623,22 @@ class BrowseTasksScreen extends StatelessWidget {
                   backgroundColor: const Color(0xFFFF4500),
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Submit'),
+                child: Text(AppLanguage.text('Submit')),
               ),
             ],
           ),
         );
       };
     } else if (showDelivered) {
-      buttonText = 'Work Submitted';
+      buttonText = AppLanguage.text('Work Submitted');
       buttonColor = const Color(0xFFCBD5E1);
       buttonOnTap = null;
     } else {
       buttonText = !canBid
-          ? 'Clients cannot bid'
+          ? AppLanguage.text('Clients cannot bid')
           : hasBid
-          ? 'Bid Submitted'
-          : 'Submit a Bid';
+          ? AppLanguage.text('Bid Submitted')
+          : AppLanguage.text('Submit a Bid');
       buttonColor = (canBid && !hasBid)
           ? const Color(0xFFFF4500)
           : const Color(0xFFCBD5E1);
@@ -689,8 +702,8 @@ class BrowseTasksScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     alignment: Alignment.center,
-                    child: const Text(
-                      'Message Client',
+                    child: Text(
+                      AppLanguage.text('Message Client'),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -725,8 +738,10 @@ class BrowseTasksScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          const Text(
-            'Submitting a bid lets the client review your timeline, price, and experience before hiring.',
+          Text(
+            AppLanguage.text(
+              'Submitting a bid lets the client review your timeline, price, and experience before hiring.',
+            ),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,

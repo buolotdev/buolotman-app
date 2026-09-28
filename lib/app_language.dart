@@ -12,10 +12,181 @@ class AppLanguage {
   static const _translations = <String, Map<String, String>>{
     'fr': {
       'Dashboard': 'Tableau de bord',
+      'Dashboard refreshed successfully!':
+          'Tableau de bord actualisé avec succès !',
+      'Refresh failed': 'Actualisation échouée',
+      'Track your active projects, team size, and total revenue.':
+          'Suivez vos projets actifs, la taille de votre équipe et vos revenus totaux.',
+      'Active Projects': 'Projets actifs',
+      'Manage': 'Gérer',
+      'Monitor your ongoing company projects and milestones.':
+          'Suivez vos projets d’entreprise et leurs étapes.',
+      'Your Team': 'Votre équipe',
+      'Open': 'Ouvrir',
+      'Service Catalog': 'Catalogue de services',
+      'Add and edit the services your company offers.':
+          'Ajoutez et modifiez les services proposés par votre entreprise.',
+      'Track your earnings, pending escrow, and withdraw funds.':
+          'Suivez vos revenus, votre séquestre en attente et retirez vos fonds.',
+      'Find open jobs and submit your bids to get hired.':
+          'Trouvez des missions ouvertes et soumettez vos offres.',
+      'Your Active Tasks': 'Vos tâches actives',
+      'Saved Professionals': 'Professionnels enregistrés',
+      'Browse All': 'Tout parcourir',
+      'Top Rated Professionals': 'Professionnels les mieux notés',
+      'See all': 'Tout voir',
+      'See how you rank against top professionals in your area.':
+          'Découvrez votre classement par rapport aux meilleurs professionnels de votre région.',
+      'Need something done? Start by posting a task for professionals to see.':
+          'Besoin de quelque chose ? Publiez une tâche pour les professionnels.',
+      'Manage all your open and ongoing tasks right here.':
+          'Gérez ici toutes vos tâches ouvertes et en cours.',
+      'Keep track of the professionals you love working with.':
+          'Suivez les professionnels avec lesquels vous aimez travailler.',
+      'Get the most out of Buolot by adding your required details.':
+          'Profitez pleinement de Boulot Man en ajoutant les informations requises.',
+      'Welcome back': 'Bon retour',
+      'What service do you need?': 'De quel service avez-vous besoin ?',
+      'Need something done?': 'Besoin de quelque chose ?',
+      'Post a task & get bids fast':
+          'Publiez une tâche et recevez vite des offres',
+      'Ready to work?': 'Prêt à travailler ?',
+      'Browse active tasks in your area':
+          'Parcourez les tâches actives de votre région',
+      'Find Tasks': 'Trouver des tâches',
+      'Manage your team': 'Gérez votre équipe',
+      'Track milestones and escrow payments':
+          'Suivez les étapes et les paiements sous séquestre',
+      'Complete Your Profile': 'Complétez votre profil',
+      'Almost there!': 'Presque terminé !',
+      'Please provide the required details to activate your account.':
+          'Veuillez fournir les informations requises pour activer votre compte.',
+      'Education Level': 'Niveau d’études',
+      'Expertise Level': 'Niveau d’expertise',
+      'Hourly Rate (\$)': 'Tarif horaire (\$)',
+      'Daily Rate (\$)': 'Tarif journalier (\$)',
+      'Fixed Starting Price (\$)': 'Prix fixe de départ (\$)',
+      'Inspection/Call-out Fee (\$)': 'Frais d’inspection / déplacement (\$)',
+      'Work Preferences': 'Préférences de travail',
+      'Available for On-site jobs': 'Disponible pour les missions sur site',
+      'Available for Remote jobs': 'Disponible pour les missions à distance',
+      'Available on Weekends': 'Disponible le week-end',
+      'Available for Emergency/Urgent jobs':
+          'Disponible pour les missions urgentes',
+      'I own the necessary tools (including PPE)':
+          'Je possède les outils nécessaires (EPI inclus)',
+      'I have a reliable vehicle for transit':
+          'Je possède un véhicule fiable pour les déplacements',
+      'Professional Bio': 'Biographie professionnelle',
+      'Identity Verification Documents': 'Documents de vérification d’identité',
+      'National ID (Front)': 'Pièce d’identité nationale (recto)',
+      'National ID (Back)': 'Pièce d’identité nationale (verso)',
+      'Live Selfie': 'Selfie en direct',
+      'Company Name': 'Nom de l’entreprise',
+      'Headquarters / Industry': 'Siège social / secteur',
+      'Company Size (e.g., 10-50 employees)':
+          'Taille de l’entreprise (ex. 10 à 50 employés)',
+      'Max Project Capacity (e.g., \$1M+)':
+          'Capacité maximale de projet (ex. \$1M+)',
+      'Company About': 'À propos de l’entreprise',
+      'Verification Documents': 'Documents de vérification',
+      'Business Registration Document':
+          'Document d’enregistrement de l’entreprise',
+      'Tax ID Certificate': 'Certificat d’identification fiscale',
+      'Operating Licence': 'Licence d’exploitation',
+      'Save Profile': 'Enregistrer le profil',
+      'Document Uploaded': 'Document téléversé',
+      'Tap to Upload': 'Appuyez pour téléverser',
+      'Required field': 'Champ obligatoire',
+      'Company Verification': 'Vérification de l’entreprise',
+      'Get Verified': 'Obtenir la vérification',
+      'Business Registration': 'Enregistrement de l’entreprise',
+      'Upload your official business registration documents and trade license to verify your company.':
+          'Téléversez les documents officiels d’enregistrement et la licence commerciale de votre entreprise.',
+      'Compliance Review': 'Examen de conformité',
+      'Provide additional compliance details. This helps us ensure your company meets platform standards.':
+          'Fournissez des informations de conformité supplémentaires pour nous aider à vérifier votre entreprise.',
+      'Identity Verification': 'Vérification d’identité',
+      'Upload a valid government-issued ID to confirm your identity.':
+          'Téléversez une pièce d’identité officielle valide pour confirmer votre identité.',
+      'Skill Screening': 'Évaluation des compétences',
+      'Tell us more about your professional background and skills.':
+          'Parlez-nous de votre parcours professionnel et de vos compétences.',
+      'Certifications': 'Certifications',
+      'Add any relevant licenses or professional certifications.':
+          'Ajoutez les licences ou certifications professionnelles pertinentes.',
+      'PNG, JPG or PDF (Max 5MB)': 'PNG, JPG ou PDF (5 Mo maximum)',
+      'Tap to upload': 'Appuyez pour téléverser',
+      'Submit for Review': 'Soumettre pour examen',
+      'Under Review': 'En cours d’examen',
+      "Your verification documents have been submitted. We'll notify you once our team has reviewed them (usually within 24-48 hours).":
+          'Vos documents de vérification ont été soumis. Nous vous informerons après examen par notre équipe (généralement sous 24 à 48 heures).',
+      'Feed': 'Fil',
+      'Expert': 'Expert',
+      'Business': 'Entreprise',
+      'Inbox': 'Boîte de réception',
+      'Admin': 'Administration',
+      'Escrow': 'Séquestre',
       'Dashboard overview': 'Vue d’ensemble du tableau de bord',
       'Manage profile': 'Gérer le profil',
       'View wallet': 'Voir le portefeuille',
       'Profile': 'Profil',
+      'Personal Details': 'Informations personnelles',
+      'First Name': 'Prénom',
+      'Last Name': 'Nom',
+      'Phone Number': 'Numéro de téléphone',
+      'City / Town': 'Ville',
+      'Occupation': 'Profession',
+      'Languages': 'Langues',
+      'Bio': 'Biographie',
+      'Verification': 'Vérification',
+      'Skills & Categories': 'Compétences et catégories',
+      'No skills added yet.': 'Aucune compétence ajoutée.',
+      'Experience': 'Expérience',
+      'No experience details added yet.': 'Aucune expérience ajoutée.',
+      'Certifications & Licences': 'Certifications et licences',
+      'No certifications or licences added yet.':
+          'Aucune certification ou licence ajoutée.',
+      'Availability': 'Disponibilité',
+      'Pricing': 'Tarification',
+      'No pricing added yet.': 'Aucune tarification ajoutée.',
+      'No work preferences added yet.': 'Aucune préférence de travail ajoutée.',
+      'Tools & Equipment': 'Outils et équipement',
+      'Boulot Man Eligibility': 'Éligibilité Boulot Man',
+      'Account Actions': 'Actions du compte',
+      'Profile Actions': 'Actions du profil',
+      'Post a Task': 'Publier une tâche',
+      'Create a new job request': 'Créer une nouvelle demande de mission',
+      'Manage Services': 'Gérer les services',
+      'Link or unlink your verified skills':
+          'Associer ou dissocier vos compétences vérifiées',
+      'Inbox / Messages': 'Boîte de réception / Messages',
+      'Chat with clients and manage tasks':
+          'Discutez avec les clients et gérez les tâches',
+      'Manage Portfolio': 'Gérer le portfolio',
+      'Add or edit your past projects':
+          'Ajoutez ou modifiez vos anciens projets',
+      'Professional References': 'Références professionnelles',
+      'Provide private verification references':
+          'Fournissez des références privées de vérification',
+      'Payout Settings': 'Paramètres de paiement',
+      'Manage preferred payment methods securely':
+          'Gérez vos modes de paiement en toute sécurité',
+      'Company Registration': 'Enregistrement de l’entreprise',
+      'Update legal and verification details':
+          'Mettez à jour les informations légales et de vérification',
+      'Support & Trust': 'Assistance et confiance',
+      'Track balance, payouts, and transactions':
+          'Suivez le solde, les paiements et les transactions',
+      'Manage identity and compliance review':
+          'Gérez la vérification d’identité et de conformité',
+      'Open a Dispute': 'Ouvrir un litige',
+      'Report a task issue or resolution request':
+          'Signalez un problème de tâche ou demandez une résolution',
+      'Help Center': 'Centre d’aide',
+      'FAQs, support, and platform guidance':
+          'FAQ, assistance et guide de la plateforme',
+      'Not provided': 'Non renseigné',
       'My Profile': 'Mon profil',
       'Settings': 'Paramètres',
       'Messages': 'Messages',
@@ -52,6 +223,11 @@ class AppLanguage {
       'Yesterday': 'Hier',
       '5 min ago': 'Il y a 5 min',
       'Payments': 'Paiements',
+      'Recent Transactions': 'Transactions récentes',
+      'No transactions recorded.': 'Aucune transaction enregistrée.',
+      'Available Balance': 'Solde disponible',
+      'Withdraw Funds': 'Retirer des fonds',
+      'Transactions': 'Transactions',
       'Wallet': 'Portefeuille',
       'Projects': 'Projets',
       'My Projects': 'Mes projets',
@@ -63,6 +239,14 @@ class AppLanguage {
       'Save all changes': 'Enregistrer toutes les modifications',
       'Cancel': 'Annuler',
       'Delete account': 'Supprimer le compte',
+      'Log Out': 'Se déconnecter',
+      'Delete Account': 'Supprimer le compte',
+      'Delete Account?': 'Supprimer le compte ?',
+      'This permanently deletes your profile, documents, tasks, bids, and account data. This action cannot be undone.':
+          'Cette action supprime définitivement votre profil, vos documents, tâches, offres et données. Elle est irréversible.',
+      'Type DELETE to confirm': 'Saisissez DELETE pour confirmer',
+      'DELETE': 'DELETE',
+      'Delete permanently': 'Supprimer définitivement',
       'Logout': 'Se déconnecter',
       'Log out': 'Se déconnecter',
       'Language': 'Langue',
@@ -121,9 +305,23 @@ class AppLanguage {
       'Search services and tasks...':
           'Rechercher des services et des tâches...',
       'Search by name or skills...': 'Rechercher par nom ou compétence...',
+      'Browse Professionals': 'Parcourir les professionnels',
+      'We could not load professionals right now.':
+          'Impossible de charger les professionnels pour le moment.',
+      'No professionals found': 'Aucun professionnel trouvé',
+      'Try searching for another skill category or adjust your keyword query.':
+          'Essayez une autre catégorie de compétence ou modifiez votre recherche.',
       'Search for tasks or pros...':
           'Rechercher des tâches ou des professionnels...',
       'Type a message...': 'Écrivez un message...',
+      'Attachment': 'Pièce jointe',
+      'Attachment Preview': 'Aperçu de la pièce jointe',
+      'Download': 'Télécharger',
+      'Share a File': 'Partager un fichier',
+      'Photo': 'Photo',
+      'Document': 'Document',
+      'Video': 'Vidéo',
+      'Files': 'Fichiers',
       'Write a message': 'Écrivez un message',
       'Send': 'Envoyer',
       'Message client': 'Contacter le client',
@@ -133,11 +331,28 @@ class AppLanguage {
       'No results found.': 'Aucun résultat trouvé.',
       'No questions yet.': 'Aucune question pour le moment.',
       'Nothing to display yet.': 'Rien à afficher pour le moment.',
-      'Post a Task': 'Publier une tâche',
       'Post a New Task': 'Publier une nouvelle tâche',
       'Browse Tasks': 'Parcourir les tâches',
       'Browse Open Tasks': 'Parcourir les tâches ouvertes',
       'Browse Services': 'Parcourir les services',
+      'Task details': 'Détails de la tâche',
+      'Contract Terminated / Deleted': 'Contrat terminé / supprimé',
+      'This task has been cancelled and deleted by the client. Any escrow hold funds have been refunded to the client\'s wallet.':
+          'Cette tâche a été annulée et supprimée par le client. Les fonds retenus sous séquestre ont été remboursés au portefeuille du client.',
+      'Contract Terminated': 'Contrat terminé',
+      'Submit Work': 'Soumettre le travail',
+      'Are you sure you want to mark this task as done and submit it for client review?':
+          'Voulez-vous vraiment marquer cette tâche comme terminée et la soumettre à l’examen du client ?',
+      'Work submitted successfully! Client has been notified.':
+          'Travail soumis avec succès ! Le client a été informé.',
+      'Failed to submit work': 'Échec de la soumission du travail',
+      'Work Submitted': 'Travail soumis',
+      'Clients cannot bid': 'Les clients ne peuvent pas faire d’offre',
+      'Bid Submitted': 'Offre soumise',
+      'Submit a Bid': 'Soumettre une offre',
+      'Message Client': 'Contacter le client',
+      'Submitting a bid lets the client review your timeline, price, and experience before hiring.':
+          'Une offre permet au client d’examiner votre délai, votre prix et votre expérience avant de vous engager.',
       'Open Task': 'Ouvrir la tâche',
       'View Profile': 'Voir le profil',
       'View Bids': 'Voir les offres',
@@ -182,12 +397,34 @@ class AppLanguage {
       'Service deactivated.': 'Service désactivé.',
       'Manage services': 'Gérer les services',
       'Services Management': 'Gestion des services',
-      'Manage Services': 'Gérer les services',
       'Publish the services your company offers. Clients will see these on your public profile.':
           'Publiez les services proposés par votre entreprise. Les clients les verront sur votre profil public.',
       'Your company registration documents are under administrative review. Publishing and managing services will unlock upon admin verification.':
           'Les documents d’enregistrement de votre entreprise sont en cours d’examen administratif. La publication et la gestion des services seront disponibles après vérification.',
       'Company profile': 'Profil de l’entreprise',
+      'Registration Status': 'Statut d’enregistrement',
+      'Verified': 'Vérifié',
+      'Pending Review': 'Vérification en attente',
+      'Registration pending review.':
+          'Enregistrement en attente de vérification.',
+      'Verification Status': 'Statut de vérification',
+      'Verification pending review.': 'Vérification en attente d’examen.',
+      'About Company': 'À propos de l’entreprise',
+      'Services': 'Services',
+      'Team': 'Équipe',
+      'Ratings & Reviews': 'Évaluations et avis',
+      'Rating': 'Évaluation',
+      'Team Size': 'Taille de l’équipe',
+      'No company description provided yet.':
+          'Aucune description de l’entreprise pour le moment.',
+      'Registered contractor profile with services, project tracking, and compliance flows.':
+          'Profil d’entreprise enregistrée avec services, suivi de projets et conformité.',
+      'Industry': 'Secteur',
+      'Company Size': 'Taille de l’entreprise',
+      'Registration No.': 'N° d’enregistrement',
+      'Headquarters': 'Siège social',
+      'Capabilities & Infrastructure': 'Capacités et infrastructure',
+      'No services listed yet.': 'Aucun service répertorié.',
       'Description': 'Description',
       'Category': 'Catégorie',
       'Select Category': 'Sélectionner une catégorie',
@@ -238,6 +475,14 @@ class AppLanguage {
       'Find trusted professionals and manage your projects.':
           'Trouvez des professionnels fiables et gérez vos projets.',
       'Projects & Contracts': 'Projets et contrats',
+      'On Hold': 'En pause',
+      'New Contract': 'Nouveau contrat',
+      'No contracts here': 'Aucun contrat ici',
+      'Tap "New Contract" to create one':
+          'Appuyez sur « Nouveau contrat » pour en créer un',
+      'Released': 'Libéré',
+      'In Escrow': 'Sous séquestre',
+      'Awaiting': 'En attente',
       "You haven't posted any tasks yet":
           "Vous n’avez encore publié aucune tâche",
       'No active contracts yet. Browse tasks to bid.':
@@ -276,12 +521,9 @@ class AppLanguage {
       'Create Account': 'Créer un compte',
       "Let's get started. Enter your basic information.":
           'Commençons. Saisissez vos informations de base.',
-      'First Name': 'Prénom',
       'John': 'Jean',
-      'Last Name': 'Nom',
       'Doe': 'Dupont',
       'Email Address': 'Adresse e-mail',
-      'Phone Number': 'Numéro de téléphone',
       'Password': 'Mot de passe',
       'Select Country': 'Sélectionner un pays',
       'Already have an account?': 'Vous avez déjà un compte ?',
@@ -330,7 +572,12 @@ class AppLanguage {
   static String status(dynamic value) {
     final raw = '$value'.trim();
     if (raw.isEmpty) return raw;
-    final title = raw[0].toUpperCase() + raw.substring(1).toLowerCase();
+    final normalized = raw.replaceAll('_', ' ').replaceAll('-', ' ');
+    final title = normalized
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .map((part) => part[0].toUpperCase() + part.substring(1).toLowerCase())
+        .join(' ');
     return text(title);
   }
 
@@ -357,7 +604,7 @@ class AppLanguagePicker extends StatelessWidget {
     valueListenable: AppLanguage.current,
     builder: (context, value, _) => DropdownButtonFormField<String>(
       initialValue: AppLanguage.supported.contains(value) ? value : 'en',
-      decoration: const InputDecoration(labelText: 'Language'),
+      decoration: InputDecoration(labelText: AppLanguage.text('Language')),
       items: [
         for (final code in AppLanguage.supported)
           DropdownMenuItem(

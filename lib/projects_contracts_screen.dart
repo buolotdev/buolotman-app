@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'chat_screen.dart';
 import 'package:get/get.dart';
 import 'app_state.dart';
+import 'app_language.dart';
 
 class ProjectsContractsScreen extends StatefulWidget {
   const ProjectsContractsScreen({super.key});
@@ -49,8 +50,8 @@ class _ProjectsContractsScreenState extends State<ProjectsContractsScreen>
           appBar: AppBar(
             backgroundColor: Colors.white,
             elevation: 0,
-            title: const Text(
-              'Projects & Contracts',
+            title: Text(
+              AppLanguage.text('Projects & Contracts'),
               style: TextStyle(
                 color: Color(0xFF001F3F),
                 fontWeight: FontWeight.w600,
@@ -89,9 +90,12 @@ class _ProjectsContractsScreenState extends State<ProjectsContractsScreen>
                 fontSize: 13,
               ),
               tabs: [
-                Tab(text: 'Active (${active.length})'),
-                Tab(text: 'Completed (${completed.length})'),
-                Tab(text: 'On Hold (${onHold.length})'),
+                Tab(text: '${AppLanguage.text('Active')} (${active.length})'),
+                Tab(
+                  text:
+                      '${AppLanguage.text('Completed')} (${completed.length})',
+                ),
+                Tab(text: '${AppLanguage.text('On Hold')} (${onHold.length})'),
               ],
             ),
           ),
@@ -107,8 +111,8 @@ class _ProjectsContractsScreenState extends State<ProjectsContractsScreen>
             onPressed: () => _showCreateProjectSheet(context, appState),
             backgroundColor: const Color(0xFFFF4500),
             icon: const Icon(Icons.add, color: Colors.white),
-            label: const Text(
-              'New Contract',
+            label: Text(
+              AppLanguage.text('New Contract'),
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -144,8 +148,8 @@ class _ProjectsContractsScreenState extends State<ProjectsContractsScreen>
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'No contracts here',
+            Text(
+              AppLanguage.text('No contracts here'),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -153,8 +157,8 @@ class _ProjectsContractsScreenState extends State<ProjectsContractsScreen>
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
-              'Tap "New Contract" to create one',
+            Text(
+              AppLanguage.text('Tap "New Contract" to create one'),
               style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
             ),
           ],
@@ -431,10 +435,10 @@ class _ProjectsContractsScreenState extends State<ProjectsContractsScreen>
 
   Widget _statusBadge(String status, Color color) {
     final label = status == 'on_hold'
-        ? 'On Hold'
+        ? AppLanguage.text('On Hold')
         : status == 'completed'
-        ? 'Completed'
-        : 'Active';
+        ? AppLanguage.text('Completed')
+        : AppLanguage.text('Active');
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -454,10 +458,10 @@ class _ProjectsContractsScreenState extends State<ProjectsContractsScreen>
 
   Widget _paymentBadge(String ps, Color color) {
     final label = ps == 'released'
-        ? '✓ Released'
+        ? '✓ ${AppLanguage.text('Released')}'
         : ps == 'in_escrow'
-        ? '🔒 In Escrow'
-        : '⏳ Awaiting';
+        ? '🔒 ${AppLanguage.text('In Escrow')}'
+        : '⏳ ${AppLanguage.text('Awaiting')}';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(

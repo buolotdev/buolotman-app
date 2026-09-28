@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'app_state.dart';
 import 'api_service.dart';
+import 'app_language.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -216,7 +217,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Complete Your Profile'),
+            title: Text(AppLanguage.text('Complete Your Profile')),
             backgroundColor: const Color(0xFF001F3F),
             foregroundColor: Colors.white,
           ),
@@ -233,8 +234,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(24),
                     children: [
-                      const Text(
-                        'Almost there!',
+                      Text(
+                        AppLanguage.text('Almost there!'),
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w600,
@@ -243,7 +244,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Please provide the required $role details to activate your account.',
+                        '${AppLanguage.text('Please provide the required details to activate your account.')}',
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.grey,
@@ -260,7 +261,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         DropdownButtonFormField<String>(
                           value: _educationLevel,
                           decoration: _inputDecoration(
-                            'Education Level',
+                            AppLanguage.text('Education Level'),
                             Icons.school,
                           ),
                           items:
@@ -286,7 +287,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         DropdownButtonFormField<String>(
                           value: _expertiseLevel,
                           decoration: _inputDecoration(
-                            'Expertise Level',
+                            AppLanguage.text('Expertise Level'),
                             Icons.star,
                           ),
                           items: ['Beginner', 'Intermediate', 'Expert']
@@ -302,76 +303,86 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         const SizedBox(height: 16),
                         _buildTextField(
                           _hourlyRateController,
-                          'Hourly Rate (\$)',
+                          AppLanguage.text('Hourly Rate (\$)'),
                           Icons.attach_money,
                           isNumber: true,
                         ),
                         const SizedBox(height: 16),
                         _buildTextField(
                           _dailyRateController,
-                          'Daily Rate (\$)',
+                          AppLanguage.text('Daily Rate (\$)'),
                           Icons.money,
                           isNumber: true,
                         ),
                         const SizedBox(height: 16),
                         _buildTextField(
                           _fixedPriceController,
-                          'Fixed Starting Price (\$)',
+                          AppLanguage.text('Fixed Starting Price (\$)'),
                           Icons.price_check,
                           isNumber: true,
                         ),
                         const SizedBox(height: 16),
                         _buildTextField(
                           _inspectionFeeController,
-                          'Inspection/Call-out Fee (\$)',
+                          AppLanguage.text('Inspection/Call-out Fee (\$)'),
                           Icons.search,
                           isNumber: true,
                         ),
                         const SizedBox(height: 16),
-                        const Text(
-                          'Work Preferences',
+                        Text(
+                          AppLanguage.text('Work Preferences'),
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
                           ),
                         ),
                         SwitchListTile(
-                          title: const Text('Available for On-site jobs'),
+                          title: Text(
+                            AppLanguage.text('Available for On-site jobs'),
+                          ),
                           value: _prefOnSite,
                           onChanged: (v) => setState(() => _prefOnSite = v),
                           activeColor: const Color(0xFFFF5500),
                         ),
                         SwitchListTile(
-                          title: const Text('Available for Remote jobs'),
+                          title: Text(
+                            AppLanguage.text('Available for Remote jobs'),
+                          ),
                           value: _prefRemote,
                           onChanged: (v) => setState(() => _prefRemote = v),
                           activeColor: const Color(0xFFFF5500),
                         ),
                         SwitchListTile(
-                          title: const Text('Available on Weekends'),
+                          title: Text(
+                            AppLanguage.text('Available on Weekends'),
+                          ),
                           value: _prefWeekends,
                           onChanged: (v) => setState(() => _prefWeekends = v),
                           activeColor: const Color(0xFFFF5500),
                         ),
                         SwitchListTile(
-                          title: const Text(
-                            'Available for Emergency/Urgent jobs',
+                          title: Text(
+                            AppLanguage.text(
+                              'Available for Emergency/Urgent jobs',
+                            ),
                           ),
                           value: _prefEmergency,
                           onChanged: (v) => setState(() => _prefEmergency = v),
                           activeColor: const Color(0xFFFF5500),
                         ),
                         const SizedBox(height: 16),
-                        const Text(
-                          'Tools & Equipment',
+                        Text(
+                          AppLanguage.text('Tools & Equipment'),
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
                           ),
                         ),
                         CheckboxListTile(
-                          title: const Text(
-                            'I own the necessary tools (including PPE)',
+                          title: Text(
+                            AppLanguage.text(
+                              'I own the necessary tools (including PPE)',
+                            ),
                           ),
                           value: _hasTools,
                           onChanged: (v) =>
@@ -379,8 +390,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           activeColor: const Color(0xFFFF5500),
                         ),
                         CheckboxListTile(
-                          title: const Text(
-                            'I have a reliable vehicle for transit',
+                          title: Text(
+                            AppLanguage.text(
+                              'I have a reliable vehicle for transit',
+                            ),
                           ),
                           value: _hasVehicle,
                           onChanged: (v) =>
@@ -390,13 +403,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         const SizedBox(height: 16),
                         _buildTextField(
                           _bioController,
-                          'Professional Bio',
+                          AppLanguage.text('Professional Bio'),
                           Icons.person,
                           maxLines: 3,
                         ),
                         const SizedBox(height: 16),
-                        const Text(
-                          'Identity Verification Documents',
+                        Text(
+                          AppLanguage.text('Identity Verification Documents'),
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
@@ -404,19 +417,19 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         ),
                         const SizedBox(height: 8),
                         _buildDocUploader(
-                          'National ID (Front)',
+                          AppLanguage.text('National ID (Front)'),
                           _nationalIdFrontUrl,
                           (url) => setState(() => _nationalIdFrontUrl = url),
                           documentType: 'id',
                         ),
                         _buildDocUploader(
-                          'National ID (Back)',
+                          AppLanguage.text('National ID (Back)'),
                           _nationalIdBackUrl,
                           (url) => setState(() => _nationalIdBackUrl = url),
                           documentType: 'id',
                         ),
                         _buildDocUploader(
-                          'Live Selfie',
+                          AppLanguage.text('Live Selfie'),
                           _selfieUrl,
                           (url) => setState(() => _selfieUrl = url),
                           documentType: 'id',
@@ -428,37 +441,41 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         const SizedBox(height: 16),
                         _buildTextField(
                           _companyNameController,
-                          'Company Name',
+                          AppLanguage.text('Company Name'),
                           Icons.business,
                         ),
                         const SizedBox(height: 16),
                         _buildTextField(
                           _headquartersController,
-                          'Headquarters / Industry',
+                          AppLanguage.text('Headquarters / Industry'),
                           Icons.map,
                         ),
                         const SizedBox(height: 16),
                         _buildTextField(
                           _companySizeController,
-                          'Company Size (e.g., 10-50 employees)',
+                          AppLanguage.text(
+                            'Company Size (e.g., 10-50 employees)',
+                          ),
                           Icons.people,
                         ),
                         const SizedBox(height: 16),
                         _buildTextField(
                           _maxProjectCapacityController,
-                          'Max Project Capacity (e.g., \$1M+)',
+                          AppLanguage.text(
+                            'Max Project Capacity (e.g., \$1M+)',
+                          ),
                           Icons.monetization_on,
                         ),
                         const SizedBox(height: 16),
                         _buildTextField(
                           _aboutController,
-                          'Company About',
+                          AppLanguage.text('Company About'),
                           Icons.info,
                           maxLines: 3,
                         ),
                         const SizedBox(height: 16),
-                        const Text(
-                          'Verification Documents',
+                        Text(
+                          AppLanguage.text('Verification Documents'),
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
@@ -466,18 +483,18 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         ),
                         const SizedBox(height: 8),
                         _buildDocUploader(
-                          'Business Registration Document',
+                          AppLanguage.text('Business Registration Document'),
                           _businessRegistrationUrl,
                           (url) =>
                               setState(() => _businessRegistrationUrl = url),
                         ),
                         _buildDocUploader(
-                          'Tax ID Certificate',
+                          AppLanguage.text('Tax ID Certificate'),
                           _taxIdUrl,
                           (url) => setState(() => _taxIdUrl = url),
                         ),
                         _buildDocUploader(
-                          'Operating Licence',
+                          AppLanguage.text('Operating Licence'),
                           _operatingLicenceUrl,
                           (url) => setState(() => _operatingLicenceUrl = url),
                         ),
@@ -494,8 +511,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
-                          'Save Profile',
+                        child: Text(
+                          AppLanguage.text('Save Profile'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -520,7 +537,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
+          AppLanguage.text(label),
           style: const TextStyle(
             fontWeight: FontWeight.w600,
             color: Color(0xFF001F3F),
@@ -554,7 +571,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  url != null ? 'Document Uploaded' : 'Tap to Upload',
+                  AppLanguage.text(
+                    url != null ? 'Document Uploaded' : 'Tap to Upload',
+                  ),
                   style: TextStyle(
                     color: url != null ? Colors.green : Colors.grey.shade700,
                   ),
@@ -579,14 +598,16 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       controller: controller,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
       maxLines: maxLines,
-      validator: (val) => val == null || val.isEmpty ? 'Required field' : null,
+      validator: (val) => val == null || val.isEmpty
+          ? AppLanguage.text('Required field')
+          : null,
       decoration: _inputDecoration(label, icon),
     );
   }
 
   InputDecoration _inputDecoration(String label, IconData icon) {
     return InputDecoration(
-      labelText: label,
+      labelText: AppLanguage.text(label),
       prefixIcon: Icon(icon, color: const Color(0xFFFF5500)),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

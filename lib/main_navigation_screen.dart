@@ -12,6 +12,7 @@ import 'company_profile_screen.dart';
 import 'post_service_screen.dart';
 import 'admin_panel_screen.dart';
 import 'projects_contracts_screen.dart';
+import 'app_language.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   final int initialIndex;
@@ -203,7 +204,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              label,
+              AppLanguage.text(label),
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w600,

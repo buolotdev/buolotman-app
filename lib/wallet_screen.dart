@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import 'app_state.dart';
 import 'withdraw_screen.dart';
+import 'app_language.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -41,8 +42,8 @@ class _WalletScreenState extends State<WalletScreen> {
                         const SizedBox(height: 20),
                         _buildEarningsRow(appState),
                         const SizedBox(height: 20),
-                        const Text(
-                          'Recent Transactions',
+                        Text(
+                          AppLanguage.text('Recent Transactions'),
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
@@ -51,11 +52,11 @@ class _WalletScreenState extends State<WalletScreen> {
                         ),
                         const SizedBox(height: 12),
                         if (transactions.isEmpty)
-                          const Center(
+                          Center(
                             child: Padding(
                               padding: EdgeInsets.symmetric(vertical: 32),
                               child: Text(
-                                'No transactions recorded.',
+                                AppLanguage.text('No transactions recorded.'),
                                 style: TextStyle(color: Color(0xFF64748B)),
                               ),
                             ),
@@ -108,8 +109,8 @@ class _WalletScreenState extends State<WalletScreen> {
             ),
             const SizedBox(width: 12),
           ],
-          const Text(
-            'Wallet',
+          Text(
+            AppLanguage.text('Wallet'),
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
@@ -132,8 +133,8 @@ class _WalletScreenState extends State<WalletScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Available Balance',
+          Text(
+            AppLanguage.text('Available Balance'),
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -166,7 +167,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     });
               },
               icon: const Icon(Icons.arrow_outward, size: 18),
-              label: const Text('Withdraw Funds'),
+              label: Text(AppLanguage.text('Withdraw Funds')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF4500),
                 foregroundColor: Colors.white,
@@ -182,12 +183,12 @@ class _WalletScreenState extends State<WalletScreen> {
     return Row(
       children: [
         _buildEarningCard(
-          'Pending',
+          AppLanguage.text('Pending'),
           '\$${appState.pendingBalance.toStringAsFixed(2)}',
         ),
         const SizedBox(width: 16),
         _buildEarningCard(
-          'Transactions',
+          AppLanguage.text('Transactions'),
           appState.walletTransactions.length.toString(),
         ),
       ],
@@ -271,7 +272,7 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                transaction.status,
+                AppLanguage.status(transaction.status),
                 style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
               ),
             ],

@@ -24,6 +24,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'profile_setup_screen.dart';
 import 'wallet_screen.dart';
 import 'technician_public_profile_screen.dart';
+import 'app_language.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String role;
@@ -51,15 +52,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       await appState.syncAll();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Dashboard refreshed successfully!'),
+        SnackBar(
+          content: Text(AppLanguage.text('Dashboard refreshed successfully!')),
           duration: Duration(seconds: 1),
         ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Refresh failed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${AppLanguage.text('Refresh failed')}: $e')),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -156,16 +157,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             if (widget.role == 'Company') ...[
                               Showcase(
                                 key: _tourKey1,
-                                description:
-                                    'Track your active projects, team size, and total revenue.',
+                                description: AppLanguage.text(
+                                  'Track your active projects, team size, and total revenue.',
+                                ),
                                 child: _buildCompanyStats(appState),
                               ),
                               const SizedBox(height: 28),
                               _buildCompanySummary(appState),
                               const SizedBox(height: 28),
                               _buildSectionHeader(
-                                "Active Projects",
-                                "Manage",
+                                AppLanguage.text("Active Projects"),
+                                AppLanguage.text("Manage"),
                                 onTap: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -177,14 +179,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                               Showcase(
                                 key: _tourKey2,
-                                description:
-                                    'Monitor your ongoing company projects and milestones.',
+                                description: AppLanguage.text(
+                                  'Monitor your ongoing company projects and milestones.',
+                                ),
                                 child: _buildCompanyActiveProjects(appState),
                               ),
                               const SizedBox(height: 28),
                               _buildSectionHeader(
-                                "Your Team",
-                                "Open",
+                                AppLanguage.text("Your Team"),
+                                AppLanguage.text("Open"),
                                 onTap: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -197,8 +200,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               _buildCompanyTeam(appState),
                               const SizedBox(height: 28),
                               _buildSectionHeader(
-                                "Service Catalog",
-                                "Edit",
+                                AppLanguage.text("Service Catalog"),
+                                AppLanguage.text("Edit"),
                                 onTap: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -210,28 +213,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                               Showcase(
                                 key: _tourKey3,
-                                description:
-                                    'Add and edit the services your company offers.',
+                                description: AppLanguage.text(
+                                  'Add and edit the services your company offers.',
+                                ),
                                 child: _buildCompanyServiceCatalog(appState),
                               ),
                             ] else if (widget.role == 'Technician') ...[
                               Showcase(
                                 key: _tourKey1,
-                                description:
-                                    'Track your earnings, pending escrow, and withdraw funds.',
+                                description: AppLanguage.text(
+                                  'Track your earnings, pending escrow, and withdraw funds.',
+                                ),
                                 child: _buildWalletCard(appState),
                               ),
                               const SizedBox(height: 24),
                               Showcase(
                                 key: _tourKey2,
-                                description:
-                                    'Find open jobs and submit your bids to get hired.',
+                                description: AppLanguage.text(
+                                  'Find open jobs and submit your bids to get hired.',
+                                ),
                                 child: _buildQuickActionBanner(appState),
                               ),
                               const SizedBox(height: 28),
                               _buildSectionHeader(
-                                "Your Active Tasks",
-                                "Manage",
+                                AppLanguage.text("Your Active Tasks"),
+                                AppLanguage.text("Manage"),
                                 onTap: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -244,8 +250,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               _buildClientActiveTasks(appState),
                               const SizedBox(height: 28),
                               _buildSectionHeader(
-                                "Saved Professionals",
-                                "Browse All",
+                                AppLanguage.text("Saved Professionals"),
+                                AppLanguage.text("Browse All"),
                                 onTap: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -258,8 +264,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               _buildSavedProfessionals(appState),
                               const SizedBox(height: 28),
                               _buildSectionHeader(
-                                "Top Rated Professionals",
-                                "See all",
+                                AppLanguage.text("Top Rated Professionals"),
+                                AppLanguage.text("See all"),
                                 onTap: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -271,8 +277,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                               Showcase(
                                 key: _tourKey3,
-                                description:
-                                    'See how you rank against top professionals in your area.',
+                                description: AppLanguage.text(
+                                  'See how you rank against top professionals in your area.',
+                                ),
                                 child: _buildTopProfessionals(appState),
                               ),
                               const SizedBox(height: 16),
@@ -282,8 +289,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               const SizedBox(height: 24),
                               Showcase(
                                 key: _tourKey1,
-                                description:
-                                    'Need something done? Start by posting a task for professionals to see.',
+                                description: AppLanguage.text(
+                                  'Need something done? Start by posting a task for professionals to see.',
+                                ),
                                 child: _buildQuickActionBanner(appState),
                               ),
                               const SizedBox(height: 28),
@@ -301,8 +309,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                               Showcase(
                                 key: _tourKey2,
-                                description:
-                                    'Manage all your open and ongoing tasks right here.',
+                                description: AppLanguage.text(
+                                  'Manage all your open and ongoing tasks right here.',
+                                ),
                                 child: _buildClientActiveTasks(appState),
                               ),
                               const SizedBox(height: 28),
@@ -320,8 +329,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                               Showcase(
                                 key: _tourKey3,
-                                description:
-                                    'Keep track of the professionals you love working with.',
+                                description: AppLanguage.text(
+                                  'Keep track of the professionals you love working with.',
+                                ),
                                 child: _buildSavedProfessionals(appState),
                               ),
                               const SizedBox(height: 28),
@@ -378,7 +388,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Complete Your Profile',
+                  AppLanguage.text('Complete Your Profile'),
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF001F3F),
@@ -388,8 +398,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Get the most out of Buolot by adding your required details.',
+          Text(
+            AppLanguage.text(
+              'Get the most out of Buolot by adding your required details.',
+            ),
             style: TextStyle(color: Color(0xFF666666), fontSize: 13),
           ),
           const SizedBox(height: 12),
@@ -409,7 +421,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text('Complete Now'),
+              child: Text(AppLanguage.text('Complete Now')),
             ),
           ),
         ],
@@ -437,7 +449,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        "Welcome back, $greetingName",
+                        '${AppLanguage.text('Welcome back')}, $greetingName',
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 17,
@@ -593,12 +605,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               const Icon(Icons.search, color: Color(0xFF64748B), size: 20),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: TextField(
                   readOnly: true,
                   enabled: false,
                   decoration: InputDecoration(
-                    hintText: "What service do you need?",
+                    hintText: AppLanguage.text("What service do you need?"),
                     hintStyle: TextStyle(
                       color: Color(0xFF64748B),
                       fontSize: 15,
@@ -625,22 +637,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildQuickActionBanner(AppState appState) {
-    String title = "Need something done?";
-    String subtitle = "Post a task & get bids fast";
-    String buttonText = "Post a Task";
+    String title = AppLanguage.text("Need something done?");
+    String subtitle = AppLanguage.text("Post a task & get bids fast");
+    String buttonText = AppLanguage.text("Post a Task");
     VoidCallback? onTap;
 
     if (appState.currentRole == 'Technician') {
-      title = "Ready to work?";
-      subtitle = "Browse active tasks in your area";
-      buttonText = "Find Tasks";
+      title = AppLanguage.text("Ready to work?");
+      subtitle = AppLanguage.text("Browse active tasks in your area");
+      buttonText = AppLanguage.text("Find Tasks");
       onTap = () => Navigator.of(
         context,
       ).push(MaterialPageRoute(builder: (context) => const TaskFeedScreen()));
     } else if (appState.currentRole == 'Company') {
-      title = "Manage your team";
-      subtitle = "Track milestones and escrow payments";
-      buttonText = "Projects";
+      title = AppLanguage.text("Manage your team");
+      subtitle = AppLanguage.text("Track milestones and escrow payments");
+      buttonText = AppLanguage.text("Projects");
       onTap = () => Navigator.of(
         context,
       ).push(MaterialPageRoute(builder: (context) => const MyTasksScreen()));
@@ -676,7 +688,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    AppLanguage.text(title),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -685,7 +697,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    subtitle,
+                    AppLanguage.text(subtitle),
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.8),
                       fontSize: 14,
@@ -709,7 +721,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 elevation: 0,
               ),
               child: Text(
-                buttonText,
+                AppLanguage.text(buttonText),
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
@@ -730,7 +742,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            title,
+            AppLanguage.text(title),
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -740,7 +752,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           GestureDetector(
             onTap: onTap,
             child: Text(
-              linkText,
+              AppLanguage.text(linkText),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -2408,7 +2420,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
       child: Text(
-        title.toUpperCase(),
+        AppLanguage.text(title).toUpperCase(),
         style: const TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
@@ -2430,7 +2442,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return ListTile(
       leading: Icon(icon, color: itemColor, size: 22),
       title: Text(
-        label,
+        AppLanguage.text(label),
         style: TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 15,

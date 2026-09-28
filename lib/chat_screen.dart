@@ -12,6 +12,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'app_state.dart';
+import 'app_language.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({
@@ -275,7 +276,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                     Text(
-                      'Attachment',
+                      AppLanguage.text('Attachment'),
                       style: TextStyle(
                         fontSize: 11,
                         color: isMe ? Colors.white60 : const Color(0xFF94A3B8),
@@ -355,8 +356,8 @@ class _ChatScreenState extends State<ChatScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Attachment Preview',
+                  Text(
+                    AppLanguage.text('Attachment Preview'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -439,8 +440,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         side: const BorderSide(color: Color(0xFFE2E8F0)),
                       ),
-                      child: const Text(
-                        'Close',
+                      child: Text(
+                        AppLanguage.text('Close'),
                         style: TextStyle(color: Color(0xFF64748B)),
                       ),
                     ),
@@ -499,8 +500,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        'Download',
+                      child: Text(
+                        AppLanguage.text('Download'),
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
@@ -595,8 +596,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   child: TextField(
                     controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Type a message...',
+                    decoration: InputDecoration(
+                      hintText: AppLanguage.text('Type a message...'),
                       border: InputBorder.none,
                       hintStyle: TextStyle(
                         fontSize: 15,
@@ -717,8 +718,8 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Share a File',
+            Text(
+              AppLanguage.text('Share a File'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -839,7 +840,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            label,
+            AppLanguage.text(label),
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,

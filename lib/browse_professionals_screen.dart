@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import 'app_state.dart';
 import 'technician_public_profile_screen.dart';
+import 'app_language.dart';
 
 class BrowseProfessionalsScreen extends StatefulWidget {
   const BrowseProfessionalsScreen({super.key});
@@ -38,7 +39,9 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'We could not load professionals right now.';
+          _error = AppLanguage.text(
+            'We could not load professionals right now.',
+          );
         });
       }
     } finally {
@@ -99,8 +102,8 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
               icon: const Icon(Icons.arrow_back, color: Color(0xFF001F3F)),
               onPressed: () => Navigator.pop(context),
             ),
-            title: const Text(
-              "Browse Professionals",
+            title: Text(
+              AppLanguage.text("Browse Professionals"),
               style: TextStyle(
                 color: Color(0xFF001F3F),
                 fontWeight: FontWeight.w600,
@@ -168,7 +171,7 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
             OutlinedButton.icon(
               onPressed: _loadProfessionals,
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              label: Text(AppLanguage.text('Retry')),
             ),
           ],
         ),
@@ -195,8 +198,8 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
               child: TextField(
                 controller: _searchController,
                 onChanged: (val) => setState(() {}),
-                decoration: const InputDecoration(
-                  hintText: "Search by name or skills...",
+                decoration: InputDecoration(
+                  hintText: AppLanguage.text("Search by name or skills..."),
                   hintStyle: TextStyle(color: Color(0xFF64748B), fontSize: 14),
                   border: InputBorder.none,
                 ),
@@ -465,8 +468,8 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
                   ),
                   elevation: 0,
                 ),
-                child: const Text(
-                  "View Profile",
+                child: Text(
+                  AppLanguage.text("View Profile"),
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -486,8 +489,8 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
           children: [
             Icon(Icons.people_outline, size: 76, color: Colors.grey[300]),
             const SizedBox(height: 16),
-            const Text(
-              "No professionals found",
+            Text(
+              AppLanguage.text("No professionals found"),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -495,8 +498,10 @@ class _BrowseProfessionalsScreenState extends State<BrowseProfessionalsScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              "Try searching for another skill category or adjust your keyword query.",
+            Text(
+              AppLanguage.text(
+                "Try searching for another skill category or adjust your keyword query.",
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
