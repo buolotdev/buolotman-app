@@ -4,6 +4,7 @@ import 'app_state.dart';
 import 'core/api_service.dart';
 import 'main_navigation_screen.dart';
 import 'notification_helper.dart';
+import 'app_language.dart';
 
 class OTPScreen extends StatefulWidget {
   final String email;
@@ -124,8 +125,8 @@ class _OTPScreenState extends State<OTPScreen> {
               ),
               if (isForgotPassword) ...[
                 const SizedBox(height: 32),
-                const Text(
-                  "New Password",
+                Text(
+                  AppLanguage.text('New Password'),
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF001F3F),
@@ -136,7 +137,7 @@ class _OTPScreenState extends State<OTPScreen> {
                   controller: _newPasswordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
-                    hintText: 'Enter new password',
+                    hintText: AppLanguage.text('Enter new password'),
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
                     suffixIcon: IconButton(
@@ -156,8 +157,8 @@ class _OTPScreenState extends State<OTPScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  "Confirm New Password",
+                Text(
+                  AppLanguage.text('Confirm New Password'),
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF001F3F),
@@ -168,7 +169,7 @@ class _OTPScreenState extends State<OTPScreen> {
                   controller: _confirmPasswordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
-                    hintText: 'Confirm new password',
+                    hintText: AppLanguage.text('Confirm new password'),
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
                     border: OutlineInputBorder(
@@ -187,8 +188,10 @@ class _OTPScreenState extends State<OTPScreen> {
                     final code = _controllers.map((c) => c.text.trim()).join();
                     if (code.length < _otpLength) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please enter the 6-digit code.'),
+                        SnackBar(
+                          content: Text(
+                            AppLanguage.text('Please enter the 6-digit code.'),
+                          ),
                         ),
                       );
                       return;
@@ -201,8 +204,10 @@ class _OTPScreenState extends State<OTPScreen> {
 
                       if (newPassword.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Please enter a new password.'),
+                          SnackBar(
+                            content: Text(
+                              AppLanguage.text('Please enter a new password.'),
+                            ),
                           ),
                         );
                         return;
@@ -210,8 +215,10 @@ class _OTPScreenState extends State<OTPScreen> {
 
                       if (newPassword != confirmPassword) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Passwords do not match.'),
+                          SnackBar(
+                            content: Text(
+                              AppLanguage.text('Passwords do not match.'),
+                            ),
                           ),
                         );
                         return;
@@ -444,8 +451,12 @@ class _OTPScreenState extends State<OTPScreen> {
                         });
 
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('A new verification code was sent.'),
+                          SnackBar(
+                            content: Text(
+                              AppLanguage.text(
+                                'A new verification code was sent.',
+                              ),
+                            ),
                           ),
                         );
 
@@ -469,8 +480,8 @@ class _OTPScreenState extends State<OTPScreen> {
                       }
                     }
                   },
-                  child: const Text(
-                    "Resend Code",
+                  child: Text(
+                    AppLanguage.text('Resend Code'),
                     style: TextStyle(
                       color: Color(0xFF001F3F),
                       fontWeight: FontWeight.w600,

@@ -72,6 +72,16 @@ class AppLanguage {
       'Back': 'Retour',
       'Next': 'Suivant',
       'Done': 'Terminé',
+      'New Password': 'Nouveau mot de passe',
+      'Enter new password': 'Saisissez le nouveau mot de passe',
+      'Confirm New Password': 'Confirmer le nouveau mot de passe',
+      'Confirm new password': 'Confirmer le nouveau mot de passe',
+      'Please enter the 6-digit code.': 'Saisissez le code à 6 chiffres.',
+      'Please enter a new password.': 'Saisissez un nouveau mot de passe.',
+      'Passwords do not match.': 'Les mots de passe ne correspondent pas.',
+      'A new verification code was sent.':
+          'Un nouveau code de vérification a été envoyé.',
+      'Resend Code': 'Renvoyer le code',
       'Search tasks...': 'Rechercher des tâches...',
       'Search your bids...': 'Rechercher dans vos offres...',
       'Search services and tasks...':
