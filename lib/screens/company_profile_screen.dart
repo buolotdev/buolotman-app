@@ -6,6 +6,7 @@ import '../core/api_service.dart';
 import '../core/username_utils.dart';
 import '../discard_changes.dart';
 import '../attachment_actions.dart';
+import '../app_language.dart';
 
 class CompanyProfileScreen extends StatefulWidget {
   const CompanyProfileScreen({super.key});
@@ -205,9 +206,9 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       child: InteractiveViewer(
         child: Image.network(
           _url(url),
-          errorBuilder: (_, __, ___) => const Padding(
+          errorBuilder: (_, __, ___) => Padding(
             padding: EdgeInsets.all(24),
-            child: Text('Preview unavailable.'),
+            child: Text(AppLanguage.text('Preview unavailable.')),
           ),
         ),
       ),
@@ -400,7 +401,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
         appBar: AppBar(
           backgroundColor: navy,
           foregroundColor: Colors.white,
-          title: const Text('Company profile'),
+          title: Text(AppLanguage.text('Company profile')),
           actions: [
             TextButton(
               onPressed: saving ? null : _save,
@@ -437,7 +438,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                         backgroundColor: orange,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: const Text('Save company profile'),
+                      child: Text(AppLanguage.text('Save company profile')),
                     ),
                   ),
                 ],
@@ -481,7 +482,11 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
             OutlinedButton.icon(
               onPressed: uploadingCover ? null : () => _upload(true),
               icon: const Icon(Icons.image_outlined),
-              label: Text(uploadingCover ? 'Uploading...' : 'Change banner'),
+              label: Text(
+                uploadingCover
+                    ? AppLanguage.text('Uploading...')
+                    : AppLanguage.text('Change banner'),
+              ),
             ),
             const SizedBox(height: 12),
             Row(
@@ -502,7 +507,11 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                 OutlinedButton.icon(
                   onPressed: uploadingLogo ? null : () => _upload(false),
                   icon: const Icon(Icons.camera_alt_outlined),
-                  label: Text(uploadingLogo ? 'Uploading...' : 'Change logo'),
+                  label: Text(
+                    uploadingLogo
+                        ? AppLanguage.text('Uploading...')
+                        : AppLanguage.text('Change logo'),
+                  ),
                 ),
               ],
             ),
@@ -630,7 +639,10 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       ),
       const SizedBox(height: 12),
       if (documents.isEmpty)
-        const Text('No documents uploaded yet.', style: TextStyle(color: muted))
+        Text(
+          AppLanguage.text('No documents uploaded yet.'),
+          style: const TextStyle(color: muted),
+        )
       else
         ...documents.map(
           (doc) => Card(

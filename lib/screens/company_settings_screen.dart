@@ -89,7 +89,7 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (d) => AlertDialog(
-        title: const Text('Change password'),
+        title: Text(AppLanguage.text('Change password')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -103,11 +103,11 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(d, false),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(d, true),
-            child: const Text('Save'),
+            child: Text(AppLanguage.text('Save')),
           ),
         ],
       ),
@@ -142,19 +142,19 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
     final first = await showDialog<bool>(
       context: context,
       builder: (d) => AlertDialog(
-        title: const Text('Delete company account?'),
+        title: Text(AppLanguage.text('Delete company account?')),
         content: const Text(
           'This permanently deletes the account and cannot be undone.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(d, false),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(d, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Continue'),
+            child: Text(AppLanguage.text('Continue')),
           ),
         ],
       ),
@@ -164,23 +164,23 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
     final second = await showDialog<bool>(
       context: context,
       builder: (d) => AlertDialog(
-        title: const Text('Final confirmation'),
+        title: Text(AppLanguage.text('Final confirmation')),
         content: TextField(
           controller: confirm,
-          decoration: const InputDecoration(
-            labelText: 'Type DELETE to confirm',
+          decoration: InputDecoration(
+            labelText: AppLanguage.text('Type DELETE to confirm'),
             border: OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(d, false),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(d, confirm.text.trim() == 'DELETE'),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete permanently'),
+            child: Text(AppLanguage.text('Delete permanently')),
           ),
         ],
       ),
@@ -285,7 +285,7 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
               OutlinedButton.icon(
                 onPressed: _logout,
                 icon: const Icon(Icons.logout),
-                label: const Text('Logout'),
+                label: Text(AppLanguage.text('Logout')),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: navy,
                   padding: const EdgeInsets.symmetric(vertical: 14),
@@ -295,7 +295,7 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
               OutlinedButton.icon(
                 onPressed: _delete,
                 icon: const Icon(Icons.delete_forever_outlined),
-                label: const Text('Delete account permanently'),
+                label: Text(AppLanguage.text('Delete account permanently')),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.red,
                   side: const BorderSide(color: Colors.red),

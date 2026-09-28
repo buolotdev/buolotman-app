@@ -63,38 +63,46 @@ class _CompanyProjectsState extends State<CompanyProjectsScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (d) => AlertDialog(
-        title: const Text('Create project'),
+        title: Text(AppLanguage.text('Create project')),
         content: SingleChildScrollView(
           child: Column(
             children: [
               TextField(
                 controller: title,
-                decoration: const InputDecoration(labelText: 'Project title'),
+                decoration: InputDecoration(
+                  labelText: AppLanguage.text('Project title'),
+                ),
               ),
               TextField(
                 controller: client,
-                decoration: const InputDecoration(labelText: 'Client name'),
+                decoration: InputDecoration(
+                  labelText: AppLanguage.text('Client name'),
+                ),
               ),
               TextField(
                 controller: budget,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(labelText: 'Budget'),
+                decoration: InputDecoration(
+                  labelText: AppLanguage.text('Budget'),
+                ),
               ),
               TextField(
                 controller: timeline,
                 readOnly: true,
                 onTap: pickDeadline,
-                decoration: const InputDecoration(
-                  labelText: 'Deadline',
-                  hintText: 'YYYY-MM-DD',
+                decoration: InputDecoration(
+                  labelText: AppLanguage.text('Deadline'),
+                  hintText: AppLanguage.text('YYYY-MM-DD'),
                   suffixIcon: Icon(Icons.calendar_today_outlined),
                 ),
               ),
               TextField(
                 controller: location,
-                decoration: const InputDecoration(labelText: 'Location'),
+                decoration: InputDecoration(
+                  labelText: AppLanguage.text('Location'),
+                ),
               ),
             ],
           ),
@@ -102,7 +110,7 @@ class _CompanyProjectsState extends State<CompanyProjectsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(d, false),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(
@@ -111,7 +119,7 @@ class _CompanyProjectsState extends State<CompanyProjectsScreen> {
                   client.text.trim().isNotEmpty &&
                   timeline.text.trim().isNotEmpty,
             ),
-            child: const Text('Create'),
+            child: Text(AppLanguage.text('Create')),
           ),
         ],
       ),
@@ -148,7 +156,7 @@ class _CompanyProjectsState extends State<CompanyProjectsScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Company projects'),
+      title: Text(AppLanguage.text('Company projects')),
       foregroundColor: companyNavy,
       backgroundColor: Colors.white,
       actions: [
@@ -165,15 +173,27 @@ class _CompanyProjectsState extends State<CompanyProjectsScreen> {
           padding: const EdgeInsets.all(12),
           child: DropdownButtonFormField<String>(
             initialValue: filter,
-            decoration: const InputDecoration(
-              labelText: 'Status',
+            decoration: InputDecoration(
+              labelText: AppLanguage.text('Status'),
               border: OutlineInputBorder(),
             ),
-            items: const [
-              DropdownMenuItem(value: 'all', child: Text('All projects')),
-              DropdownMenuItem(value: 'pending', child: Text('Pending')),
-              DropdownMenuItem(value: 'active', child: Text('Active')),
-              DropdownMenuItem(value: 'completed', child: Text('Completed')),
+            items: [
+              DropdownMenuItem(
+                value: 'all',
+                child: Text(AppLanguage.text('All projects')),
+              ),
+              DropdownMenuItem(
+                value: 'pending',
+                child: Text(AppLanguage.text('Pending')),
+              ),
+              DropdownMenuItem(
+                value: 'active',
+                child: Text(AppLanguage.text('Active')),
+              ),
+              DropdownMenuItem(
+                value: 'completed',
+                child: Text(AppLanguage.text('Completed')),
+              ),
             ],
             onChanged: (v) {
               filter = v ?? 'all';
@@ -301,7 +321,7 @@ class _CompanyQuotesState extends State<CompanyQuotesScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Quote requests'),
+      title: Text(AppLanguage.text('Quote requests')),
       foregroundColor: companyNavy,
       backgroundColor: Colors.white,
     ),
@@ -382,12 +402,12 @@ class _CompanyQuotesState extends State<CompanyQuotesScreen> {
                         if (!closed)
                           TextButton(
                             onPressed: () => setStatus(q['id'], 'rejected'),
-                            child: const Text('Reject'),
+                            child: Text(AppLanguage.text('Reject')),
                           ),
                         if (!closed)
                           ElevatedButton(
                             onPressed: () => setStatus(q['id'], 'approved'),
-                            child: const Text('Approve'),
+                            child: Text(AppLanguage.text('Approve')),
                           ),
                       ],
                     ),
@@ -421,17 +441,19 @@ class _CompanyTeamState extends State<CompanyTeamScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (d) => AlertDialog(
-        title: const Text('Add team member'),
+        title: Text(AppLanguage.text('Add team member')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: name,
-              decoration: const InputDecoration(labelText: 'Name'),
+              decoration: InputDecoration(labelText: AppLanguage.text('Name')),
             ),
             TextField(
               controller: role,
-              decoration: const InputDecoration(labelText: 'Position / role'),
+              decoration: InputDecoration(
+                labelText: AppLanguage.text('Position / role'),
+              ),
             ),
             TextField(
               controller: email,
@@ -441,14 +463,14 @@ class _CompanyTeamState extends State<CompanyTeamScreen> {
               autocorrect: false,
               enableSuggestions: false,
               autofillHints: const [AutofillHints.email],
-              decoration: const InputDecoration(labelText: 'Email'),
+              decoration: InputDecoration(labelText: AppLanguage.text('Email')),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(d, false),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(
@@ -457,7 +479,7 @@ class _CompanyTeamState extends State<CompanyTeamScreen> {
                   role.text.trim().isNotEmpty &&
                   email.text.trim().isNotEmpty,
             ),
-            child: const Text('Add'),
+            child: Text(AppLanguage.text('Add')),
           ),
         ],
       ),
@@ -494,7 +516,7 @@ class _CompanyTeamState extends State<CompanyTeamScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Team'),
+      title: Text(AppLanguage.text('Team')),
       foregroundColor: companyNavy,
       backgroundColor: Colors.white,
       actions: [
@@ -687,15 +709,15 @@ class _CompanyProjectDetailsState extends State<CompanyProjectDetailsScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Update project progress'),
+          title: Text(AppLanguage.text('Update project progress')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: progress,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Completion percentage',
+                decoration: InputDecoration(
+                  labelText: AppLanguage.text('Completion percentage'),
                 ),
               ),
               const SizedBox(height: 10),
@@ -709,17 +731,25 @@ class _CompanyProjectDetailsState extends State<CompanyProjectDetailsScreen> {
                     ].contains(selectedStatus)
                     ? selectedStatus
                     : 'pending',
-                decoration: const InputDecoration(labelText: 'Status'),
-                items: const [
-                  DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                  DropdownMenuItem(value: 'active', child: Text('Active')),
+                decoration: InputDecoration(
+                  labelText: AppLanguage.text('Status'),
+                ),
+                items: [
+                  DropdownMenuItem(
+                    value: 'pending',
+                    child: Text(AppLanguage.text('Pending')),
+                  ),
+                  DropdownMenuItem(
+                    value: 'active',
+                    child: Text(AppLanguage.text('Active')),
+                  ),
                   DropdownMenuItem(
                     value: 'completed',
-                    child: Text('Completed'),
+                    child: Text(AppLanguage.text('Completed')),
                   ),
                   DropdownMenuItem(
                     value: 'cancelled',
-                    child: Text('Cancelled'),
+                    child: Text(AppLanguage.text('Cancelled')),
                   ),
                 ],
                 onChanged: (value) =>
@@ -730,7 +760,7 @@ class _CompanyProjectDetailsState extends State<CompanyProjectDetailsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(AppLanguage.text('Cancel')),
             ),
             FilledButton(
               onPressed: () {
@@ -741,7 +771,7 @@ class _CompanyProjectDetailsState extends State<CompanyProjectDetailsScreen> {
                   'status': selectedStatus,
                 });
               },
-              child: const Text('Save'),
+              child: Text(AppLanguage.text('Save')),
             ),
           ],
         ),
@@ -755,7 +785,7 @@ class _CompanyProjectDetailsState extends State<CompanyProjectDetailsScreen> {
     final p = project;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Project details'),
+        title: Text(AppLanguage.text('Project details')),
         foregroundColor: companyNavy,
         backgroundColor: Colors.white,
       ),
@@ -787,7 +817,11 @@ class _CompanyProjectDetailsState extends State<CompanyProjectDetailsScreen> {
           FilledButton.icon(
             onPressed: saving ? null : editProgress,
             icon: const Icon(Icons.edit_outlined),
-            label: Text(saving ? 'Saving...' : 'Update progress'),
+            label: Text(
+              saving
+                  ? AppLanguage.text('Saving...')
+                  : AppLanguage.text('Update progress'),
+            ),
             style: FilledButton.styleFrom(backgroundColor: companyOrange),
           ),
           const SizedBox(height: 10),
@@ -806,7 +840,7 @@ class _CompanyProjectDetailsState extends State<CompanyProjectDetailsScreen> {
                 ),
               ),
               icon: const Icon(Icons.message_outlined),
-              label: const Text('Message client'),
+              label: Text(AppLanguage.text('Message client')),
             ),
         ],
       ),

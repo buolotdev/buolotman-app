@@ -384,7 +384,7 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
                         pricing = 'Quote-based';
                         status = 'Active';
                       }),
-                child: const Text('Cancel editing'),
+                child: Text(AppLanguage.text('Cancel editing')),
               ),
             ),
           ],
@@ -496,7 +496,7 @@ class _CompanyServicesScreenState extends State<CompanyServicesScreen> {
                 const Spacer(),
                 TextButton(
                   onPressed: () => _editService(Map<String, dynamic>.from(s)),
-                  child: const Text('Edit'),
+                  child: Text(AppLanguage.text('Edit')),
                 ),
                 TextButton(
                   onPressed: () => current == 'Active'
