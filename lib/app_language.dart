@@ -82,6 +82,10 @@ class AppLanguage {
       'A new verification code was sent.':
           'Un nouveau code de vérification a été envoyé.',
       'Resend Code': 'Renvoyer le code',
+      'Continue': 'Continuer',
+      'Please enter your email.': 'Saisissez votre e-mail.',
+      'Please enter a valid email address.':
+          'Saisissez une adresse e-mail valide.',
       'Search tasks...': 'Rechercher des tâches...',
       'Search your bids...': 'Rechercher dans vos offres...',
       'Search services and tasks...':

@@ -6,6 +6,7 @@ import 'signup_screen.dart';
 import 'main_navigation_screen.dart';
 import 'google_role_selection_screen.dart';
 import 'otp_screen.dart';
+import 'app_language.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -66,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: recoveryController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  hintText: 'Email',
+                  hintText: AppLanguage.text('Email'),
                   filled: true,
                   fillColor: const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(
@@ -84,7 +85,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (email.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Please enter your email.'),
+                          content: Text(
+                            AppLanguage.text('Please enter your email.'),
+                          ),
                         ),
                       );
                       return;
@@ -92,7 +95,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (!email.contains('@')) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Please enter a valid email address.'),
+                          content: Text(
+                            AppLanguage.text(
+                              'Please enter a valid email address.',
+                            ),
+                          ),
                         ),
                       );
                       return;
@@ -151,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('Continue'),
+                  child: Text(AppLanguage.text('Continue')),
                 ),
               ),
             ],
