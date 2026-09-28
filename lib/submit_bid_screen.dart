@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_language.dart';
 import 'package:get/get.dart';
 
 import 'app_state.dart';
@@ -231,7 +232,9 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
     final amount = double.tryParse(amountText) ?? 0.0;
     if (amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid bid amount.')),
+        SnackBar(
+          content: Text(AppLanguage.text('Please enter a valid bid amount.')),
+        ),
       );
       return;
     }
@@ -239,7 +242,9 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
     final message = _messageController.text.trim();
     if (message.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please write a pitch or message.')),
+        SnackBar(
+          content: Text(AppLanguage.text('Please write a pitch or message.')),
+        ),
       );
       return;
     }
@@ -265,7 +270,9 @@ class _SubmitBidScreenState extends State<SubmitBidScreen> {
       if (context.mounted) {
         Navigator.of(context).pop(); // Dismiss loading
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Bid submitted successfully.')),
+          SnackBar(
+            content: Text(AppLanguage.text('Bid submitted successfully.')),
+          ),
         );
         Navigator.pop(context);
       }

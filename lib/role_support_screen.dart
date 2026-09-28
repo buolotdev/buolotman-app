@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/api_service.dart';
+import 'app_language.dart';
 
 class RoleSupportScreen extends StatefulWidget {
   const RoleSupportScreen({super.key, required this.role});
@@ -21,21 +22,23 @@ class _RoleSupportScreenState extends State<RoleSupportScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('New support ticket'),
+        title: Text(AppLanguage.text('New support ticket')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: subject,
-              decoration: const InputDecoration(labelText: 'Subject'),
+              decoration: InputDecoration(
+                labelText: AppLanguage.text('Subject'),
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: body,
               minLines: 3,
               maxLines: 6,
-              decoration: const InputDecoration(
-                labelText: 'Describe the issue',
+              decoration: InputDecoration(
+                labelText: AppLanguage.text('Describe the issue'),
               ),
             ),
           ],
@@ -43,11 +46,11 @@ class _RoleSupportScreenState extends State<RoleSupportScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Submit'),
+            child: Text(AppLanguage.text('Submit')),
           ),
         ],
       ),
@@ -61,7 +64,9 @@ class _RoleSupportScreenState extends State<RoleSupportScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Support ticket submitted.')),
+          SnackBar(
+            content: Text(AppLanguage.text('Support ticket submitted.')),
+          ),
         );
         reload();
       }
@@ -78,16 +83,16 @@ class _RoleSupportScreenState extends State<RoleSupportScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reply to support'),
+        title: Text(AppLanguage.text('Reply to support')),
         content: TextField(controller: body, minLines: 3, maxLines: 6),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Send'),
+            child: Text(AppLanguage.text('Send')),
           ),
         ],
       ),
@@ -96,9 +101,9 @@ class _RoleSupportScreenState extends State<RoleSupportScreen> {
     try {
       await api.replySupportTicket(id, body.text.trim());
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Reply sent.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLanguage.text('Reply sent.'))),
+        );
         reload();
       }
     } catch (e) {
@@ -121,7 +126,7 @@ class _RoleSupportScreenState extends State<RoleSupportScreen> {
     floatingActionButton: FloatingActionButton.extended(
       onPressed: createTicket,
       backgroundColor: const Color(0xFFFF4500),
-      label: const Text('New ticket'),
+      label: Text(AppLanguage.text('New ticket')),
       icon: const Icon(Icons.add),
     ),
     body: FutureBuilder<List<dynamic>>(
@@ -131,12 +136,16 @@ class _RoleSupportScreenState extends State<RoleSupportScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError)
-          return const Center(
-            child: Text('Support is temporarily unavailable.'),
+          return Center(
+            child: Text(
+              AppLanguage.text('Support is temporarily unavailable.'),
+            ),
           );
         final items = snapshot.data ?? const [];
         if (items.isEmpty)
-          return const Center(child: Text('No support tickets yet.'));
+          return Center(
+            child: Text(AppLanguage.text('No support tickets yet.')),
+          );
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: items.length,
