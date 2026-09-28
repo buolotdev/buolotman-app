@@ -4,6 +4,7 @@ import 'technician_bids_management_screen.dart';
 import 'technician_dashboard_screen.dart';
 import 'technician_profile_details_screen.dart';
 import 'technician_wallet_screen.dart';
+import '../app_language.dart';
 
 const technicianNavy = Color(0xFF001F3F);
 const technicianOrange = Color(0xFFFF4500);
@@ -62,22 +63,22 @@ class TechnicianBottomNavigation extends StatelessWidget {
         // theme above makes that fallback visually neutral.
         selectedIndex: selectedIndex?.clamp(0, 3) ?? 0,
         onDestinationSelected: (index) => _open(context, index),
-        destinations: const [
+        destinations: [
           NavigationDestination(
             icon: Icon(Icons.grid_view_rounded),
-            label: 'Feed',
+            label: AppLanguage.text('Feed'),
           ),
           NavigationDestination(
             icon: Icon(Icons.assignment_outlined),
-            label: 'Bids',
+            label: AppLanguage.text('Bids'),
           ),
           NavigationDestination(
             icon: Icon(Icons.account_balance_wallet_outlined),
-            label: 'Wallet',
+            label: AppLanguage.text('Wallet'),
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
-            label: 'Profile',
+            label: AppLanguage.text('Profile'),
           ),
         ],
       ),

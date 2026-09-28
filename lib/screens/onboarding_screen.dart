@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
+import '../app_language.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -72,7 +73,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                       const SizedBox(height: 36),
                       Text(
-                        _items[index].$2,
+                        AppLanguage.text(_items[index].$2),
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 28,
@@ -82,7 +83,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                       const SizedBox(height: 14),
                       Text(
-                        _items[index].$3,
+                        AppLanguage.text(_items[index].$3),
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 16,
@@ -102,7 +103,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: ElevatedButton(
                   onPressed: _next,
                   child: Text(
-                    _page == _items.length - 1 ? 'Get started' : 'Continue',
+                    AppLanguage.text(
+                      _page == _items.length - 1 ? 'Get started' : 'Continue',
+                    ),
                   ),
                 ),
               ),

@@ -12,6 +12,16 @@ class AppLanguage {
   static const _translations = <String, Map<String, String>>{
     'fr': {
       'Dashboard': 'Tableau de bord',
+      'Post tasks easily': 'Publiez facilement des tâches',
+      'Describe what you need done and receive bids from qualified professionals.':
+          'Décrivez votre besoin et recevez des offres de professionnels qualifiés.',
+      'Hire trusted professionals': 'Engagez des professionnels de confiance',
+      'Connect with skilled experts ready to get your job done efficiently.':
+          'Connectez-vous à des experts qualifiés prêts à réaliser votre tâche efficacement.',
+      'Secure payments': 'Paiements sécurisés',
+      'Your funds stay protected until the task is completed to your satisfaction.':
+          'Vos fonds restent protégés jusqu’à la fin de la tâche à votre satisfaction.',
+      'Get started': 'Commencer',
       'Choose task location': 'Choisir le lieu de la tâche',
       'Search city, address, or landmark':
           'Rechercher une ville, adresse ou lieu remarquable',
