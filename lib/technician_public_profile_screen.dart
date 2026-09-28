@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'api_service.dart';
 import 'app_state.dart';
 import 'chat_screen.dart';
+import 'app_language.dart';
 
 class TechnicianPublicProfileScreen extends StatefulWidget {
   final String name;
@@ -870,7 +871,7 @@ class _TechnicianPublicProfileScreenState
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              label,
+              AppLanguage.text(label),
               style: const TextStyle(color: Color(0xFF001F3F)),
             ),
           ),
@@ -1186,7 +1187,7 @@ class _TechnicianPublicProfileScreenState
                         backgroundColor: const Color(0xFFFF5500),
                         foregroundColor: Colors.white,
                       ),
-                      child: const Text("Send Offer"),
+                      child: Text(AppLanguage.text("Send Offer")),
                     ),
                   ],
                 ),
@@ -1197,8 +1198,8 @@ class _TechnicianPublicProfileScreenState
               size: 18,
               color: Color(0xFFFF5500),
             ),
-            label: const Text(
-              "Hire Now",
+            label: Text(
+              AppLanguage.text("Hire Now"),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -1220,7 +1221,7 @@ class _TechnicianPublicProfileScreenState
 
   Widget _buildSectionHeader(String title) {
     return Text(
-      title,
+      AppLanguage.text(title),
       style: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
@@ -1242,7 +1243,7 @@ class _TechnicianPublicProfileScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  label,
+                  AppLanguage.text(label),
                   style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xFF64748B),
@@ -1357,7 +1358,7 @@ class _TechnicianPublicProfileScreenState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                title,
+                AppLanguage.text(title),
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: isVerified ? FontWeight.w600 : FontWeight.w500,
@@ -1368,7 +1369,7 @@ class _TechnicianPublicProfileScreenState
               ),
               const SizedBox(height: 4),
               Text(
-                subtitle,
+                AppLanguage.text(subtitle),
                 style: TextStyle(
                   fontSize: 12,
                   color: isVerified

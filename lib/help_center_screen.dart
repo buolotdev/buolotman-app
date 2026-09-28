@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'app_state.dart';
 import 'chat_screen.dart';
+import 'app_language.dart';
 
 class HelpCenterScreen extends StatefulWidget {
   const HelpCenterScreen({super.key});
@@ -212,8 +213,8 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
               icon: const Icon(Icons.arrow_back, color: Color(0xFF001F3F)),
               onPressed: () => Navigator.pop(context),
             ),
-            title: const Text(
-              'Help Center',
+            title: Text(
+              AppLanguage.text('Help Center'),
               style: TextStyle(
                 color: Color(0xFF001F3F),
                 fontWeight: FontWeight.w600,
@@ -231,11 +232,11 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
               ),
               isScrollable: true,
               tabAlignment: TabAlignment.start,
-              tabs: const [
-                Tab(text: 'FAQs'),
-                Tab(text: 'Guides'),
-                Tab(text: 'Policies'),
-                Tab(text: 'Safety'),
+              tabs: [
+                Tab(text: AppLanguage.text('FAQs')),
+                Tab(text: AppLanguage.text('Guides')),
+                Tab(text: AppLanguage.text('Policies')),
+                Tab(text: AppLanguage.text('Safety')),
               ],
             ),
           ),
@@ -296,18 +297,18 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
             child: TextField(
               controller: _searchController,
               onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(
-                hintText: 'Search FAQs...',
+              decoration: InputDecoration(
+                hintText: AppLanguage.text('Search FAQs...'),
                 border: InputBorder.none,
                 icon: Icon(Icons.search, color: Color(0xFF64748B)),
               ),
             ),
           ),
         ),
-        const Padding(
+        Padding(
           padding: EdgeInsets.fromLTRB(20, 24, 20, 12),
           child: Text(
-            'Frequently Asked Questions',
+            AppLanguage.text('Frequently Asked Questions'),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -349,8 +350,8 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const Text(
-          'Step-by-Step Guides',
+        Text(
+          AppLanguage.text('Step-by-Step Guides'),
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -358,8 +359,10 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
           ),
         ),
         const SizedBox(height: 4),
-        const Text(
-          'Everything you need to get the most out of Boulot Man.',
+        Text(
+          AppLanguage.text(
+            'Everything you need to get the most out of Boulot Man.',
+          ),
           style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
         ),
         const SizedBox(height: 16),
@@ -405,7 +408,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    guide['title'] as String,
+                    AppLanguage.text(guide['title'] as String),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -414,7 +417,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    guide['desc'] as String,
+                    AppLanguage.text(guide['desc'] as String),
                     style: const TextStyle(
                       fontSize: 12,
                       color: Color(0xFF64748B),
@@ -482,7 +485,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
                           const SizedBox(width: 14),
                           Expanded(
                             child: Text(
-                              guide['title'] as String,
+                              AppLanguage.text(guide['title'] as String),
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
@@ -494,15 +497,15 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        guide['desc'] as String,
+                        AppLanguage.text(guide['desc'] as String),
                         style: const TextStyle(
                           fontSize: 13,
                           color: Color(0xFF64748B),
                         ),
                       ),
                       const SizedBox(height: 24),
-                      const Text(
-                        'Steps',
+                      Text(
+                        AppLanguage.text('Steps'),
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -569,8 +572,8 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const Text(
-          'Platform Policies',
+        Text(
+          AppLanguage.text('Platform Policies'),
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -578,8 +581,10 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
           ),
         ),
         const SizedBox(height: 4),
-        const Text(
-          'Legal terms and conditions governing use of Boulot Man.',
+        Text(
+          AppLanguage.text(
+            'Legal terms and conditions governing use of Boulot Man.',
+          ),
           style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
         ),
         const SizedBox(height: 16),
@@ -618,7 +623,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
             const SizedBox(width: 14),
             Expanded(
               child: Text(
-                policy['title'] as String,
+                AppLanguage.text(policy['title'] as String),
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -668,7 +673,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      policy['title'] as String,
+                      AppLanguage.text(policy['title'] as String),
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -684,7 +689,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
                   controller: scrollCtrl,
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
                   child: Text(
-                    policy['content'] as String,
+                    AppLanguage.text(policy['content'] as String),
                     style: const TextStyle(
                       fontSize: 14,
                       color: Color(0xFF334155),
@@ -724,9 +729,9 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
-                      'Safety First',
+                      AppLanguage.text('Safety First'),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -735,7 +740,9 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
                     ),
                     SizedBox(height: 6),
                     Text(
-                      'Follow these rules to keep every transaction safe and secure on Boulot Man.',
+                      AppLanguage.text(
+                        'Follow these rules to keep every transaction safe and secure on Boulot Man.',
+                      ),
                       style: TextStyle(
                         color: Colors.white70,
                         fontSize: 13,
@@ -793,7 +800,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  rule['title'] as String,
+                  AppLanguage.text(rule['title'] as String),
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -802,7 +809,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  rule['desc'] as String,
+                  AppLanguage.text(rule['desc'] as String),
                   style: const TextStyle(
                     fontSize: 13,
                     color: Color(0xFF64748B),
@@ -833,8 +840,8 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
         ),
         child: Column(
           children: [
-            const Text(
-              'Still need help?',
+            Text(
+              AppLanguage.text('Still need help?'),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -842,8 +849,10 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
-              'Our support team is available 24/7 to assist you.',
+            Text(
+              AppLanguage.text(
+                'Our support team is available 24/7 to assist you.',
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
             ),
@@ -865,7 +874,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen>
                 );
               },
               icon: const Icon(Icons.chat_bubble_outline, size: 18),
-              label: const Text('Chat with Support'),
+              label: Text(AppLanguage.text('Chat with Support')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF4500),
                 foregroundColor: Colors.white,
