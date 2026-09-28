@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import '../app_language.dart';
 import '../core/api_service.dart';
 import 'technician_navigation.dart';
 
@@ -82,19 +83,23 @@ class _ServicesState extends State<TechnicianServicesScreen> {
       context: context,
       builder: (dialog) => StatefulBuilder(
         builder: (_, setDialog) => AlertDialog(
-          title: Text(item == null ? 'New service' : 'Edit service'),
+          title: Text(
+            AppLanguage.text(item == null ? 'New service' : 'Edit service'),
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(height: 8),
-                _field(title, 'Service title'),
+                _field(title, AppLanguage.text('Service title')),
                 if (categories.isEmpty)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(bottom: 12),
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: Text('Loading service categories...'),
+                      child: Text(
+                        AppLanguage.text('Loading service categories...'),
+                      ),
                     ),
                   )
                 else
@@ -107,8 +112,8 @@ class _ServicesState extends State<TechnicianServicesScreen> {
                           )
                           ? categoryId
                           : null,
-                      decoration: const InputDecoration(
-                        labelText: 'Category',
+                      decoration: InputDecoration(
+                        labelText: AppLanguage.text('Category'),
                         border: OutlineInputBorder(),
                       ),
                       items: categories
@@ -130,12 +135,18 @@ class _ServicesState extends State<TechnicianServicesScreen> {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: DropdownButtonFormField<String>(
                     initialValue: type,
-                    decoration: const InputDecoration(
-                      labelText: 'Service type',
+                    decoration: InputDecoration(
+                      labelText: AppLanguage.text('Service type'),
                     ),
-                    items: const [
-                      DropdownMenuItem(value: 'onsite', child: Text('On-site')),
-                      DropdownMenuItem(value: 'remote', child: Text('Remote')),
+                    items: [
+                      DropdownMenuItem(
+                        value: 'onsite',
+                        child: Text(AppLanguage.text('On-site')),
+                      ),
+                      DropdownMenuItem(
+                        value: 'remote',
+                        child: Text(AppLanguage.text('Remote')),
+                      ),
                     ],
                     onChanged: (v) => setDialog(() => type = v ?? 'onsite'),
                   ),
@@ -144,13 +155,22 @@ class _ServicesState extends State<TechnicianServicesScreen> {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: DropdownButtonFormField<String>(
                     initialValue: pricing,
-                    decoration: const InputDecoration(
-                      labelText: 'Pricing model',
+                    decoration: InputDecoration(
+                      labelText: AppLanguage.text('Pricing model'),
                     ),
-                    items: const [
-                      DropdownMenuItem(value: 'fixed', child: Text('Fixed')),
-                      DropdownMenuItem(value: 'hourly', child: Text('Hourly')),
-                      DropdownMenuItem(value: 'range', child: Text('Range')),
+                    items: [
+                      DropdownMenuItem(
+                        value: 'fixed',
+                        child: Text(AppLanguage.text('Fixed')),
+                      ),
+                      DropdownMenuItem(
+                        value: 'hourly',
+                        child: Text(AppLanguage.text('Hourly')),
+                      ),
+                      DropdownMenuItem(
+                        value: 'range',
+                        child: Text(AppLanguage.text('Range')),
+                      ),
                     ],
                     onChanged: (v) => setDialog(() => pricing = v ?? 'fixed'),
                   ),
@@ -172,7 +192,7 @@ class _ServicesState extends State<TechnicianServicesScreen> {
                   ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Active / visible listing'),
+                  title: Text(AppLanguage.text('Active / visible listing')),
                   value: active,
                   activeThumbColor: orange,
                   onChanged: (v) => setDialog(() => active = v),
@@ -204,7 +224,9 @@ class _ServicesState extends State<TechnicianServicesScreen> {
                     setDialog(() {});
                   },
                   icon: const Icon(Icons.attach_file),
-                  label: const Text('Add images, videos, or documents'),
+                  label: Text(
+                    AppLanguage.text('Add images, videos, or documents'),
+                  ),
                 ),
                 ...media.map(
                   (m) => ListTile(
@@ -225,11 +247,11 @@ class _ServicesState extends State<TechnicianServicesScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialog),
-              child: const Text('Cancel'),
+              child: Text(AppLanguage.text('Cancel')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(dialog, true),
-              child: const Text('Save'),
+              child: Text(AppLanguage.text('Save')),
             ),
           ],
         ),
@@ -237,7 +259,7 @@ class _ServicesState extends State<TechnicianServicesScreen> {
     );
     if (ok != true) return;
     if (title.text.trim().isEmpty) {
-      _notice('Please enter a service title.');
+      _notice(AppLanguage.text('Please enter a service title.'));
       return;
     }
     if (categories.isEmpty || categoryId == null) {
@@ -350,7 +372,7 @@ class _ServicesState extends State<TechnicianServicesScreen> {
     backgroundColor: bg,
     bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: 0),
     appBar: AppBar(
-      title: const Text('My Services'),
+      title: Text(AppLanguage.text('My Services')),
       foregroundColor: navy,
       backgroundColor: Colors.white,
       actions: [

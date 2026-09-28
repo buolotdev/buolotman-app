@@ -12,7 +12,6 @@ class AppLanguage {
   static const _translations = <String, Map<String, String>>{
     'fr': {
       'Dashboard': 'Tableau de bord',
-      'Technician Feed': 'Espace technicien',
       'Dashboard overview': 'Vue d’ensemble du tableau de bord',
       'Manage profile': 'Gérer le profil',
       'View wallet': 'Voir le portefeuille',
@@ -128,6 +127,22 @@ class AppLanguage {
       'Add a Service': 'Ajouter un service',
       'Post a Service': 'Publier un service',
       'Service name': 'Nom du service',
+      'New service': 'Nouveau service',
+      'Edit service': 'Modifier le service',
+      'Service title': 'Titre du service',
+      'Loading service categories...':
+          'Chargement des catégories de services...',
+      'Service type': 'Type de service',
+      'On-site': 'Sur site',
+      'Remote': 'À distance',
+      'Fixed': 'Fixe',
+      'Hourly': 'Horaire',
+      'Range': 'Fourchette',
+      'Active / visible listing': 'Annonce active / visible',
+      'Add images, videos, or documents':
+          'Ajouter des images, vidéos ou documents',
+      'Please enter a service title.': 'Saisissez le titre du service.',
+      'My Services': 'Mes services',
       'Description': 'Description',
       'Category': 'Catégorie',
       'Select Category': 'Sélectionner une catégorie',
@@ -172,6 +187,35 @@ class AppLanguage {
       'Funds secured in escrow!': 'Fonds sécurisés sous séquestre !',
       'Payment released successfully!': 'Paiement libéré avec succès !',
       'Escrow released!': 'Séquestre libéré !',
+      'Client dashboard': 'Tableau de bord client',
+      'Company dashboard': 'Tableau de bord entreprise',
+      'Welcome': 'Bienvenue',
+      'Find trusted professionals and manage your projects.':
+          'Trouvez des professionnels fiables et gérez vos projets.',
+      'Post a task': 'Publier une tâche',
+      'Posting locked': 'Publication verrouillée',
+      'Task': 'Tâche',
+      'draft': 'Brouillon',
+      'Location not specified': 'Lieu non indiqué',
+      'bids': 'offres',
+      'Home': 'Accueil',
+      'Search tasks or cities': 'Rechercher des tâches ou des villes',
+      'This notification has no linked page.':
+          'Cette notification n’a aucune page associée.',
+      'Task posting is locked until an administrator verifies your account.':
+          'La publication de tâches est verrouillée jusqu’à la vérification de votre compte.',
+      'Dashboard data unavailable': 'Données du tableau de bord indisponibles',
+      'Check your connection and try again.':
+          'Vérifiez votre connexion et réessayez.',
+      'Your company account is verified.':
+          'Votre compte entreprise est vérifié.',
+      'Your company account is pending admin verification.':
+          'Votre compte entreprise est en attente de vérification administrative.',
+      'New project': 'Nouveau projet',
+      'Create project': 'Créer un projet',
+      'Project publishing unlocks after admin verification.':
+          'La publication de projets sera disponible après vérification administrative.',
+      'Technician Feed': 'Espace technicien',
     },
   };
 
