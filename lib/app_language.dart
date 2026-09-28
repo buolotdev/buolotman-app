@@ -12,6 +12,18 @@ class AppLanguage {
   static const _translations = <String, Map<String, String>>{
     'fr': {
       'Dashboard': 'Tableau de bord',
+      'Delete document?': 'Supprimer le document ?',
+      'You can upload a replacement later.':
+          'Vous pourrez téléverser un remplacement plus tard.',
+      'Verification documents': 'Documents de vérification',
+      'Each document is reviewed separately by an administrator.':
+          'Chaque document est examiné séparément par un administrateur.',
+      'Submit for admin review': 'Soumettre à l’examen de l’administrateur',
+      'Accepted: JPG, JPEG, PNG, WEBP, GIF, PDF • Maximum 25 MB per file':
+          'Acceptés : JPG, JPEG, PNG, WEBP, GIF, PDF • Maximum 25 Mo par fichier',
+      'Verified by administrator': 'Vérifié par l’administrateur',
+      'Verification pending\nUpload documents for administrator review.':
+          'Vérification en attente\nTéléversez les documents pour examen.',
       'Search projects, clients or locations':
           'Rechercher des projets, clients ou lieux',
       'Withdraw bid?': 'Retirer l’offre ?',

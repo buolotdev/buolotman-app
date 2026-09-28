@@ -4,6 +4,7 @@ import '../core/api_service.dart';
 import '../discard_changes.dart';
 import '../attachment_actions.dart';
 import 'technician_navigation.dart';
+import '../app_language.dart';
 
 class TechnicianProfileScreen extends StatefulWidget {
   const TechnicianProfileScreen({super.key});
@@ -86,8 +87,9 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
     'webp',
     'gif',
   ].contains(name.toLowerCase().split('.').last);
-  void _notice(String text) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  void _notice(String text) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(AppLanguage.text(text))));
   Future<void> _pickFromDevice(String key) async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
@@ -210,16 +212,16 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Delete document?'),
-        content: const Text('You can upload a replacement later.'),
+        title: Text(AppLanguage.text('Delete document?')),
+        content: Text(AppLanguage.text('You can upload a replacement later.')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: Text(AppLanguage.text('Delete')),
           ),
         ],
       ),
@@ -254,7 +256,7 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
       backgroundColor: const Color(0xFFF4F6F8),
       bottomNavigationBar: const TechnicianBottomNavigation(selectedIndex: 3),
       appBar: AppBar(
-        title: const Text('Verification'),
+        title: Text(AppLanguage.text('Verification')),
         backgroundColor: Colors.white,
         foregroundColor: navy,
         elevation: 0,
@@ -266,8 +268,8 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
               children: [
                 _status(),
                 const SizedBox(height: 18),
-                const Text(
-                  'Verification documents',
+                Text(
+                  AppLanguage.text('Verification documents'),
                   style: TextStyle(
                     color: navy,
                     fontSize: 22,
@@ -275,8 +277,10 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  'Each document is reviewed separately by an administrator.',
+                Text(
+                  AppLanguage.text(
+                    'Each document is reviewed separately by an administrator.',
+                  ),
                   style: TextStyle(color: muted),
                 ),
                 const SizedBox(height: 14),
@@ -289,12 +293,16 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
                     minimumSize: const Size.fromHeight(52),
                   ),
                   child: Text(
-                    submitting ? 'Submitting...' : 'Submit for admin review',
+                    submitting
+                        ? AppLanguage.text('Submitting...')
+                        : AppLanguage.text('Submit for admin review'),
                   ),
                 ),
                 const SizedBox(height: 18),
-                const Text(
-                  'Accepted: JPG, JPEG, PNG, WEBP, GIF, PDF • Maximum 25 MB per file',
+                Text(
+                  AppLanguage.text(
+                    'Accepted: JPG, JPEG, PNG, WEBP, GIF, PDF • Maximum 25 MB per file',
+                  ),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: muted, fontSize: 12),
                 ),
@@ -325,8 +333,10 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
                 Expanded(
                   child: Text(
                     verified
-                        ? 'Verified by administrator'
-                        : 'Verification pending\nUpload documents for administrator review.',
+                        ? AppLanguage.text('Verified by administrator')
+                        : AppLanguage.text(
+                            'Verification pending\nUpload documents for administrator review.',
+                          ),
                     style: const TextStyle(
                       color: navy,
                       fontWeight: FontWeight.w600,
@@ -364,7 +374,7 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    slot.$2,
+                    AppLanguage.text(slot.$2),
                     style: const TextStyle(
                       color: navy,
                       fontWeight: FontWeight.w600,
@@ -375,7 +385,10 @@ class _TechnicianProfileScreenState extends State<TechnicianProfileScreen> {
               ],
             ),
             const SizedBox(height: 5),
-            Text(slot.$3, style: const TextStyle(color: muted, fontSize: 12)),
+            Text(
+              AppLanguage.text(slot.$3),
+              style: const TextStyle(color: muted, fontSize: 12),
+            ),
             const SizedBox(height: 10),
             if (file != null) _local(file) else if (doc != null) _remote(doc),
             Row(
