@@ -378,7 +378,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
     }
     if (description.length < 30) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
             "Please provide a longer description (min 30 characters).",
           ),
