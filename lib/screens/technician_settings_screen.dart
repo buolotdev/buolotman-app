@@ -120,7 +120,7 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
         'available_now': availableForJobs,
         'language_preference': AppLanguage.current.value,
       });
-      _notice('Settings saved successfully.');
+      _notice(AppLanguage.text('Settings saved successfully.'));
     } catch (e) {
       _notice('We could not save settings. Please check your details.');
     } finally {
@@ -144,7 +144,7 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
       currentPassword.clear();
       newPassword.clear();
       confirmPassword.clear();
-      _notice('Password changed successfully.');
+      _notice(AppLanguage.text('Password changed successfully.'));
     } catch (_) {
       _notice('We could not change the password. Check your current password.');
     } finally {
@@ -213,7 +213,7 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Settings'),
+      title: Text(AppLanguage.text('Settings')),
       backgroundColor: Colors.white,
       foregroundColor: navy,
     ),
@@ -349,7 +349,11 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
                 child: FilledButton.icon(
                   onPressed: saving ? null : _save,
                   icon: const Icon(Icons.save_outlined),
-                  label: Text(saving ? 'Saving...' : 'Save settings'),
+                  label: Text(
+                    saving
+                        ? AppLanguage.text('Saving...')
+                        : AppLanguage.text('Save settings'),
+                  ),
                   style: FilledButton.styleFrom(
                     backgroundColor: orange,
                     padding: const EdgeInsets.symmetric(vertical: 15),

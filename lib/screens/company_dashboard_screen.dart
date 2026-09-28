@@ -10,6 +10,7 @@ import 'server_notifications_screen.dart';
 import '../role_support_screen.dart';
 import 'company_tasks_screen.dart';
 import '../browse_professionals_screen.dart';
+import '../app_language.dart';
 
 class CompanyDashboardScreen extends StatefulWidget {
   const CompanyDashboardScreen({super.key});
@@ -537,22 +538,22 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
           setState(() => tab = i);
         }
       },
-      destinations: const [
+      destinations: [
         NavigationDestination(
           icon: Icon(Icons.dashboard_outlined),
-          label: 'Home',
+          label: AppLanguage.text('Dashboard'),
         ),
         NavigationDestination(
           icon: Icon(Icons.folder_open_outlined),
-          label: 'Projects',
+          label: AppLanguage.text('Projects'),
         ),
         NavigationDestination(
           icon: Icon(Icons.message_outlined),
-          label: 'Messages',
+          label: AppLanguage.text('Messages'),
         ),
         NavigationDestination(
           icon: Icon(Icons.business_outlined),
-          label: 'Profile',
+          label: AppLanguage.text('Profile'),
         ),
       ],
     ),

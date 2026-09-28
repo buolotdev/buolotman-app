@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../app_language.dart';
 import '../core/api_service.dart';
 import 'client_messaging_screen.dart';
 import '../phone_validation.dart';
@@ -356,7 +357,7 @@ class _CompanyQuotesState extends State<CompanyQuotesScreen> {
                       Text('${q['project_summary']}'),
                     Row(
                       children: [
-                        Chip(label: Text(status)),
+                        Chip(label: Text(AppLanguage.status(status))),
                         const Spacer(),
                         if (q['client_id'] != null)
                           IconButton(

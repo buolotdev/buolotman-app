@@ -13,6 +13,7 @@ import 'technician_services_screen.dart';
 import 'technician_navigation.dart';
 import 'technician_bids_management_screen.dart';
 import '../role_support_screen.dart';
+import '../app_language.dart';
 
 class TechnicianDashboardScreen extends StatefulWidget {
   const TechnicianDashboardScreen({super.key, this.role = 'TECHNICIAN'});
@@ -121,13 +122,13 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
   String get availabilityLabel {
     if (_asBool(user['available_now']) ||
         _asBool(technicianProfile['available_now']))
-      return 'Available now';
+      return AppLanguage.text('Available now');
     final value =
         '${user['availability_status'] ?? technicianProfile['availability_status'] ?? 'offline'}'
             .replaceAll('_', ' ');
     return value.isEmpty
-        ? 'Offline'
-        : '${value[0].toUpperCase()}${value.substring(1)}';
+        ? AppLanguage.text('Offline')
+        : AppLanguage.status(value);
   }
 
   String get avatarUrl => api.resolveImageUrl(
@@ -179,12 +180,12 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
             icon: const Icon(Icons.menu, color: navy),
           ),
           const SizedBox(width: 4),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Technician Feed',
+                  AppLanguage.text('Technician Feed'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -195,7 +196,10 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
                   ),
                 ),
                 SizedBox(height: 5),
-                Text('Dashboard overview', style: TextStyle(color: muted)),
+                Text(
+                  AppLanguage.text('Dashboard overview'),
+                  style: TextStyle(color: muted),
+                ),
               ],
             ),
           ),
@@ -685,7 +689,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
                   foregroundColor: Colors.white,
                   side: const BorderSide(color: Colors.white54),
                 ),
-                child: const Text('Manage profile'),
+                child: Text(AppLanguage.text('Manage profile')),
               ),
             ),
             const SizedBox(width: 10),
@@ -696,7 +700,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
                   backgroundColor: orange,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('View wallet'),
+                child: Text(AppLanguage.text('View wallet')),
               ),
             ),
           ],

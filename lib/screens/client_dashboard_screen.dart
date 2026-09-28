@@ -4,6 +4,7 @@ import 'login_screen.dart';
 import 'client_task_create_screen.dart';
 import '../verification_utils.dart';
 import 'client_navigation_screens.dart';
+import '../app_language.dart';
 import 'client_task_management_screen.dart';
 import 'client_projects_screen.dart';
 import 'client_messaging_screen.dart';
@@ -517,19 +518,19 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
           _drawerItem(
             closeContext,
             Icons.dashboard_outlined,
-            'Dashboard',
+            AppLanguage.text('Dashboard'),
             () => setState(() => tab = 0),
           ),
           _drawerItem(
             closeContext,
             Icons.assignment_outlined,
-            'My Tasks',
+            AppLanguage.text('My Tasks'),
             () => setState(() => tab = 1),
           ),
           _drawerItem(
             closeContext,
             Icons.folder_open_outlined,
-            'My Projects',
+            AppLanguage.text('My Projects'),
             () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const ClientProjectsScreen()),
@@ -538,13 +539,13 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
           _drawerItem(
             closeContext,
             Icons.message_outlined,
-            'Messages',
+            AppLanguage.text('Messages'),
             () => setState(() => tab = 2),
           ),
           _drawerItem(
             closeContext,
             Icons.credit_card,
-            'Payments',
+            AppLanguage.text('Payments'),
             () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const ClientPaymentsScreen()),
@@ -553,7 +554,7 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
           _drawerItem(
             closeContext,
             Icons.bookmark_border,
-            'Saved',
+            AppLanguage.text('Saved'),
             () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const ClientSavedScreen()),
@@ -562,7 +563,7 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
           _drawerItem(
             closeContext,
             Icons.person_outline,
-            'Profile',
+            AppLanguage.text('Profile'),
             () => Navigator.push(
               context,
               MaterialPageRoute(
@@ -573,7 +574,7 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
           _drawerItem(
             closeContext,
             Icons.verified_user_outlined,
-            'Identity verification',
+            AppLanguage.text('Identity verification'),
             () => Navigator.push(
               context,
               MaterialPageRoute(
@@ -584,7 +585,7 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
           _drawerItem(
             closeContext,
             Icons.support_agent,
-            'Support Tickets',
+            AppLanguage.text('Support Tickets'),
             () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const ClientSupportScreen()),
@@ -593,7 +594,7 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
           _drawerItem(
             closeContext,
             Icons.settings_outlined,
-            'Settings',
+            AppLanguage.text('Settings'),
             () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const ClientSettingsScreen()),
@@ -602,14 +603,19 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
           _drawerItem(
             closeContext,
             Icons.search,
-            'Explore Professionals',
+            AppLanguage.text('Explore Professionals'),
             () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const ClientExploreScreen()),
             ),
           ),
           const Divider(),
-          _drawerItem(closeContext, Icons.logout, 'Log out', _logout),
+          _drawerItem(
+            closeContext,
+            Icons.logout,
+            AppLanguage.text('Log out'),
+            _logout,
+          ),
         ],
       ),
     ),

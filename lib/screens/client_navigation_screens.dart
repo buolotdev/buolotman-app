@@ -2027,7 +2027,7 @@ class _ClientSettingsState extends State<ClientSettingsScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Settings'),
+      title: Text(AppLanguage.text('Settings')),
       foregroundColor: clientNavy,
       backgroundColor: Colors.white,
     ),
@@ -2083,7 +2083,11 @@ class _ClientSettingsState extends State<ClientSettingsScreen> {
                       backgroundColor: clientOrange,
                       foregroundColor: Colors.white,
                     ),
-                    child: Text(saving ? 'Changing...' : 'Change password'),
+                    child: Text(
+                      saving
+                          ? AppLanguage.text('Saving...')
+                          : AppLanguage.text('Change password'),
+                    ),
                   ),
                 ),
               ],

@@ -71,7 +71,7 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
         'language_preference': AppLanguage.current.value,
       });
       await _load();
-      if (mounted) _notice('Settings saved successfully.');
+      if (mounted) _notice(AppLanguage.text('Settings saved successfully.'));
     } catch (e) {
       if (mounted)
         _notice(e is ApiException ? e.message : 'Could not save settings.');
@@ -122,7 +122,7 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
         'current_password': current.text,
         'new_password': next.text,
       });
-      if (mounted) _notice('Password changed successfully.');
+      if (mounted) _notice(AppLanguage.text('Password changed successfully.'));
     } catch (e) {
       if (mounted)
         _notice(e is ApiException ? e.message : 'Could not change password.');
@@ -216,7 +216,9 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
     appBar: AppBar(
       backgroundColor: navy,
       foregroundColor: Colors.white,
-      title: const Text('Company settings'),
+      title: Text(
+        '${AppLanguage.text('Company')} ${AppLanguage.text('Settings')}',
+      ),
     ),
     body: loading
         ? const Center(child: CircularProgressIndicator(color: orange))
@@ -273,7 +275,11 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
                   backgroundColor: orange,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: Text(saving ? 'Saving...' : 'Save all changes'),
+                child: Text(
+                  saving
+                      ? AppLanguage.text('Saving...')
+                      : AppLanguage.text('Save all changes'),
+                ),
               ),
               const SizedBox(height: 12),
               OutlinedButton.icon(

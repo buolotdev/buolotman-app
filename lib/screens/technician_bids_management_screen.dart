@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../app_language.dart';
 import '../core/api_service.dart';
 import 'technician_navigation.dart';
 import 'technician_area_screens.dart';
@@ -417,7 +418,10 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
                     ),
                   ),
                 ),
-                Chip(label: Text(status), side: BorderSide.none),
+                Chip(
+                  label: Text(AppLanguage.status(status)),
+                  side: BorderSide.none,
+                ),
               ],
             ),
             const SizedBox(height: 8),
