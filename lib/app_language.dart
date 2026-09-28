@@ -40,7 +40,6 @@ class AppLanguage {
       'Change password': 'Modifier le mot de passe',
       'Current password': 'Mot de passe actuel',
       'New password': 'Nouveau mot de passe',
-      'Confirm new password': 'Confirmer le nouveau mot de passe',
       'First name': 'Prénom',
       'Last name': 'Nom',
       'Email': 'E-mail',
