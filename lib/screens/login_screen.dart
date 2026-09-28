@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../core/api_service.dart';
+import '../app_language.dart';
 import 'technician_dashboard_screen.dart';
 import 'company_dashboard_screen.dart';
 import 'client_dashboard_screen.dart';
@@ -18,6 +19,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _password = TextEditingController();
   final _api = ApiService();
   bool _obscure = true, _loading = false;
+
+  String _t(String value) => AppLanguage.text(value);
 
   Future<void> _googleLogin() async {
     setState(() => _loading = true);
@@ -63,8 +66,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     if (_identifier.text.trim().isEmpty || _password.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your email or username and password.'),
+        SnackBar(
+          content: Text(
+            _t('Please enter your email or username and password.'),
+          ),
         ),
       );
       return;
@@ -92,20 +97,20 @@ class _LoginScreenState extends State<LoginScreen> {
       final requested = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Reset password'),
+          title: Text(_t('Reset password')),
           content: TextField(
             controller: email,
             keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(labelText: 'Email address'),
+            decoration: InputDecoration(labelText: _t('Email address')),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancel'),
+              child: Text(_t('Cancel')),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Send code'),
+              child: Text(_t('Send code')),
             ),
           ],
         ),
@@ -126,31 +131,29 @@ class _LoginScreenState extends State<LoginScreen> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Enter reset code'),
+          title: Text(_t('Enter reset code')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Check your email for the six-digit code.'),
+              Text(_t('Check your email for the six-digit code.')),
               const SizedBox(height: 12),
               TextField(
                 controller: code,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Verification code',
-                ),
+                decoration: InputDecoration(labelText: _t('Verification code')),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: newPassword,
                 obscureText: true,
-                decoration: const InputDecoration(labelText: 'New password'),
+                decoration: InputDecoration(labelText: _t('New password')),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: confirmPassword,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Confirm new password',
+                decoration: InputDecoration(
+                  labelText: _t('Confirm new password'),
                 ),
               ),
             ],
@@ -158,11 +161,11 @@ class _LoginScreenState extends State<LoginScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancel'),
+              child: Text(_t('Cancel')),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Reset password'),
+              child: Text(_t('Reset password')),
             ),
           ],
         ),
@@ -187,8 +190,10 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password reset successfully. You can now sign in.'),
+          SnackBar(
+            content: Text(
+              _t('Password reset successfully. You can now sign in.'),
+            ),
           ),
         );
       }
@@ -275,8 +280,8 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Welcome Back',
+          Text(
+            _t('Welcome Back'),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 28,
@@ -285,14 +290,14 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Sign in to your Boulot Man account to continue',
+          Text(
+            _t('Sign in to your Boulot Man account to continue'),
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 15, color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 32),
-          const Text(
-            'Email or Username',
+          Text(
+            _t('Email or Username'),
             style: TextStyle(
               fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
@@ -302,13 +307,13 @@ class _LoginScreenState extends State<LoginScreen> {
           TextField(
             controller: _identifier,
             decoration: _input(
-              'Enter your email or username',
+              _t('Enter your email or username'),
               Icons.email_outlined,
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Password',
+          Text(
+            _t('Password'),
             style: TextStyle(
               fontWeight: FontWeight.w600,
               color: Color(0xFF001F3F),
@@ -337,8 +342,8 @@ class _LoginScreenState extends State<LoginScreen> {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: _loading ? null : _forgotPassword,
-              child: const Text(
-                'Forgot password?',
+              child: Text(
+                _t('Forgot password?'),
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF001F3F),
@@ -359,7 +364,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               child: Text(
-                _loading ? 'Signing in...' : 'Login',
+                _loading ? _t('Signing in...') : _t('Login'),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -375,7 +380,7 @@ class _LoginScreenState extends State<LoginScreen> {
               width: 20,
               height: 20,
             ),
-            label: const Text('Continue with Google'),
+            label: Text(_t('Continue with Google')),
             style: OutlinedButton.styleFrom(
               foregroundColor: const Color(0xFF001F3F),
               minimumSize: const Size.fromHeight(52),
@@ -389,8 +394,8 @@ class _LoginScreenState extends State<LoginScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                "Don't have an account?",
+              Text(
+                _t("Don't have an account?"),
                 style: TextStyle(color: Color(0xFF64748B)),
               ),
               TextButton(
@@ -398,8 +403,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   context,
                   MaterialPageRoute(builder: (_) => const SignupScreen()),
                 ),
-                child: const Text(
-                  'Sign Up',
+                child: Text(
+                  _t('Sign Up'),
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Color(0xFFFF4500),

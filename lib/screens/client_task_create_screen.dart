@@ -7,6 +7,7 @@ import '../verification_utils.dart';
 import 'client_location_picker_screen.dart';
 import '../discard_changes.dart';
 import '../attachment_actions.dart';
+import '../app_language.dart';
 
 class ClientTaskCreateScreen extends StatefulWidget {
   const ClientTaskCreateScreen({super.key});
@@ -38,6 +39,8 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
   bool materials = false, saving = false, verified = false, checking = true;
   String? loadError, categoryError;
   bool _dirty = false;
+
+  String _t(String value) => AppLanguage.text(value);
   @override
   void initState() {
     super.initState();
@@ -108,7 +111,7 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: error ? Colors.red.shade700 : navy,
-          content: Text(text),
+          content: Text(_t(text)),
         ),
       );
   }
@@ -386,12 +389,12 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
     if (loadError != null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Post a task'),
+          title: Text(_t('Post a task')),
           foregroundColor: navy,
           backgroundColor: Colors.white,
           actions: [
             IconButton(
-              tooltip: 'Retry',
+              tooltip: _t('Retry'),
               onPressed: _load,
               icon: const Icon(Icons.refresh),
             ),
@@ -406,8 +409,8 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
               children: [
                 const Icon(Icons.cloud_off, color: orange, size: 36),
                 const SizedBox(height: 12),
-                const Text(
-                  'We could not load your account verification status.',
+                Text(
+                  _t('We could not load your account verification status.'),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: muted, fontSize: 16),
                 ),
@@ -421,7 +424,7 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
                 OutlinedButton.icon(
                   onPressed: _load,
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'),
+                  label: Text(_t('Retry')),
                 ),
               ],
             ),
@@ -457,12 +460,12 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Post a task'),
+          title: Text(_t('Post a task')),
           foregroundColor: navy,
           backgroundColor: Colors.white,
           actions: [
             IconButton(
-              tooltip: 'Refresh verification status',
+              tooltip: _t('Refresh verification status'),
               onPressed: _load,
               icon: const Icon(Icons.refresh),
             ),
@@ -470,11 +473,13 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
         ),
         backgroundColor: bg,
         body: !verified
-            ? const Center(
+            ? Center(
                 child: Padding(
                   padding: EdgeInsets.all(28),
                   child: Text(
-                    'Task posting unlocks after your account is verified by an administrator.',
+                    _t(
+                      'Task posting unlocks after your account is verified by an administrator.',
+                    ),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: muted, fontSize: 16),
                   ),
@@ -483,14 +488,14 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
             : ListView(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
                 children: [
-                  _field(title, 'Task title'),
-                  _field(description, 'Describe the work', lines: 5),
+                  _field(title, _t('Task title')),
+                  _field(description, _t('Describe the work'), lines: 5),
                   DropdownButtonFormField<int>(
                     isExpanded: true,
                     initialValue: selectedCategory,
-                    decoration: _dec('Category').copyWith(
+                    decoration: _dec(_t('Category')).copyWith(
                       helperText: categoryError == null && categoryItems.isEmpty
-                          ? 'No categories are available yet.'
+                          ? _t('No categories are available yet.')
                           : categoryError,
                       helperStyle: const TextStyle(color: muted, fontSize: 12),
                     ),
@@ -511,11 +516,13 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
                   DropdownButtonFormField<int>(
                     isExpanded: true,
                     initialValue: subcategory,
-                    decoration: _dec('Subcategory').copyWith(
+                    decoration: _dec(_t('Subcategory')).copyWith(
                       helperText: category == null
-                          ? 'Select a category first.'
+                          ? _t('Select a category first.')
                           : subcategories.isEmpty
-                          ? 'No subcategories are available for this category.'
+                          ? _t(
+                              'No subcategories are available for this category.',
+                            )
                           : null,
                     ),
                     items: subcategories
@@ -541,13 +548,13 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
                           }),
                   ),
                   const SizedBox(height: 12),
-                  _field(skills, 'Required skills (comma separated)'),
+                  _field(skills, _t('Required skills (comma separated)')),
                   Row(
                     children: [
                       Expanded(
                         child: _field(
                           budgetMin,
-                          'Minimum budget',
+                          _t('Minimum budget'),
                           keyboard: const TextInputType.numberWithOptions(
                             decimal: true,
                           ),
@@ -558,7 +565,7 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
                       Expanded(
                         child: _field(
                           budgetMax,
-                          'Maximum budget',
+                          _t('Maximum budget'),
                           keyboard: const TextInputType.numberWithOptions(
                             decimal: true,
                           ),
@@ -570,15 +577,15 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     initialValue: urgency,
-                    decoration: _dec('Urgency'),
-                    items: const [
+                    decoration: _dec(_t('Urgency')),
+                    items: [
                       DropdownMenuItem(
                         value: 'standard',
-                        child: Text('Standard / Flexible'),
+                        child: Text(_t('Standard / Flexible')),
                       ),
                       DropdownMenuItem(
                         value: 'urgent',
-                        child: Text('Urgent (within 24 hours)'),
+                        child: Text(_t('Urgent (within 24 hours)')),
                       ),
                     ],
                     onChanged: (v) => setState(() {
@@ -590,11 +597,20 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     initialValue: serviceType,
-                    decoration: _dec('Service type'),
-                    items: const [
-                      DropdownMenuItem(value: 'onsite', child: Text('On-site')),
-                      DropdownMenuItem(value: 'remote', child: Text('Remote')),
-                      DropdownMenuItem(value: 'hybrid', child: Text('Hybrid')),
+                    decoration: _dec(_t('Service type')),
+                    items: [
+                      DropdownMenuItem(
+                        value: 'onsite',
+                        child: Text(_t('On-site')),
+                      ),
+                      DropdownMenuItem(
+                        value: 'remote',
+                        child: Text(_t('Remote')),
+                      ),
+                      DropdownMenuItem(
+                        value: 'hybrid',
+                        child: Text(_t('Hybrid')),
+                      ),
                     ],
                     onChanged: (v) => setState(() {
                       serviceType = v ?? serviceType;
@@ -602,14 +618,14 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
                     }),
                   ),
                   const SizedBox(height: 12),
-                  _field(city, 'City'),
+                  _field(city, _t('City')),
                   OutlinedButton.icon(
                     onPressed: _pickMapLocation,
                     icon: const Icon(Icons.pin_drop_outlined),
                     label: Text(
                       latitude == null
-                          ? 'Choose exact location on map'
-                          : 'Location pinned',
+                          ? _t('Choose exact location on map')
+                          : _t('Location pinned'),
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: orange,
@@ -623,20 +639,20 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
                       child: TextField(
                         controller: location,
                         readOnly: true,
-                        decoration: _dec('Exact pinned location').copyWith(
+                        decoration: _dec(_t('Exact pinned location')).copyWith(
                           prefixIcon: const Icon(Icons.location_on_outlined),
                         ),
                       ),
                     ),
                   const SizedBox(height: 12),
-                  _field(schedule, 'Time preference / schedule'),
+                  _field(schedule, _t('Time preference / schedule')),
                   OutlinedButton.icon(
                     onPressed: _pickDate,
                     icon: const Icon(Icons.event),
                     label: Text(
                       deadline.isEmpty
-                          ? 'Choose deadline'
-                          : 'Deadline: $deadline',
+                          ? _t('Choose deadline')
+                          : '${_t('Deadline')}: $deadline',
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: orange,
@@ -646,8 +662,8 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
                   ),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text(
-                      'Materials provided by client',
+                    title: Text(
+                      _t('Materials provided by client'),
                       style: TextStyle(color: navy),
                     ),
                     value: materials,
@@ -658,8 +674,8 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
                     }),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Contact preferences',
+                  Text(
+                    _t('Contact preferences'),
                     style: TextStyle(
                       color: navy,
                       fontSize: 16,
@@ -669,16 +685,16 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
                   Wrap(
                     spacing: 8,
                     children: [
-                      _contact('in-app', 'In-app messaging'),
-                      _contact('phone', 'Phone call'),
-                      _contact('whatsapp', 'WhatsApp'),
+                      _contact('in-app', _t('In-app messaging')),
+                      _contact('phone', _t('Phone call')),
+                      _contact('whatsapp', _t('WhatsApp')),
                     ],
                   ),
                   const SizedBox(height: 16),
                   OutlinedButton.icon(
                     onPressed: _showAttachmentActions,
                     icon: const Icon(Icons.attach_file),
-                    label: const Text('Attach files'),
+                    label: Text(_t('Attach files')),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: orange,
                       side: const BorderSide(color: orange),
@@ -695,7 +711,7 @@ class _CreateTaskState extends State<ClientTaskCreateScreen> {
                         backgroundColor: orange,
                         foregroundColor: Colors.white,
                       ),
-                      child: Text(saving ? 'Posting...' : 'Post task'),
+                      child: Text(saving ? _t('Posting...') : _t('Post task')),
                     ),
                   ),
                 ],

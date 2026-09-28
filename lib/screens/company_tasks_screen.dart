@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/api_service.dart';
+import '../app_language.dart';
 
 class CompanyTasksScreen extends StatefulWidget {
   const CompanyTasksScreen({super.key});
@@ -11,6 +12,8 @@ class _CompanyTasksState extends State<CompanyTasksScreen> {
   final api = ApiService();
   late Future<dynamic> future = api.tasks();
   String query = '';
+
+  String _t(String value) => AppLanguage.text(value);
 
   List<dynamic> _items(dynamic value) => value is List
       ? value
@@ -24,7 +27,7 @@ class _CompanyTasksState extends State<CompanyTasksScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Browse tasks'),
+        title: Text(_t('Browse tasks')),
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF001F3F),
         actions: [
@@ -39,7 +42,7 @@ class _CompanyTasksState extends State<CompanyTasksScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return const Center(child: Text('Unable to load tasks.'));
+            return Center(child: Text(_t('Unable to load tasks.')));
           }
           final tasks = _items(snapshot.data).whereType<Map>().where((task) {
             final text =
@@ -55,9 +58,9 @@ class _CompanyTasksState extends State<CompanyTasksScreen> {
               children: [
                 TextField(
                   onChanged: (value) => setState(() => query = value),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     prefixIcon: Icon(Icons.search),
-                    labelText: 'Search tasks, skills, city or location',
+                    labelText: _t('Search tasks, skills, city or location'),
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(),
@@ -65,15 +68,15 @@ class _CompanyTasksState extends State<CompanyTasksScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  '${tasks.length} available tasks',
+                  '${tasks.length} ${_t('available tasks')}',
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 if (tasks.isEmpty)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.all(32),
                     child: Text(
-                      'No tasks match your search.',
+                      _t('No tasks match your search.'),
                       textAlign: TextAlign.center,
                     ),
                   )
@@ -134,6 +137,8 @@ class _CompanyTaskDetailState extends State<CompanyTaskDetailScreen> {
   late Future<dynamic> future = api.task(widget.taskId);
   bool saving = false;
 
+  String _t(String value) => AppLanguage.text(value);
+
   Future<void> _message(Map task) async {
     final client =
         task['client_id'] ??
@@ -172,7 +177,7 @@ class _CompanyTaskDetailState extends State<CompanyTaskDetailScreen> {
     final values = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Submit proposal'),
+        title: Text(_t('Submit proposal')),
         content: Form(
           key: formKey,
           child: Column(
@@ -183,20 +188,19 @@ class _CompanyTaskDetailState extends State<CompanyTaskDetailScreen> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(labelText: 'Amount (XOF)'),
+                decoration: InputDecoration(labelText: _t('Amount (XOF)')),
                 validator: (v) => double.tryParse(v?.trim() ?? '') == null
-                    ? 'Enter a valid amount'
+                    ? _t('Enter a valid amount')
                     : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: message,
                 maxLines: 4,
-                decoration: const InputDecoration(
-                  labelText: 'Proposal message',
-                ),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Enter a message' : null,
+                decoration: InputDecoration(labelText: _t('Proposal message')),
+                validator: (v) => v == null || v.trim().isEmpty
+                    ? _t('Enter a message')
+                    : null,
               ),
             ],
           ),
@@ -204,7 +208,7 @@ class _CompanyTaskDetailState extends State<CompanyTaskDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(_t('Cancel')),
           ),
           FilledButton(
             onPressed: () {
@@ -214,7 +218,7 @@ class _CompanyTaskDetailState extends State<CompanyTaskDetailScreen> {
                 'message': message.text.trim(),
               });
             },
-            child: const Text('Submit'),
+            child: Text(_t('Submit')),
           ),
         ],
       ),
@@ -228,11 +232,11 @@ class _CompanyTaskDetailState extends State<CompanyTaskDetailScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Proposal submitted.')));
+      ).showSnackBar(SnackBar(content: Text(_t('Proposal submitted.'))));
     } catch (_) {
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unable to submit proposal.')),
+          SnackBar(content: Text(_t('Unable to submit proposal.'))),
         );
     } finally {
       if (mounted) setState(() => saving = false);
@@ -242,7 +246,7 @@ class _CompanyTaskDetailState extends State<CompanyTaskDetailScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Task details'),
+      title: Text(AppLanguage.text('Task details')),
       backgroundColor: Colors.white,
       foregroundColor: const Color(0xFF001F3F),
     ),
@@ -253,7 +257,7 @@ class _CompanyTaskDetailState extends State<CompanyTaskDetailScreen> {
         if (snapshot.connectionState != ConnectionState.done)
           return const Center(child: CircularProgressIndicator());
         if (snapshot.hasError || snapshot.data is! Map)
-          return const Center(child: Text('Task unavailable.'));
+          return Center(child: Text(AppLanguage.text('Task unavailable.')));
         final task = snapshot.data as Map;
         return ListView(
           padding: const EdgeInsets.all(16),
@@ -289,7 +293,7 @@ class _CompanyTaskDetailState extends State<CompanyTaskDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Budget',
+                      AppLanguage.text('Budget'),
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                     const SizedBox(height: 6),
@@ -308,13 +312,17 @@ class _CompanyTaskDetailState extends State<CompanyTaskDetailScreen> {
             FilledButton.icon(
               onPressed: saving ? null : () => _submitBid(task),
               icon: const Icon(Icons.send),
-              label: Text(saving ? 'Submitting...' : 'Submit proposal'),
+              label: Text(
+                saving
+                    ? AppLanguage.text('Submitting...')
+                    : AppLanguage.text('Submit proposal'),
+              ),
             ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: () => _message(task),
               icon: const Icon(Icons.message_outlined),
-              label: const Text('Message client'),
+              label: Text(AppLanguage.text('Message client')),
             ),
           ],
         );

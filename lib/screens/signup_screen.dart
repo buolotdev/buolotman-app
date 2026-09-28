@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/api_service.dart';
 import '../otp_screen.dart';
+import '../app_language.dart';
 
 const supportedCountries = [
   'Nigeria',
@@ -112,6 +113,8 @@ class _SignupScreenState extends State<SignupScreen> {
       _hideConfirm = true,
       _loading = false;
 
+  String _t(String value) => AppLanguage.text(value);
+
   Future<void> _googleSignup() async {
     if (_role.isEmpty) {
       _error('Please select Client, Technician, or Company first.');
@@ -190,7 +193,7 @@ class _SignupScreenState extends State<SignupScreen> {
     Widget? suffix,
     String? prefixText,
   }) => InputDecoration(
-    labelText: label,
+    labelText: _t(label),
     prefixIcon: icon == null
         ? null
         : Icon(icon, color: const Color(0xFF94A3B8)),
@@ -354,7 +357,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   void _error(String message) => ScaffoldMessenger.of(
     context,
-  ).showSnackBar(SnackBar(content: Text(message)));
+  ).showSnackBar(SnackBar(content: Text(_t(message))));
 
   Widget _roleCard(String value, String label, IconData icon) => Expanded(
     child: GestureDetector(
@@ -430,10 +433,10 @@ class _SignupScreenState extends State<SignupScreen> {
           text: TextSpan(
             style: const TextStyle(fontSize: 13, color: Color(0xFF475569)),
             children: [
-              const TextSpan(text: 'I agree to the '),
-              _linkSpan('Terms of Service', 'https://boulotman.com/terms'),
-              const TextSpan(text: ' and '),
-              _linkSpan('Privacy Policy', 'https://boulotman.com/privacy'),
+              TextSpan(text: _t('I agree to the ')),
+              _linkSpan(_t('Terms of Service'), 'https://boulotman.com/terms'),
+              TextSpan(text: _t(' and ')),
+              _linkSpan(_t('Privacy Policy'), 'https://boulotman.com/privacy'),
               const TextSpan(text: '.'),
             ],
           ),
@@ -457,12 +460,12 @@ class _SignupScreenState extends State<SignupScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Padding(
+              Padding(
                 padding: EdgeInsets.fromLTRB(20, 20, 20, 12),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Select your country',
+                    _t('Select your country'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -506,7 +509,7 @@ class _SignupScreenState extends State<SignupScreen> {
     ),
     child: InputDecorator(
       decoration: _dec(
-        'Country',
+        _t('Country'),
         null,
         suffix: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF64748B)),
       ),
@@ -529,7 +532,7 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: const Color(0xFFFEFEFF),
     appBar: AppBar(
-      title: const Text('Create your account'),
+      title: Text(_t('Create your account')),
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
@@ -541,8 +544,8 @@ class _SignupScreenState extends State<SignupScreen> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
         children: [
-          const Text(
-            'Join Boulot Man',
+          Text(
+            _t('Join Boulot Man'),
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w600,
@@ -550,22 +553,30 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Choose an account type and get started.',
+          Text(
+            _t('Choose an account type and get started.'),
             style: TextStyle(color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 24),
           Row(
             children: [
-              _roleCard('client', 'Client', Icons.person_outline),
-              _roleCard('technician', 'Technician', Icons.handyman_outlined),
-              _roleCard('company', 'Company', Icons.business_center_outlined),
+              _roleCard('client', _t('Client'), Icons.person_outline),
+              _roleCard(
+                'technician',
+                _t('Technician'),
+                Icons.handyman_outlined,
+              ),
+              _roleCard(
+                'company',
+                _t('Company'),
+                Icons.business_center_outlined,
+              ),
             ],
           ),
           if (_role.isEmpty) ...[
             const SizedBox(height: 10),
-            const Text(
-              'Select an account type to continue',
+            Text(
+              _t('Select an account type to continue'),
               textAlign: TextAlign.center,
               style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
             ),
@@ -574,7 +585,7 @@ class _SignupScreenState extends State<SignupScreen> {
           if (_role == 'company')
             TextField(
               controller: _company,
-              decoration: _dec('Company name', Icons.business_outlined),
+              decoration: _dec(_t('Company name'), Icons.business_outlined),
             )
           else
             Row(
@@ -583,7 +594,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: TextField(
                     controller: _first,
                     textCapitalization: TextCapitalization.words,
-                    decoration: _dec('First name', Icons.person_outline),
+                    decoration: _dec(_t('First name'), Icons.person_outline),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -591,7 +602,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: TextField(
                     controller: _last,
                     textCapitalization: TextCapitalization.words,
-                    decoration: _dec('Last name', Icons.person_outline),
+                    decoration: _dec(_t('Last name'), Icons.person_outline),
                   ),
                 ),
               ],
@@ -601,12 +612,12 @@ class _SignupScreenState extends State<SignupScreen> {
           const SizedBox(height: 16),
           TextField(
             controller: _city,
-            decoration: _dec('City / Town', Icons.location_city),
+            decoration: _dec(_t('City / Town'), Icons.location_city),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _region,
-            decoration: _dec('Region / State', Icons.map_outlined),
+            decoration: _dec(_t('Region / State'), Icons.map_outlined),
           ),
           const SizedBox(height: 16),
           TextField(
@@ -617,7 +628,7 @@ class _SignupScreenState extends State<SignupScreen> {
             autocorrect: false,
             enableSuggestions: false,
             autofillHints: const [AutofillHints.email],
-            decoration: _dec('Email', Icons.email_outlined),
+            decoration: _dec(_t('Email'), Icons.email_outlined),
           ),
           const SizedBox(height: 16),
           TextField(
@@ -628,7 +639,10 @@ class _SignupScreenState extends State<SignupScreen> {
             autocorrect: false,
             enableSuggestions: false,
             autofillHints: const [AutofillHints.email],
-            decoration: _dec('Confirm email', Icons.mark_email_read_outlined),
+            decoration: _dec(
+              _t('Confirm email'),
+              Icons.mark_email_read_outlined,
+            ),
           ),
           const SizedBox(height: 16),
           TextField(
@@ -640,7 +654,7 @@ class _SignupScreenState extends State<SignupScreen> {
             enableSuggestions: false,
             inputFormatters: [_PhoneFormatter(countryPhoneGroups[_country]!)],
             decoration: _dec(
-              'Phone number (${countryDialCodes[_country]})',
+              _t('Phone number (${countryDialCodes[_country]})'),
               Icons.phone_outlined,
               prefixText: '${countryDialCodes[_country]} ',
             ),
@@ -650,7 +664,7 @@ class _SignupScreenState extends State<SignupScreen> {
             controller: _password,
             obscureText: _hidePassword,
             decoration: _dec(
-              'Password (minimum 8 characters)',
+              _t('Password (minimum 8 characters)'),
               Icons.lock_outline,
               suffix: IconButton(
                 onPressed: () => setState(() => _hidePassword = !_hidePassword),
@@ -667,7 +681,7 @@ class _SignupScreenState extends State<SignupScreen> {
             controller: _confirmPassword,
             obscureText: _hideConfirm,
             decoration: _dec(
-              'Confirm password',
+              _t('Confirm password'),
               Icons.lock_outline,
               suffix: IconButton(
                 onPressed: () => setState(() => _hideConfirm = !_hideConfirm),
@@ -691,8 +705,8 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
             label: Text(
               _role.isEmpty
-                  ? 'Continue with Google'
-                  : 'Continue with Google as ${_role[0].toUpperCase()}${_role.substring(1)}',
+                  ? _t('Continue with Google')
+                  : '${_t('Continue with Google as')} ${_role[0].toUpperCase()}${_role.substring(1)}',
             ),
             style: OutlinedButton.styleFrom(
               foregroundColor: const Color(0xFF001F3F),
@@ -715,7 +729,9 @@ class _SignupScreenState extends State<SignupScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: Text(_loading ? 'Creating account...' : 'Create Account'),
+              child: Text(
+                _loading ? _t('Creating account...') : _t('Create Account'),
+              ),
             ),
           ),
           const SizedBox(height: 8),
