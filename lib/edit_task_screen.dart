@@ -442,7 +442,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
       Navigator.pop(context); // Pop edit screen
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(AppLanguage.text('Task updated successfully!')),
           backgroundColor: Color(0xFF1E8E3E),
         ),
