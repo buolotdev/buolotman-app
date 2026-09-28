@@ -71,7 +71,7 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
     final values = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Edit bid'),
+        title: Text(AppLanguage.text('Edit bid')),
         content: Form(
           key: formKey,
           child: SingleChildScrollView(
@@ -83,7 +83,9 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(labelText: 'Amount (XOF)'),
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('Amount (XOF)'),
+                  ),
                   validator: (value) =>
                       double.tryParse(value?.trim() ?? '') == null
                       ? 'Enter a valid amount'
@@ -92,8 +94,8 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: duration,
-                  decoration: const InputDecoration(
-                    labelText: 'Delivery duration',
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('Delivery duration'),
                   ),
                   validator: (value) => value == null || value.trim().isEmpty
                       ? 'Enter a delivery duration'
@@ -103,8 +105,8 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
                 TextFormField(
                   controller: message,
                   maxLines: 4,
-                  decoration: const InputDecoration(
-                    labelText: 'Proposal message',
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('Proposal message'),
                   ),
                   validator: (value) => value == null || value.trim().isEmpty
                       ? 'Enter your proposal message'
@@ -114,8 +116,8 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
                 TextFormField(
                   controller: extra,
                   maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'Extra notes (optional)',
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('Extra notes (optional)'),
                   ),
                 ),
               ],
@@ -125,7 +127,7 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           FilledButton(
             onPressed: () {
@@ -137,7 +139,7 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
                 'extra_notes': extra.text.trim(),
               });
             },
-            child: const Text('Save bid'),
+            child: Text(AppLanguage.text('Save bid')),
           ),
         ],
       ),
@@ -169,18 +171,18 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Withdraw pending bid?'),
+        title: Text(AppLanguage.text('Withdraw pending bid?')),
         content: const Text(
           'You can submit a new bid for this task after withdrawal.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Withdraw'),
+            child: Text(AppLanguage.text('Withdraw')),
           ),
         ],
       ),
@@ -256,7 +258,7 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Bids'),
+        title: Text(AppLanguage.text('My Bids')),
         foregroundColor: const Color(0xFF001F3F),
         backgroundColor: Colors.white,
         actions: [
@@ -290,9 +292,11 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
                     query = value;
                     page = 0;
                   }),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     prefixIcon: Icon(Icons.search),
-                    labelText: 'Search bids, tasks, clients or skills',
+                    labelText: AppLanguage.text(
+                      'Search bids, tasks, clients or skills',
+                    ),
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(),
@@ -323,8 +327,8 @@ class _BidsManagementState extends State<TechnicianBidsManagementScreen> {
                 const SizedBox(height: 10),
                 DropdownButtonFormField<String>(
                   initialValue: sort,
-                  decoration: const InputDecoration(
-                    labelText: 'Sort bids',
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('Sort bids'),
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(),

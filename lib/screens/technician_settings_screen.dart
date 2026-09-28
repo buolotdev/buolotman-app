@@ -173,25 +173,27 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (d) => AlertDialog(
-        title: const Text('Delete account permanently?'),
+        title: Text(AppLanguage.text('Delete account permanently?')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text('This cannot be undone. Type DELETE to confirm.'),
             TextField(
               controller: c,
-              decoration: const InputDecoration(labelText: 'Confirmation'),
+              decoration: InputDecoration(
+                labelText: AppLanguage.text('Confirmation'),
+              ),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(d),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(d, c.text.trim() == 'DELETE'),
-            child: const Text('Delete account'),
+            child: Text(AppLanguage.text('Delete account')),
           ),
         ],
       ),
@@ -227,35 +229,45 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
               _card('Account information', [
                 TextField(
                   controller: first,
-                  decoration: const InputDecoration(labelText: 'First name'),
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('First name'),
+                  ),
                 ),
                 TextField(
                   controller: last,
-                  decoration: const InputDecoration(labelText: 'Last name'),
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('Last name'),
+                  ),
                 ),
                 TextField(
                   controller: phone,
                   keyboardType: TextInputType.phone,
                   inputFormatters: [phoneInputFormatter(country)],
-                  decoration: const InputDecoration(labelText: 'Phone'),
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('Phone'),
+                  ),
                 ),
                 TextField(
                   readOnly: true,
                   controller: TextEditingController(text: email),
-                  decoration: const InputDecoration(labelText: 'Email'),
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('Email'),
+                  ),
                 ),
               ]),
               _card('Language', [const AppLanguagePicker()]),
               _card('Professional preferences', [
                 TextField(
                   controller: profession,
-                  decoration: const InputDecoration(
-                    labelText: 'Primary profession',
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('Primary profession'),
                   ),
                 ),
                 DropdownButtonFormField<String>(
                   initialValue: responseTime,
-                  decoration: const InputDecoration(labelText: 'Response time'),
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('Response time'),
+                  ),
                   items:
                       const [
                             'Within 1 hour',
@@ -273,15 +285,15 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
                       setState(() => responseTime = v ?? responseTime),
                 ),
                 SwitchListTile(
-                  title: const Text('Available for jobs'),
+                  title: Text(AppLanguage.text('Available for jobs')),
                   value: availableForJobs,
                   activeColor: orange,
                   onChanged: (v) => setState(() => availableForJobs = v),
                 ),
                 DropdownButtonFormField<String>(
                   initialValue: availability,
-                  decoration: const InputDecoration(
-                    labelText: 'Availability status',
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('Availability status'),
                   ),
                   items: const ['available', 'busy', 'offline']
                       .map(
@@ -365,7 +377,7 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
                   controller: currentPassword,
                   obscureText: !showCurrentPassword,
                   decoration: InputDecoration(
-                    labelText: 'Current password',
+                    labelText: AppLanguage.text('Current password'),
                     suffixIcon: IconButton(
                       tooltip: 'Show or hide current password',
                       onPressed: () => setState(
@@ -383,7 +395,9 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
                   controller: newPassword,
                   obscureText: !showNewPassword,
                   decoration: InputDecoration(
-                    labelText: 'New password (minimum 8 characters)',
+                    labelText: AppLanguage.text(
+                      'New password (minimum 8 characters)',
+                    ),
                     suffixIcon: IconButton(
                       tooltip: 'Show or hide new password',
                       onPressed: () =>
@@ -400,7 +414,7 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
                   controller: confirmPassword,
                   obscureText: !showConfirmPassword,
                   decoration: InputDecoration(
-                    labelText: 'Confirm new password',
+                    labelText: AppLanguage.text('Confirm new password'),
                     suffixIcon: IconButton(
                       tooltip: 'Show or hide confirmation password',
                       onPressed: () => setState(
@@ -431,7 +445,7 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
                     Icons.account_balance_wallet_outlined,
                     color: orange,
                   ),
-                  title: const Text('Manage wallet and payouts'),
+                  title: Text(AppLanguage.text('Manage wallet and payouts')),
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -446,7 +460,7 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.logout, color: orange),
-                  title: const Text('Log out'),
+                  title: Text(AppLanguage.text('Log out')),
                   onTap: _logout,
                 ),
                 ListTile(

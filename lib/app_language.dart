@@ -12,6 +12,18 @@ class AppLanguage {
   static const _translations = <String, Map<String, String>>{
     'fr': {
       'Dashboard': 'Tableau de bord',
+      'Edit bid': 'Modifier l’offre',
+      'Save bid': 'Enregistrer l’offre',
+      'Withdraw pending bid?': 'Retirer l’offre en attente ?',
+      'Search bids, tasks, clients or skills':
+          'Rechercher des offres, tâches, clients ou compétences',
+      'Sort bids': 'Trier les offres',
+      'Confirmation': 'Confirmation',
+      'Primary profession': 'Profession principale',
+      'Response time': 'Délai de réponse',
+      'Available for jobs': 'Disponible pour les missions',
+      'Availability status': 'Statut de disponibilité',
+      'Manage wallet and payouts': 'Gérer le portefeuille et les paiements',
       'Need help with a project?': 'Besoin d’aide pour un projet ?',
       'Describe the work and receive proposals from professionals.':
           'Décrivez le travail et recevez des propositions de professionnels.',
