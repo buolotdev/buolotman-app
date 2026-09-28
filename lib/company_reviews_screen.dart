@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_language.dart';
 
 import 'app_state.dart';
 
@@ -42,7 +43,7 @@ class _CompanyReviewsScreenState extends State<CompanyReviewsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
-        title: const Text('Reviews & ratings'),
+        title: Text(AppLanguage.text('Reviews & ratings')),
         backgroundColor: const Color(0xFF062B52),
         foregroundColor: Colors.white,
       ),

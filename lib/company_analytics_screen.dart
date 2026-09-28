@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_language.dart';
 
 import 'app_state.dart';
 
@@ -33,7 +34,7 @@ class CompanyAnalyticsScreen extends StatelessWidget {
         return Scaffold(
           backgroundColor: const Color(0xFFF6F7FB),
           appBar: AppBar(
-            title: const Text('Company analytics'),
+            title: Text(AppLanguage.text('Company analytics')),
             backgroundColor: const Color(0xFF062B52),
             foregroundColor: Colors.white,
           ),
@@ -82,7 +83,8 @@ class CompanyAnalyticsScreen extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      service['title']?.toString() ?? 'Service',
+                                      service['title']?.toString() ??
+                                          AppLanguage.text('Service'),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w600,
                                         color: Color(0xFF062B52),
