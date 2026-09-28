@@ -9,6 +9,7 @@ import 'post_task_form_screen.dart';
 import 'listing_screen.dart';
 import 'edit_task_screen.dart';
 import 'chat_screen.dart';
+import 'app_language.dart';
 
 class MyTasksScreen extends StatefulWidget {
   const MyTasksScreen({super.key});
@@ -72,7 +73,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
             backgroundColor: Colors.white,
             elevation: 0.5,
             title: Text(
-              isClient ? 'My Tasks' : 'Projects & Contracts',
+              AppLanguage.text(isClient ? 'My Tasks' : 'Projects & Contracts'),
               style: const TextStyle(
                 color: Color(0xFF001F3F),
                 fontWeight: FontWeight.w600,
@@ -180,10 +181,12 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
           const SizedBox(height: 16),
           Text(
             isClient
-                ? 'You haven\'t posted any tasks yet'
+                ? AppLanguage.text('You haven\'t posted any tasks yet')
                 : isCompany
-                ? 'No active contracts yet. Browse tasks to bid.'
-                : 'No active projects assigned yet',
+                ? AppLanguage.text(
+                    'No active contracts yet. Browse tasks to bid.',
+                  )
+                : AppLanguage.text('No active projects assigned yet'),
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.grey, fontSize: 16),
           ),
@@ -202,7 +205,11 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
               backgroundColor: const Color(0xFF001F3F),
               foregroundColor: Colors.white,
             ),
-            child: Text(isClient ? 'Post a New Task' : 'Browse Open Tasks'),
+            child: Text(
+              AppLanguage.text(
+                isClient ? 'Post a New Task' : 'Browse Open Tasks',
+              ),
+            ),
           ),
         ],
       ),
@@ -284,7 +291,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                 backgroundColor: const Color(0xFF001F3F),
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Post a New Task'),
+              child: Text(AppLanguage.text('Post a New Task')),
             ),
           if (!isClient && _activeTab == 'Active')
             ElevatedButton(
@@ -299,7 +306,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                 backgroundColor: const Color(0xFF001F3F),
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Browse Open Tasks'),
+              child: Text(AppLanguage.text('Browse Open Tasks')),
             ),
         ],
       ),
@@ -334,7 +341,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
               backgroundColor: const Color(0xFF001F3F),
               foregroundColor: Colors.white,
             ),
-            child: const Text('Browse Services'),
+            child: Text(AppLanguage.text('Browse Services')),
           ),
         ],
       ),
@@ -401,7 +408,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                           context,
                         ).toggleSavedService(service.id);
                       },
-                      child: const Text('Remove Saved'),
+                      child: Text(AppLanguage.text('Remove Saved')),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -418,7 +425,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                         backgroundColor: const Color(0xFF001F3F),
                         foregroundColor: Colors.white,
                       ),
-                      child: const Text('Open'),
+                      child: Text(AppLanguage.text('Open')),
                     ),
                   ),
                 ],
@@ -519,7 +526,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                   Expanded(
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.chat_bubble_outline, size: 16),
-                      label: const Text('Message Tech'),
+                      label: Text(AppLanguage.text('Message Tech')),
                       onPressed: () {
                         final appState = AppStateScope.of(context);
                         final String otherName =
@@ -560,7 +567,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                   Expanded(
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.check_circle_outline, size: 16),
-                      label: const Text('Complete Task'),
+                      label: Text(AppLanguage.text('Complete Task')),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF16A34A),
                         foregroundColor: Colors.white,
@@ -585,7 +592,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx),
-                                child: const Text('Cancel'),
+                                child: Text(AppLanguage.text('Cancel')),
                               ),
                               ElevatedButton(
                                 onPressed: () async {
@@ -637,7 +644,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                                   backgroundColor: const Color(0xFFFF5500),
                                   foregroundColor: Colors.white,
                                 ),
-                                child: const Text('Complete'),
+                                child: Text(AppLanguage.text('Complete')),
                               ),
                             ],
                           ),
@@ -649,7 +656,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                   Expanded(
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.chat_bubble_outline, size: 16),
-                      label: const Text('Message Tech'),
+                      label: Text(AppLanguage.text('Message Tech')),
                       onPressed: () {
                         final appState = AppStateScope.of(context);
                         final String otherName =
@@ -696,7 +703,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                           ),
                         );
                       },
-                      child: const Text('Edit Details'),
+                      child: Text(AppLanguage.text('Edit Details')),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -714,7 +721,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                         backgroundColor: const Color(0xFF001F3F),
                         foregroundColor: Colors.white,
                       ),
-                      child: const Text('View Bids'),
+                      child: Text(AppLanguage.text('View Bids')),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -758,7 +765,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                       backgroundColor: const Color(0xFF001F3F),
                       foregroundColor: Colors.white,
                     ),
-                    child: const Text('Open Task'),
+                    child: Text(AppLanguage.text('Open Task')),
                   ),
                 ),
               ],
@@ -930,7 +937,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -951,8 +958,10 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                 if (context.mounted) {
                   Navigator.pop(context); // dismiss spinner
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Task deleted successfully.'),
+                    SnackBar(
+                      content: Text(
+                        AppLanguage.text('Task deleted successfully.'),
+                      ),
                       backgroundColor: Color(0xFF1E8E3E),
                     ),
                   );
@@ -973,7 +982,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
               backgroundColor: const Color(0xFFB91C1C),
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete'),
+            child: Text(AppLanguage.text('Delete')),
           ),
         ],
       ),
@@ -1148,7 +1157,9 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                           contract['id'].toString(),
                         );
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Escrow released!')),
+                          SnackBar(
+                            content: Text(AppLanguage.text('Escrow released!')),
+                          ),
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -1218,7 +1229,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.chat_bubble_outline, size: 16),
-                    label: const Text('Message Company'),
+                    label: Text(AppLanguage.text('Message Company')),
                     onPressed: () {
                       final companyName =
                           contract['company_name']?.toString() ?? 'Company';

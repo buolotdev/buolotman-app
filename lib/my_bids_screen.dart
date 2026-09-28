@@ -6,6 +6,7 @@ import 'browse_tasks_screen.dart';
 import 'chat_screen.dart';
 import 'submit_bid_screen.dart';
 import 'task_feed_screen.dart';
+import 'app_language.dart';
 
 class MyBidsScreen extends StatefulWidget {
   const MyBidsScreen({super.key});
@@ -477,8 +478,8 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
                     child: TextField(
                       controller: _searchController,
                       onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
-                        hintText: 'Search your bids...',
+                      decoration: InputDecoration(
+                        hintText: AppLanguage.text('Search your bids...'),
                         hintStyle: TextStyle(
                           fontSize: 15,
                           color: Color(0xFF64748B),
@@ -554,7 +555,7 @@ class _MyBidsScreenState extends State<MyBidsScreen> {
               backgroundColor: const Color(0xFF001F3F),
               foregroundColor: Colors.white,
             ),
-            child: const Text('Browse Tasks'),
+            child: Text(AppLanguage.text('Browse Tasks')),
           ),
         ],
       ),

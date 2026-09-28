@@ -9,6 +9,7 @@ import 'app_state.dart';
 import 'login_screen.dart';
 import 'main_navigation_screen.dart';
 import 'google_role_selection_screen.dart';
+import 'app_language.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -52,7 +53,9 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
         mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to open the legal page.')),
+        SnackBar(
+          content: Text(AppLanguage.text('Unable to open the legal page.')),
+        ),
       );
     }
   }
@@ -77,7 +80,9 @@ class _SignupScreenState extends State<SignupScreen> {
           _phoneNumber.isEmpty ||
           _selectedCountry == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please fill all required fields.')),
+          SnackBar(
+            content: Text(AppLanguage.text('Please fill all required fields.')),
+          ),
         );
         return;
       }
@@ -107,15 +112,19 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _submitRegistration() async {
     if (!_termsAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please accept the Terms of Service.')),
+        SnackBar(
+          content: Text(
+            AppLanguage.text('Please accept the Terms of Service.'),
+          ),
+        ),
       );
       return;
     }
 
     if (_cityController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please enter your city.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLanguage.text('Please enter your city.'))),
+      );
       return;
     }
 
@@ -252,8 +261,8 @@ class _SignupScreenState extends State<SignupScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            "Create Account",
+          Text(
+            AppLanguage.text("Create Account"),
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w600,
@@ -261,8 +270,10 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            "Let's get started. Enter your basic information.",
+          Text(
+            AppLanguage.text(
+              "Let's get started. Enter your basic information.",
+            ),
             style: TextStyle(fontSize: 15, color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 32),
@@ -271,8 +282,8 @@ class _SignupScreenState extends State<SignupScreen> {
               Expanded(
                 child: _buildTextField(
                   controller: _firstNameController,
-                  label: "First Name",
-                  hint: "John",
+                  label: AppLanguage.text("First Name"),
+                  hint: AppLanguage.text("John"),
                   icon: Icons.person_outline,
                 ),
               ),
@@ -280,8 +291,8 @@ class _SignupScreenState extends State<SignupScreen> {
               Expanded(
                 child: _buildTextField(
                   controller: _lastNameController,
-                  label: "Last Name",
-                  hint: "Doe",
+                  label: AppLanguage.text("Last Name"),
+                  hint: AppLanguage.text("Doe"),
                   icon: null,
                 ),
               ),
@@ -289,13 +300,13 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
           _buildTextField(
             controller: _emailController,
-            label: "Email Address",
+            label: AppLanguage.text("Email Address"),
             hint: "name@example.com",
             icon: Icons.email_outlined,
           ),
 
-          const Text(
-            "Phone Number",
+          Text(
+            AppLanguage.text("Phone Number"),
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -333,15 +344,15 @@ class _SignupScreenState extends State<SignupScreen> {
 
           _buildTextField(
             controller: _passwordController,
-            label: "Password",
+            label: AppLanguage.text("Password"),
             hint: "••••••••",
             icon: Icons.lock_outline,
             isPassword: true,
           ),
 
           RichText(
-            text: const TextSpan(
-              text: "Country",
+            text: TextSpan(
+              text: AppLanguage.text("Country"),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -396,9 +407,9 @@ class _SignupScreenState extends State<SignupScreen> {
                   ] else ...[
                     const Icon(Icons.public, color: Color(0xFF64748B)),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        "Select Country",
+                        AppLanguage.text("Select Country"),
                         style: TextStyle(
                           color: Color(0xFF64748B),
                           fontSize: 15,
@@ -422,8 +433,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
-                "Next",
+              child: Text(
+                AppLanguage.text("Next"),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -436,16 +447,16 @@ class _SignupScreenState extends State<SignupScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                "Already have an account?",
+              Text(
+                AppLanguage.text("Already have an account?"),
                 style: TextStyle(fontSize: 15, color: Color(0xFF64748B)),
               ),
               TextButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
                 ),
-                child: const Text(
-                  "Log In",
+                child: Text(
+                  AppLanguage.text("Log In"),
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -466,8 +477,8 @@ class _SignupScreenState extends State<SignupScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            "What are you looking for?",
+          Text(
+            AppLanguage.text("What are you looking for?"),
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w600,
@@ -475,8 +486,8 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            "Select how you intend to use Boulot Man.",
+          Text(
+            AppLanguage.text("Select how you intend to use Boulot Man."),
             style: TextStyle(fontSize: 15, color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 32),
@@ -539,8 +550,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
-                "Next",
+              child: Text(
+                AppLanguage.text("Next"),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -560,8 +571,8 @@ class _SignupScreenState extends State<SignupScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            "Location",
+          Text(
+            AppLanguage.text("Location"),
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w600,
@@ -569,16 +580,16 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            "Where are you located?",
+          Text(
+            AppLanguage.text("Where are you located?"),
             style: TextStyle(fontSize: 15, color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 32),
 
           _buildTextField(
             controller: _cityController,
-            label: "City",
-            hint: "e.g. Douala",
+            label: AppLanguage.text("City"),
+            hint: AppLanguage.text("e.g. Douala"),
             icon: Icons.location_city,
           ),
 
@@ -587,8 +598,8 @@ class _SignupScreenState extends State<SignupScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Service Location / Address (Optional)",
+                Text(
+                  AppLanguage.text("Service Location / Address (Optional)"),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -599,7 +610,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 TextField(
                   controller: _serviceLocationController,
                   decoration: InputDecoration(
-                    hintText: "e.g. Akwa",
+                    hintText: AppLanguage.text("e.g. Akwa"),
                     hintStyle: const TextStyle(
                       color: Color(0xFF64748B),
                       fontSize: 15,
@@ -647,14 +658,14 @@ class _SignupScreenState extends State<SignupScreen> {
               Expanded(
                 child: Wrap(
                   children: [
-                    const Text(
-                      'I agree to Boulot Man\'s ',
+                    Text(
+                      AppLanguage.text('I agree to Boulot Man\'s '),
                       style: TextStyle(color: Color(0xFF64748B), height: 1.5),
                     ),
                     GestureDetector(
                       onTap: () => _openLegalPage('/terms'),
-                      child: const Text(
-                        'Terms of Service',
+                      child: Text(
+                        AppLanguage.text('Terms of Service'),
                         style: TextStyle(
                           color: Color(0xFFFF4500),
                           decoration: TextDecoration.underline,
@@ -663,14 +674,14 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ),
                     ),
-                    const Text(
-                      ' and ',
+                    Text(
+                      AppLanguage.text(' and '),
                       style: TextStyle(color: Color(0xFF64748B), height: 1.5),
                     ),
                     GestureDetector(
                       onTap: () => _openLegalPage('/privacy'),
-                      child: const Text(
-                        'Privacy Policy',
+                      child: Text(
+                        AppLanguage.text('Privacy Policy'),
                         style: TextStyle(
                           color: Color(0xFFFF4500),
                           decoration: TextDecoration.underline,
@@ -700,8 +711,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
-                "Create Account",
+              child: Text(
+                AppLanguage.text("Create Account"),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,

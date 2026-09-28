@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'app_state.dart';
 import 'package:file_picker/file_picker.dart' as fp;
 import 'dart:convert';
+import 'app_language.dart';
 
 class PostTaskFormScreen extends StatefulWidget {
   const PostTaskFormScreen({super.key});
@@ -117,8 +118,8 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 16),
-              const Text(
-                "Select Category",
+              Text(
+                AppLanguage.text("Select Category"),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -231,8 +232,8 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 16),
-              const Text(
-                "Select Payment Method",
+              Text(
+                AppLanguage.text("Select Payment Method"),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -296,11 +297,14 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildLabel("Task Title"),
-                      _buildTextField(_titleController, "Enter task title"),
+                      _buildLabel(AppLanguage.text("Task Title")),
+                      _buildTextField(
+                        _titleController,
+                        AppLanguage.text("Enter task title"),
+                      ),
                       const SizedBox(height: 28),
 
-                      _buildLabel("Category & Subcategory"),
+                      _buildLabel(AppLanguage.text("Category & Subcategory")),
                       _buildDropdownField(
                         _selectedCategory,
                         Icons.chevron_right,
@@ -309,7 +313,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                       const SizedBox(height: 10),
                       _buildDropdownField(
                         _selectedSubcategory.isEmpty
-                            ? "Select subcategory"
+                            ? AppLanguage.text("Select subcategory")
                             : _selectedSubcategory,
                         Icons.chevron_right,
                         onTap: () {
@@ -330,8 +334,8 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   const SizedBox(height: 16),
-                                  const Text(
-                                    "Select Subcategory",
+                                  Text(
+                                    AppLanguage.text("Select Subcategory"),
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600,
@@ -379,14 +383,18 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                       ),
                       const SizedBox(height: 28),
 
-                      _buildLabel("Description"),
+                      _buildLabel(AppLanguage.text("Description")),
                       _buildTextArea(
                         _descriptionController,
-                        "Provide as much detail as possible...",
+                        AppLanguage.text(
+                          "Provide as much detail as possible...",
+                        ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        "Please provide as much detail as possible. Minimum 50 characters.",
+                      Text(
+                        AppLanguage.text(
+                          "Please provide as much detail as possible. Minimum 50 characters.",
+                        ),
                         style: TextStyle(
                           fontSize: 13,
                           color: Color(0xFF64748B),
@@ -394,16 +402,16 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                       ),
                       const SizedBox(height: 28),
 
-                      _buildLabel("Attachments (Optional)"),
+                      _buildLabel(AppLanguage.text("Attachments (Optional)")),
                       _buildUploadZone(),
                       const SizedBox(height: 28),
 
-                      _buildLabel("Location"),
+                      _buildLabel(AppLanguage.text("Location")),
                       _buildLocationTabs(),
                       const SizedBox(height: 12),
                       _buildTextField(
                         _locationController,
-                        "Enter address",
+                        AppLanguage.text("Enter address"),
                         icon: Icons.map,
                       ),
                       const SizedBox(height: 8),
@@ -434,13 +442,13 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                "Location detected: $detectedCity, $detectedCountry",
+                                '${AppLanguage.text("Location detected")}: $detectedCity, $detectedCountry',
                               ),
                             ),
                           );
                         },
                         child: Row(
-                          children: const [
+                          children: [
                             Icon(
                               Icons.my_location,
                               size: 14,
@@ -448,7 +456,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                             ),
                             SizedBox(width: 4),
                             Text(
-                              "Detect My Location (IP-based)",
+                              AppLanguage.text("Detect My Location (IP-based)"),
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -460,11 +468,13 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                       ),
                       const SizedBox(height: 28),
 
-                      _buildLabel("Estimated Budget"),
+                      _buildLabel(AppLanguage.text("Estimated Budget")),
                       _buildBudgetSection(),
                       const SizedBox(height: 28),
 
-                      _buildLabel("When do you need this done?"),
+                      _buildLabel(
+                        AppLanguage.text("When do you need this done?"),
+                      ),
                       _buildDropdownField(
                         _timeline,
                         Icons.calendar_today_outlined,
@@ -472,11 +482,11 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                       ),
                       const SizedBox(height: 28),
 
-                      _buildLabel("Urgency"),
+                      _buildLabel(AppLanguage.text("Urgency")),
                       _buildUrgencySelector(),
                       const SizedBox(height: 28),
 
-                      _buildLabel("Preferred Payment Method"),
+                      _buildLabel(AppLanguage.text("Preferred Payment Method")),
                       _buildDropdownField(
                         _selectedPaymentMethod,
                         Icons.payment_outlined,
@@ -508,8 +518,8 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
             onTap: () => Navigator.pop(context),
             child: const Icon(Icons.arrow_back, color: Color(0xFF001F3F)),
           ),
-          const Text(
-            "Post a Task",
+          Text(
+            AppLanguage.text("Post a Task"),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -533,9 +543,9 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
+            children: [
               Text(
-                "Step 1 of 2",
+                AppLanguage.text("Step 1 of 2"),
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -543,7 +553,7 @@ class _PostTaskFormScreenState extends State<PostTaskFormScreen> {
                 ),
               ),
               Text(
-                "Task Details (Draft)",
+                AppLanguage.text("Task Details (Draft)"),
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,

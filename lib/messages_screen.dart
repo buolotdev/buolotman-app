@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import 'app_state.dart';
 import 'chat_screen.dart';
+import 'app_language.dart';
 
 class MessagesScreen extends StatefulWidget {
   const MessagesScreen({super.key});
@@ -50,8 +51,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
           appBar: AppBar(
             backgroundColor: Colors.white,
             elevation: 0.5,
-            title: const Text(
-              'Messages',
+            title: Text(
+              AppLanguage.text('Messages'),
               style: TextStyle(
                 color: Color(0xFF001F3F),
                 fontWeight: FontWeight.w600,
@@ -78,8 +79,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         color: Colors.grey[300],
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'No messages yet',
+                      Text(
+                        AppLanguage.text('No messages yet'),
                         style: TextStyle(
                           fontSize: 16,
                           color: Color(0xFF64748B),
@@ -115,30 +116,32 @@ class _MessagesScreenState extends State<MessagesScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            title: const Text(
-                              'Delete Conversation',
+                            title: Text(
+                              AppLanguage.text('Delete Conversation'),
                               style: TextStyle(
                                 color: Color(0xFF001F3F),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            content: const Text(
-                              'Are you sure you want to delete this chat? All messages will be permanently removed.',
+                            content: Text(
+                              AppLanguage.text(
+                                'Are you sure you want to delete this chat? All messages will be permanently removed.',
+                              ),
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () =>
                                     Navigator.of(context).pop(false),
-                                child: const Text(
-                                  'Cancel',
+                                child: Text(
+                                  AppLanguage.text('Cancel'),
                                   style: TextStyle(color: Color(0xFF64748B)),
                                 ),
                               ),
                               TextButton(
                                 onPressed: () =>
                                     Navigator.of(context).pop(true),
-                                child: const Text(
-                                  'Delete',
+                                child: Text(
+                                  AppLanguage.text('Delete'),
                                   style: TextStyle(
                                     color: Color(0xFFEF4444),
                                     fontWeight: FontWeight.w600,
@@ -157,7 +160,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  'Error deleting chat: ${e.toString().replaceAll('Exception: ', '')}',
+                                  '${AppLanguage.text('Error deleting chat')}: ${e.toString().replaceAll('Exception: ', '')}',
                                 ),
                               ),
                             );

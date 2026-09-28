@@ -8,6 +8,7 @@ import 'browse_tasks_screen.dart';
 import 'notifications_screen.dart';
 import 'screens/server_notifications_screen.dart';
 import 'messages_screen.dart';
+import 'app_language.dart';
 
 class TaskFeedScreen extends StatefulWidget {
   const TaskFeedScreen({super.key});
@@ -327,12 +328,12 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Technician Feed',
+                  AppLanguage.text('Technician Feed'),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -341,7 +342,7 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'Browse live work near you',
+                  AppLanguage.text('Browse live work near you'),
                   style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
                 ),
               ],
@@ -432,8 +433,8 @@ class _TaskFeedScreenState extends State<TaskFeedScreen> {
                   child: TextField(
                     controller: _searchController,
                     onChanged: (v) => setState(() => _searchQuery = v.trim()),
-                    decoration: const InputDecoration(
-                      hintText: 'Search tasks...',
+                    decoration: InputDecoration(
+                      hintText: AppLanguage.text('Search tasks...'),
                       hintStyle: TextStyle(
                         color: Color(0xFF64748B),
                         fontSize: 14,

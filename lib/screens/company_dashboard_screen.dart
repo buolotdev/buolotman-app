@@ -333,8 +333,10 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
               elevation: 0,
               child: ListTile(
                 leading: const Icon(Icons.error_outline, color: Colors.red),
-                title: const Text('Dashboard data unavailable'),
-                subtitle: const Text('Check your connection and try again.'),
+                title: Text(AppLanguage.text('Dashboard data unavailable')),
+                subtitle: Text(
+                  AppLanguage.text('Check your connection and try again.'),
+                ),
                 trailing: IconButton(
                   onPressed: _load,
                   icon: const Icon(Icons.refresh),
@@ -352,7 +354,7 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Welcome, $name',
+                  '${AppLanguage.text('Welcome')}, $name',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 23,
@@ -362,8 +364,10 @@ class _CompanyDashboardState extends State<CompanyDashboardScreen> {
                 const SizedBox(height: 7),
                 Text(
                   verified
-                      ? 'Your company account is verified.'
-                      : 'Your company account is pending admin verification.',
+                      ? AppLanguage.text('Your company account is verified.')
+                      : AppLanguage.text(
+                          'Your company account is pending admin verification.',
+                        ),
                   style: const TextStyle(color: Colors.white70),
                 ),
                 const SizedBox(height: 14),

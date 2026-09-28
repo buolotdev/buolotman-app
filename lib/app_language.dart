@@ -19,6 +19,38 @@ class AppLanguage {
       'My Profile': 'Mon profil',
       'Settings': 'Paramètres',
       'Messages': 'Messages',
+      'Notifications': 'Notifications',
+      'No messages yet': 'Aucun message pour le moment',
+      'Delete Conversation': 'Supprimer la conversation',
+      'Are you sure you want to delete this chat? All messages will be permanently removed.':
+          'Voulez-vous vraiment supprimer cette conversation ? Tous les messages seront supprimés définitivement.',
+      'Error deleting chat': 'Erreur lors de la suppression de la conversation',
+      'No notifications yet.': 'Aucune notification pour le moment.',
+      'Notification': 'Notification',
+      'New task available': 'Nouvelle tâche disponible',
+      'A new task matching your category will appear here.':
+          'Une nouvelle tâche correspondant à votre catégorie apparaîtra ici.',
+      'New message': 'Nouveau message',
+      'No unread conversations.': 'Aucune conversation non lue.',
+      'You have a message from': 'Vous avez un message de',
+      'Project update': 'Mise à jour du projet',
+      'Your project activity will appear here.':
+          'L’activité de votre projet apparaîtra ici.',
+      'Verification reminder': 'Rappel de vérification',
+      'Upload compliance documents to keep your company verified.':
+          'Téléversez les documents de conformité pour garder votre entreprise vérifiée.',
+      'You have an active chat thread with':
+          'Vous avez une conversation active avec',
+      'Task completed': 'Tâche terminée',
+      'Task in progress': 'Tâche en cours',
+      'Bids received': 'Offres reçues',
+      'Welcome to Boulot Man': 'Bienvenue sur Boulot Man',
+      'Post a task or browse professionals to get started!':
+          'Publiez une tâche ou consultez les professionnels pour commencer !',
+      'Just now': "À l'instant",
+      'Today': "Aujourd'hui",
+      'Yesterday': 'Hier',
+      '5 min ago': 'Il y a 5 min',
       'Payments': 'Paiements',
       'Wallet': 'Portefeuille',
       'Projects': 'Projets',
@@ -205,7 +237,67 @@ class AppLanguage {
       'Welcome': 'Bienvenue',
       'Find trusted professionals and manage your projects.':
           'Trouvez des professionnels fiables et gérez vos projets.',
-      'Post a task': 'Publier une tâche',
+      'Projects & Contracts': 'Projets et contrats',
+      "You haven't posted any tasks yet":
+          "Vous n’avez encore publié aucune tâche",
+      'No active contracts yet. Browse tasks to bid.':
+          'Aucun contrat actif. Parcourez les tâches pour faire une offre.',
+      'No active projects assigned yet':
+          'Aucun projet actif ne vous est attribué',
+      'Browse live work near you':
+          'Parcourez les missions disponibles près de chez vous',
+      'Task Title': 'Titre de la tâche',
+      'Enter task title': 'Saisissez le titre de la tâche',
+      'Category & Subcategory': 'Catégorie et sous-catégorie',
+      'Select subcategory': 'Sélectionner une sous-catégorie',
+      'Provide as much detail as possible...':
+          'Décrivez la tâche avec le plus de détails possible...',
+      'Please provide as much detail as possible. Minimum 50 characters.':
+          'Veuillez fournir autant de détails que possible. Minimum 50 caractères.',
+      'Attachments (Optional)': 'Pièces jointes (facultatif)',
+      'Location': 'Lieu',
+      'Enter address': 'Saisissez l’adresse',
+      'Location detected': 'Lieu détecté',
+      'Detect My Location (IP-based)': 'Détecter ma position (par IP)',
+      'Estimated Budget': 'Budget estimé',
+      'When do you need this done?':
+          'Quand souhaitez-vous que ce soit terminé ?',
+      'Urgency': 'Urgence',
+      'Preferred Payment Method': 'Mode de paiement préféré',
+      'Step 1 of 2': 'Étape 1 sur 2',
+      'Task Details (Draft)': 'Détails de la tâche (brouillon)',
+      'Unable to open the legal page.':
+          'Impossible d’ouvrir la page juridique.',
+      'Please fill all required fields.':
+          'Veuillez remplir tous les champs obligatoires.',
+      'Please accept the Terms of Service.':
+          'Veuillez accepter les conditions d’utilisation.',
+      'Please enter your city.': 'Veuillez saisir votre ville.',
+      'Create Account': 'Créer un compte',
+      "Let's get started. Enter your basic information.":
+          'Commençons. Saisissez vos informations de base.',
+      'First Name': 'Prénom',
+      'John': 'Jean',
+      'Last Name': 'Nom',
+      'Doe': 'Dupont',
+      'Email Address': 'Adresse e-mail',
+      'Phone Number': 'Numéro de téléphone',
+      'Password': 'Mot de passe',
+      'Select Country': 'Sélectionner un pays',
+      'Already have an account?': 'Vous avez déjà un compte ?',
+      'Log In': 'Se connecter',
+      'What are you looking for?': 'Que recherchez-vous ?',
+      'Select how you intend to use Boulot Man.':
+          'Indiquez comment vous comptez utiliser Boulot Man.',
+      'Where are you located?': 'Où êtes-vous situé(e) ?',
+      'e.g. Douala': 'ex. Douala',
+      'Service Location / Address (Optional)':
+          'Lieu / adresse du service (facultatif)',
+      'e.g. Akwa': 'ex. Akwa',
+      "I agree to Boulot Man's ": "J’accepte les ",
+      'Terms of Service': 'conditions d’utilisation',
+      ' and ': ' et la ',
+      'Privacy Policy': 'politique de confidentialité',
       'Posting locked': 'Publication verrouillée',
       'Task': 'Tâche',
       'draft': 'Brouillon',

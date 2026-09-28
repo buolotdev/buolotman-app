@@ -115,7 +115,11 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
     }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This notification has no linked page.')),
+        SnackBar(
+          content: Text(
+            AppLanguage.text('This notification has no linked page.'),
+          ),
+        ),
       );
     }
   }
@@ -130,9 +134,11 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
   }
 
   void _verificationNotice() => ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
+    SnackBar(
       content: Text(
-        'Task posting is locked until an administrator verifies your account.',
+        AppLanguage.text(
+          'Task posting is locked until an administrator verifies your account.',
+        ),
       ),
     ),
   );
@@ -182,8 +188,10 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Find trusted professionals and manage your projects.',
+          Text(
+            AppLanguage.text(
+              'Find trusted professionals and manage your projects.',
+            ),
             style: TextStyle(color: muted),
           ),
           const SizedBox(height: 20),
@@ -360,7 +368,9 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
               backgroundColor: orange,
               foregroundColor: Colors.white,
             ),
-            label: Text(verified ? 'Post a task' : 'Posting locked'),
+            label: Text(
+              AppLanguage.text(verified ? 'Post a task' : 'Posting locked'),
+            ),
           ),
         ],
       ),
@@ -382,11 +392,11 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
           style: const TextStyle(color: navy, fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
-          '${x['status'] ?? 'draft'} • ${x['city'] ?? x['location'] ?? 'Location not specified'}',
+          '${AppLanguage.status(x['status'] ?? 'draft')} • ${x['city'] ?? x['location'] ?? AppLanguage.text('Location not specified')}',
           style: const TextStyle(color: muted),
         ),
         trailing: Text(
-          '${x['bids_count'] ?? 0} bids',
+          '${x['bids_count'] ?? 0} ${AppLanguage.text('bids')}',
           style: const TextStyle(color: navy, fontWeight: FontWeight.w600),
         ),
         onTap: () async {
@@ -454,22 +464,22 @@ class _ClientDashboardState extends State<ClientDashboardScreen> {
     selectedItemColor: orange,
     unselectedItemColor: muted,
     onTap: (value) => setState(() => tab = value),
-    items: const [
+    items: [
       BottomNavigationBarItem(
         icon: Icon(Icons.dashboard_outlined),
-        label: 'Home',
+        label: AppLanguage.text('Home'),
       ),
       BottomNavigationBarItem(
         icon: Icon(Icons.assignment_outlined),
-        label: 'Tasks',
+        label: AppLanguage.text('Tasks'),
       ),
       BottomNavigationBarItem(
         icon: Icon(Icons.message_outlined),
-        label: 'Messages',
+        label: AppLanguage.text('Messages'),
       ),
       BottomNavigationBarItem(
         icon: Icon(Icons.person_outline),
-        label: 'Profile',
+        label: AppLanguage.text('Profile'),
       ),
     ],
   );

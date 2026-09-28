@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'app_state.dart';
+import 'app_language.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
@@ -22,8 +23,8 @@ class NotificationsScreen extends StatelessWidget {
               icon: const Icon(Icons.arrow_back, color: Color(0xFF001F3F)),
               onPressed: () => Navigator.of(context).maybePop(),
             ),
-            title: const Text(
-              'Notifications',
+            title: Text(
+              AppLanguage.text('Notifications'),
               style: TextStyle(
                 color: Color(0xFF001F3F),
                 fontWeight: FontWeight.w600,
@@ -116,20 +117,22 @@ class NotificationsScreen extends StatelessWidget {
         {
           'icon': Icons.work_outline,
           'color': const Color(0xFFFF4500),
-          'title': 'New task available',
+          'title': AppLanguage.text('New task available'),
           'subtitle': firstTask == null
-              ? 'A new task matching your category will appear here.'
+              ? AppLanguage.text(
+                  'A new task matching your category will appear here.',
+                )
               : '${firstTask.title} is open in ${firstTask.location}.',
-          'time': 'Just now',
+          'time': AppLanguage.text('Just now'),
         },
         {
           'icon': Icons.chat_bubble_outline,
           'color': const Color(0xFF001F3F),
-          'title': 'New message',
+          'title': AppLanguage.text('New message'),
           'subtitle': unreadMessage == null
-              ? 'No unread conversations.'
-              : 'You have a message from ${unreadMessage.name}.',
-          'time': '5 min ago',
+              ? AppLanguage.text('No unread conversations.')
+              : '${AppLanguage.text('You have a message from')} ${unreadMessage.name}.',
+          'time': AppLanguage.text('5 min ago'),
         },
       ];
     }
@@ -139,19 +142,20 @@ class NotificationsScreen extends StatelessWidget {
         {
           'icon': Icons.assignment_turned_in_outlined,
           'color': const Color(0xFF001F3F),
-          'title': 'Project update',
+          'title': AppLanguage.text('Project update'),
           'subtitle': firstTask == null
-              ? 'Your project activity will appear here.'
+              ? AppLanguage.text('Your project activity will appear here.')
               : '${firstTask.title} has ${firstTask.bidsCount} bids waiting.',
-          'time': 'Today',
+          'time': AppLanguage.text('Today'),
         },
         {
           'icon': Icons.verified_user_outlined,
           'color': const Color(0xFF1E8E3E),
-          'title': 'Verification reminder',
-          'subtitle':
-              'Upload compliance documents to keep your company verified.',
-          'time': 'Yesterday',
+          'title': AppLanguage.text('Verification reminder'),
+          'subtitle': AppLanguage.text(
+            'Upload compliance documents to keep your company verified.',
+          ),
+          'time': AppLanguage.text('Yesterday'),
         },
       ];
     }
@@ -162,10 +166,10 @@ class NotificationsScreen extends StatelessWidget {
       list.add({
         'icon': Icons.chat_bubble_outline,
         'color': const Color(0xFF001F3F),
-        'title': 'New message',
+        'title': AppLanguage.text('New message'),
         'subtitle':
-            'You have an active chat thread with ${unreadMessage.name}.',
-        'time': 'Just now',
+            '${AppLanguage.text('You have an active chat thread with')} ${unreadMessage.name}.',
+        'time': AppLanguage.text('Just now'),
       });
     }
 
@@ -174,27 +178,27 @@ class NotificationsScreen extends StatelessWidget {
         list.add({
           'icon': Icons.check_circle_outline,
           'color': const Color(0xFF1E8E3E),
-          'title': 'Task completed',
+          'title': AppLanguage.text('Task completed'),
           'subtitle':
               'Your task "${task.title}" is complete and payment is released.',
-          'time': 'Today',
+          'time': AppLanguage.text('Today'),
         });
       } else if (task.status == 'in_progress') {
         list.add({
           'icon': Icons.hourglass_top_outlined,
           'color': const Color(0xFFFF5500),
-          'title': 'Task in progress',
+          'title': AppLanguage.text('Task in progress'),
           'subtitle': 'Work is in progress on "${task.title}".',
-          'time': 'Today',
+          'time': AppLanguage.text('Today'),
         });
       } else if (task.status == 'open' && task.bidsCount > 0) {
         list.add({
           'icon': Icons.receipt_long_outlined,
           'color': const Color(0xFFFF5500),
-          'title': 'Bids received',
+          'title': AppLanguage.text('Bids received'),
           'subtitle':
               'Your task "${task.title}" has received ${task.bidsCount} bids.',
-          'time': 'Today',
+          'time': AppLanguage.text('Today'),
         });
       }
     }
@@ -203,9 +207,11 @@ class NotificationsScreen extends StatelessWidget {
       list.add({
         'icon': Icons.notifications_none_outlined,
         'color': const Color(0xFF94A3B8),
-        'title': 'Welcome to Boulot Man',
-        'subtitle': 'Post a task or browse professionals to get started!',
-        'time': 'Today',
+        'title': AppLanguage.text('Welcome to Boulot Man'),
+        'subtitle': AppLanguage.text(
+          'Post a task or browse professionals to get started!',
+        ),
+        'time': AppLanguage.text('Today'),
       });
     }
     return list;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/api_service.dart';
+import '../app_language.dart';
 
 class ServerNotificationsScreen extends StatefulWidget {
   const ServerNotificationsScreen({super.key, this.onNotificationTap});
@@ -27,7 +28,7 @@ class _ServerNotificationsState extends State<ServerNotificationsScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Notifications'),
+      title: Text(AppLanguage.text('Notifications')),
       foregroundColor: const Color(0xFF001F3F),
       backgroundColor: Colors.white,
       actions: [
@@ -45,7 +46,7 @@ class _ServerNotificationsState extends State<ServerNotificationsScreen> {
           );
         final items = snap.data!;
         if (items.isEmpty)
-          return const Center(child: Text('No notifications yet.'));
+          return Center(child: Text(AppLanguage.text('No notifications yet.')));
         return RefreshIndicator(
           onRefresh: reload,
           child: ListView.builder(
@@ -63,7 +64,7 @@ class _ServerNotificationsState extends State<ServerNotificationsScreen> {
                     color: const Color(0xFFFF4500),
                   ),
                   title: Text(
-                    '${n['title'] ?? 'Notification'}',
+                    '${n['title'] ?? AppLanguage.text('Notification')}',
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   subtitle: Text(

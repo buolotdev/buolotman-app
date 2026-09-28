@@ -256,7 +256,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
         child: TextField(
           onChanged: (value) => setState(() => query = value),
           decoration: InputDecoration(
-            hintText: 'Search tasks or cities',
+            hintText: AppLanguage.text('Search tasks or cities'),
             prefixIcon: const Icon(Icons.search, size: 20, color: muted),
             filled: true,
             fillColor: const Color(0xFFF1F5F9),
