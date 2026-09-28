@@ -12,6 +12,25 @@ class AppLanguage {
   static const _translations = <String, Map<String, String>>{
     'fr': {
       'Dashboard': 'Tableau de bord',
+      'Add completed work': 'Ajouter un travail terminé',
+      'Add project image': 'Ajouter une image au projet',
+      'Save project': 'Enregistrer le projet',
+      'Saved projects': 'Projets enregistrés',
+      'Completion date': 'Date d’achèvement',
+      'Select completion date': 'Sélectionner la date d’achèvement',
+      'Top up your wallet before upgrading this plan.':
+          'Alimentez votre portefeuille avant de passer à ce forfait.',
+      'Upgrade to': 'Passer à',
+      'Confirm': 'Confirmer',
+      'Annual billing': 'Facturation annuelle',
+      'Use the yearly prices shown on the website.':
+          'Utilisez les tarifs annuels affichés sur le site.',
+      'Free': 'Gratuit',
+      'year': 'an',
+      'month': 'mois',
+      'Current plan': 'Forfait actuel',
+      'Upgrade': 'Mettre à niveau',
+      'upgrade request submitted.': 'demande de mise à niveau envoyée.',
       'My Services (Hierarchy)': 'Mes services (hiérarchie)',
       'Link a New Service': 'Lier un nouveau service',
       'Link Service': 'Lier le service',

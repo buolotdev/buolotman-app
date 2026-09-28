@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/api_service.dart';
+import '../app_language.dart';
 
 const subscriptionNavy = Color(0xFF001F3F);
 const subscriptionOrange = Color(0xFFFF4500);
@@ -64,8 +65,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     if (balance < price) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Top up your wallet before upgrading this plan.'),
+          SnackBar(
+            content: Text(
+              AppLanguage.text(
+                'Top up your wallet before upgrading this plan.',
+              ),
+            ),
           ),
         );
       }
@@ -75,7 +80,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Upgrade to $name?'),
+        title: Text(
+          '${AppLanguage.text('Upgrade to')} ${AppLanguage.text(name)}?',
+        ),
         content: Text(
           '${price.toStringAsFixed(0)} ${wallet['currency'] ?? 'XAF'} / $cycle\n\n'
           'The website will charge your wallet when sufficient balance is available, otherwise it will use the direct payment source.',
@@ -83,11 +90,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Confirm'),
+            child: Text(AppLanguage.text('Confirm')),
           ),
         ],
       ),
@@ -102,7 +109,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$name upgrade request submitted.')),
+          SnackBar(
+            content: Text(
+              '${AppLanguage.text(name)} ${AppLanguage.text('upgrade request submitted.')}',
+            ),
+          ),
         );
         await load();
       }
@@ -122,7 +133,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final currency = wallet['currency'] ?? 'XAF';
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Plans and subscriptions'),
+        title: Text(AppLanguage.text('Plans and subscriptions')),
         foregroundColor: subscriptionNavy,
         backgroundColor: Colors.white,
       ),
@@ -147,7 +158,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'Wallet balance: ${balance.toStringAsFixed(2)} $currency',
+                            '${AppLanguage.text('Wallet balance')}: ${balance.toStringAsFixed(2)} $currency',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
@@ -169,9 +180,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   onChanged: upgrading
                       ? null
                       : (value) => setState(() => annual = value),
-                  title: const Text('Annual billing'),
-                  subtitle: const Text(
-                    'Use the yearly prices shown on the website.',
+                  title: Text(AppLanguage.text('Annual billing')),
+                  subtitle: Text(
+                    AppLanguage.text(
+                      'Use the yearly prices shown on the website.',
+                    ),
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                 ),
@@ -212,7 +225,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              name,
+              AppLanguage.text(name),
               style: const TextStyle(
                 color: subscriptionNavy,
                 fontSize: 20,
@@ -220,12 +233,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               ),
             ),
             const SizedBox(height: 5),
-            Text(description),
+            Text(AppLanguage.text(description)),
             const SizedBox(height: 8),
             Text(
               price == 0
-                  ? 'Free'
-                  : '${price.toStringAsFixed(0)} / ${annual ? 'year' : 'month'}',
+                  ? AppLanguage.text('Free')
+                  : '${price.toStringAsFixed(0)} / ${AppLanguage.text(annual ? 'year' : 'month')}',
               style: const TextStyle(
                 color: subscriptionNavy,
                 fontSize: 18,
@@ -243,7 +256,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   style: FilledButton.styleFrom(
                     backgroundColor: subscriptionOrange,
                   ),
-                  child: Text(selected ? 'Current plan' : 'Upgrade'),
+                  child: Text(
+                    AppLanguage.text(selected ? 'Current plan' : 'Upgrade'),
+                  ),
                 ),
               ),
             ],

@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../core/api_service.dart';
 import '../attachment_actions.dart';
+import '../app_language.dart';
 
 class TechnicianPortfolioScreen extends StatefulWidget {
   const TechnicianPortfolioScreen({super.key});
@@ -28,7 +29,7 @@ class _State extends State<TechnicianPortfolioScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Portfolio'),
+      title: Text(AppLanguage.text('Portfolio')),
       backgroundColor: navy,
       foregroundColor: Colors.white,
     ),
@@ -43,8 +44,8 @@ class _State extends State<TechnicianPortfolioScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'Add completed work',
+                Text(
+                  AppLanguage.text('Add completed work'),
                   style: TextStyle(
                     color: navy,
                     fontSize: 19,
@@ -83,7 +84,7 @@ class _State extends State<TechnicianPortfolioScreen> {
                 OutlinedButton.icon(
                   onPressed: _pick,
                   icon: const Icon(Icons.image_outlined),
-                  label: const Text('Add project image'),
+                  label: Text(AppLanguage.text('Add project image')),
                 ),
                 const SizedBox(height: 10),
                 FilledButton(
@@ -92,7 +93,11 @@ class _State extends State<TechnicianPortfolioScreen> {
                     minimumSize: const Size.fromHeight(48),
                   ),
                   onPressed: saving ? null : _save,
-                  child: Text(saving ? 'Saving...' : 'Save project'),
+                  child: Text(
+                    saving
+                        ? AppLanguage.text('Saving...')
+                        : AppLanguage.text('Save project'),
+                  ),
                 ),
               ],
             ),
@@ -107,8 +112,8 @@ class _State extends State<TechnicianPortfolioScreen> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Saved projects',
+                Text(
+                  AppLanguage.text('Saved projects'),
                   style: TextStyle(
                     color: navy,
                     fontSize: 19,
@@ -136,7 +141,7 @@ class _State extends State<TechnicianPortfolioScreen> {
       maxLines: lines,
       keyboardType: keyboardType,
       decoration: InputDecoration(
-        labelText: label,
+        labelText: AppLanguage.text(label),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -151,8 +156,8 @@ class _State extends State<TechnicianPortfolioScreen> {
       readOnly: true,
       onTap: _pickCompletionDate,
       decoration: InputDecoration(
-        labelText: 'Completion date',
-        hintText: 'Select completion date',
+        labelText: AppLanguage.text('Completion date'),
+        hintText: AppLanguage.text('Select completion date'),
         suffixIcon: const Icon(Icons.calendar_month_outlined),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
