@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import 'app_state.dart';
 import 'phone_validation.dart';
+import 'app_language.dart';
 
 class WithdrawScreen extends StatefulWidget {
   const WithdrawScreen({super.key});
@@ -36,8 +37,8 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               icon: const Icon(Icons.arrow_back, color: Color(0xFF001F3F)),
               onPressed: () => Navigator.pop(context),
             ),
-            title: const Text(
-              "Withdraw Funds",
+            title: Text(
+              AppLanguage.text("Withdraw Funds"),
               style: TextStyle(
                 color: Color(0xFF001F3F),
                 fontWeight: FontWeight.w600,
@@ -53,8 +54,8 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               children: [
                 _buildBalanceCard(appState),
                 const SizedBox(height: 32),
-                const Text(
-                  "Withdrawal Amount",
+                Text(
+                  AppLanguage.text("Withdrawal Amount"),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -64,8 +65,8 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                 const SizedBox(height: 12),
                 _buildAmountInput(),
                 const SizedBox(height: 32),
-                const Text(
-                  "Select Method",
+                Text(
+                  AppLanguage.text("Select Method"),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -89,8 +90,10 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
                     inputFormatters: [phoneInputFormatter('Cameroon')],
-                    decoration: const InputDecoration(
-                      labelText: 'Cameroon Mobile Money number',
+                    decoration: InputDecoration(
+                      labelText: AppLanguage.text(
+                        'Cameroon Mobile Money number',
+                      ),
                       prefixText: '+237 ',
                     ),
                   ),
@@ -118,8 +121,8 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "Available Balance",
+              Text(
+                AppLanguage.text("Available Balance"),
                 style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
               ),
               const SizedBox(height: 4),
@@ -139,8 +142,8 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text(
-              "Escrow Protected",
+            child: Text(
+              AppLanguage.text("Escrow Protected"),
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -225,7 +228,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    AppLanguage.text(title),
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -233,7 +236,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                     ),
                   ),
                   Text(
-                    subtitle,
+                    AppLanguage.text(subtitle),
                     style: const TextStyle(
                       fontSize: 12,
                       color: Color(0xFF64748B),
@@ -266,9 +269,11 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                         'Cameroon',
                       )))) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text(
-                  'Enter a valid amount and Cameroon payout number. Mobile Money withdrawals require at least 500 XAF.',
+                  AppLanguage.text(
+                    'Enter a valid amount and Cameroon payout number. Mobile Money withdrawals require at least 500 XAF.',
+                  ),
                 ),
               ),
             );
@@ -289,7 +294,11 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
           } catch (error) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Withdrawal failed: $error')),
+                SnackBar(
+                  content: Text(
+                    '${AppLanguage.text('Withdrawal failed')}: $error',
+                  ),
+                ),
               );
             }
           }
@@ -303,8 +312,8 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
           ),
           elevation: 0,
         ),
-        child: const Text(
-          "Confirm Withdrawal",
+        child: Text(
+          AppLanguage.text("Confirm Withdrawal"),
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
@@ -334,8 +343,8 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              "Withdrawal Initiated",
+            Text(
+              AppLanguage.text("Withdrawal Initiated"),
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -343,8 +352,10 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              "Your funds are on the way! It usually takes 1-3 business days to process.",
+            Text(
+              AppLanguage.text(
+                "Your funds are on the way! It usually takes 1-3 business days to process.",
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(color: Color(0xFF64748B), height: 1.5),
             ),
@@ -364,7 +375,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text("Back to Wallet"),
+                child: Text(AppLanguage.text("Back to Wallet")),
               ),
             ),
             const SizedBox(height: 12),

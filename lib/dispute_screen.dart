@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_state.dart';
+import 'app_language.dart';
 
 class DisputeScreen extends StatefulWidget {
   final String? taskId;
@@ -43,8 +44,8 @@ class _DisputeScreenState extends State<DisputeScreen> {
           icon: const Icon(Icons.close, color: Color(0xFF001F3F)),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Open a Dispute',
+        title: Text(
+          AppLanguage.text('Open a Dispute'),
           style: TextStyle(
             color: Color(0xFF001F3F),
             fontWeight: FontWeight.w600,
@@ -58,8 +59,8 @@ class _DisputeScreenState extends State<DisputeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'What went wrong?',
+            Text(
+              AppLanguage.text('What went wrong?'),
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
@@ -68,7 +69,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              "We're sorry to hear there's an issue with '$selectedTaskTitle'. Please tell us more so we can help.",
+              '${AppLanguage.text("We're sorry to hear there's an issue with")} "$selectedTaskTitle". ${AppLanguage.text('Please tell us more so we can help.')}',
               style: const TextStyle(color: Color(0xFF64748B), height: 1.5),
             ),
             const SizedBox(height: 32),
@@ -410,7 +411,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
-        label,
+        AppLanguage.text(label),
         style: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
@@ -445,7 +446,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
       controller: _explanationController,
       maxLines: maxLines,
       decoration: InputDecoration(
-        hintText: hint,
+        hintText: AppLanguage.text(hint),
         hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
         filled: true,
         fillColor: const Color(0xFFF1F5F9),
@@ -472,7 +473,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
           Icon(icon, size: 28, color: const Color(0xFF64748B)),
           const SizedBox(height: 12),
           Text(
-            label,
+            AppLanguage.text(label),
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -480,8 +481,8 @@ class _DisputeScreenState extends State<DisputeScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Tap to attach files (PNG, JPG, PDF)',
+          Text(
+            AppLanguage.text('Tap to attach files (PNG, JPG, PDF)'),
             style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
           ),
         ],
@@ -506,17 +507,23 @@ class _DisputeScreenState extends State<DisputeScreen> {
         onPressed: () async {
           if (_explanationController.text.trim().isEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Add a short explanation before submitting.'),
+              SnackBar(
+                content: Text(
+                  AppLanguage.text(
+                    'Add a short explanation before submitting.',
+                  ),
+                ),
               ),
             );
             return;
           }
           if (selectedTaskId.isEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text(
-                  'You must have an active task to open a dispute.',
+                  AppLanguage.text(
+                    'You must have an active task to open a dispute.',
+                  ),
                 ),
               ),
             );
@@ -553,7 +560,11 @@ class _DisputeScreenState extends State<DisputeScreen> {
             if (mounted) {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Failed to submit dispute: $e')),
+                SnackBar(
+                  content: Text(
+                    '${AppLanguage.text('Failed to submit dispute')}: $e',
+                  ),
+                ),
               );
             }
           }
@@ -567,8 +578,8 @@ class _DisputeScreenState extends State<DisputeScreen> {
           ),
           elevation: 0,
         ),
-        child: const Text(
-          'Submit Dispute',
+        child: Text(
+          AppLanguage.text('Submit Dispute'),
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),

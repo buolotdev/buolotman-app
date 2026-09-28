@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'app_state.dart';
 import 'category_browsing_screen.dart';
 import 'listing_screen.dart';
+import 'app_language.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -193,8 +194,10 @@ class _SearchScreenState extends State<SearchScreen> {
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF001F3F),
                       ),
-                      decoration: const InputDecoration(
-                        hintText: 'Search for tasks or pros...',
+                      decoration: InputDecoration(
+                        hintText: AppLanguage.text(
+                          'Search for tasks or pros...',
+                        ),
                         hintStyle: TextStyle(color: Color(0xFF64748B)),
                         border: InputBorder.none,
                         isDense: true,
@@ -266,8 +269,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          "Filter Results",
+                        Text(
+                          AppLanguage.text("Filter Results"),
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
@@ -282,8 +285,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                     const Divider(),
                     const SizedBox(height: 16),
-                    const Text(
-                      "Result Type",
+                    Text(
+                      AppLanguage.text("Result Type"),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -294,21 +297,21 @@ class _SearchScreenState extends State<SearchScreen> {
                     Row(
                       children: [
                         _buildFilterOption(
-                          label: "All",
+                          label: AppLanguage.text("All"),
                           active: selectedType == 'all',
                           onTap: () =>
                               setSheetState(() => selectedType = 'all'),
                         ),
                         const SizedBox(width: 8),
                         _buildFilterOption(
-                          label: "Tasks",
+                          label: AppLanguage.text("Tasks"),
                           active: selectedType == 'tasks',
                           onTap: () =>
                               setSheetState(() => selectedType = 'tasks'),
                         ),
                         const SizedBox(width: 8),
                         _buildFilterOption(
-                          label: "Services",
+                          label: AppLanguage.text("Services"),
                           active: selectedType == 'services',
                           onTap: () =>
                               setSheetState(() => selectedType = 'services'),
@@ -316,8 +319,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       ],
                     ),
                     const SizedBox(height: 24),
-                    const Text(
-                      "Budget Range",
+                    Text(
+                      AppLanguage.text("Budget Range"),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -374,8 +377,8 @@ class _SearchScreenState extends State<SearchScreen> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: const Text(
-                          "Apply Filters",
+                        child: Text(
+                          AppLanguage.text("Apply Filters"),
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ),
@@ -423,8 +426,8 @@ class _SearchScreenState extends State<SearchScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Recent Searches',
+              Text(
+                AppLanguage.text('Recent Searches'),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -433,8 +436,8 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               GestureDetector(
                 onTap: () => setState(() => _recentSearches.clear()),
-                child: const Text(
-                  'Clear All',
+                child: Text(
+                  AppLanguage.text('Clear All'),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -491,8 +494,8 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Suggested Categories',
+          Text(
+            AppLanguage.text('Suggested Categories'),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -564,11 +567,11 @@ class _SearchScreenState extends State<SearchScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Browse All Categories',
+                  AppLanguage.text('Browse All Categories'),
                   style: TextStyle(
                     color: Color(0xFF001F3F),
                     fontWeight: FontWeight.w600,
