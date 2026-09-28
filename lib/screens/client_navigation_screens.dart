@@ -17,6 +17,7 @@ import '../core/username_utils.dart';
 import '../phone_validation.dart';
 import '../discard_changes.dart';
 import '../chat_contact_profile_screen.dart';
+import '../app_language.dart';
 
 const clientNavy = Color(0xFF001F3F),
     clientOrange = Color(0xFFFF4500),
@@ -748,6 +749,7 @@ class _ClientProfileState extends State<ClientProfileScreen> {
       city.text = apiCity.isNotEmpty ? apiCity : signupCity;
       address.text = '${p['address'] ?? p['city'] ?? ''}';
       language = '${p['language_preference'] ?? 'en'}';
+      await AppLanguage.setLocal(language);
       avatar = api.resolveImageUrl(p['avatar_url'] as String?);
       banner = api.resolveImageUrl(
         (p['banner_url'] ?? p['cover_url']) as String?,
@@ -1476,30 +1478,23 @@ class _ClientProfileState extends State<ClientProfileScreen> {
                 }),
               ),
               DropdownButtonFormField<String>(
-                value: language,
+                initialValue: language,
                 decoration: _dec('Language'),
-                items: const [
-                  DropdownMenuItem(
-                    value: 'en',
-                    child: Text(
-                      'English',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                items: [
+                  for (final code in AppLanguage.supported)
+                    DropdownMenuItem(
+                      value: code,
+                      child: Text(AppLanguage.labels[code]!),
                     ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'fr',
-                    child: Text(
-                      'Français',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
                 ],
-                onChanged: (x) => setState(() {
-                  language = x ?? language;
-                  _dirty = true;
-                }),
+                onChanged: (x) async {
+                  final next = x ?? language;
+                  setState(() {
+                    language = next;
+                    _dirty = true;
+                  });
+                  await AppLanguage.setLocal(next);
+                },
               ),
               _switch(
                 'Allow direct offers',
@@ -2109,7 +2104,9 @@ class _ClientSettingsState extends State<ClientSettingsScreen> {
                 DropdownMenuItem(value: 'fr', child: Text('Français')),
               ],
               onChanged: (v) async {
-                setState(() => language = v ?? 'en');
+                final next = v ?? 'en';
+                setState(() => language = next);
+                await AppLanguage.setLocal(next);
                 try {
                   await api.updateProfile({'language_preference': language});
                 } catch (_) {}

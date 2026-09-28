@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/api_service.dart';
 import 'login_screen.dart';
 import 'company_workflow_screens.dart';
+import '../app_language.dart';
 
 class CompanySettingsScreen extends StatefulWidget {
   const CompanySettingsScreen({super.key});
@@ -39,6 +40,7 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
           values = Map<String, dynamic>.from(data);
           loading = false;
         });
+      await AppLanguage.setLocal('${data['language_preference'] ?? 'en'}');
     } catch (_) {
       if (mounted) {
         setState(() => loading = false);
@@ -65,6 +67,9 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
         'sec_2fa': values['sec_2fa'] == true,
       };
       await api.updateCompanyProfile(payload);
+      await api.updateProfile({
+        'language_preference': AppLanguage.current.value,
+      });
       await _load();
       if (mounted) _notice('Settings saved successfully.');
     } catch (e) {
@@ -222,6 +227,7 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
                 _select('Response time', 'response_time', responseTimes),
                 _select('Preferred currency', 'currency', currencies),
               ]),
+              _section('Language', [const AppLanguagePicker()]),
               _section('Preferences', [
                 _toggle('Auto-accept site visits', 'auto_accept_visits'),
                 _toggle('Email notifications', 'notif_email'),

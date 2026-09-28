@@ -4,6 +4,7 @@ import 'login_screen.dart';
 import 'technician_navigation.dart';
 import 'technician_wallet_screen.dart';
 import '../phone_validation.dart';
+import '../app_language.dart';
 
 class TechnicianSettingsScreen extends StatefulWidget {
   const TechnicianSettingsScreen({super.key});
@@ -88,6 +89,7 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
           '${u['response_time'] ?? p['response_time'] ?? responseTime}';
       availability =
           '${u['availability_status'] ?? p['availability_status'] ?? u['availability'] ?? 'available'}';
+      await AppLanguage.setLocal('${u['language_preference'] ?? 'en'}');
       availableForJobs =
           _bool(u['available_now'] ?? p['available_now']) ||
           availability == 'available';
@@ -116,6 +118,7 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
         'response_time': responseTime,
         'availability_status': availableForJobs ? availability : 'offline',
         'available_now': availableForJobs,
+        'language_preference': AppLanguage.current.value,
       });
       _notice('Settings saved successfully.');
     } catch (e) {
@@ -242,6 +245,7 @@ class _TechnicianSettingsState extends State<TechnicianSettingsScreen> {
                   decoration: const InputDecoration(labelText: 'Email'),
                 ),
               ]),
+              _card('Language', [const AppLanguagePicker()]),
               _card('Professional preferences', [
                 TextField(
                   controller: profession,

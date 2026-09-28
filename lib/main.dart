@@ -13,11 +13,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'push_notification_service.dart';
+import 'app_language.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await PushNotificationService.initialize();
+  await AppLanguage.initialize();
   try {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('backend_ip_override');
@@ -44,32 +46,39 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        fontFamily: GoogleFonts.inter().fontFamily,
-        textTheme: GoogleFonts.interTextTheme(),
-        scaffoldBackgroundColor: const Color(0xFFF5F7FA),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          foregroundColor: Color(0xFF001F3F),
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          centerTitle: true,
-          toolbarHeight: 64,
-          titleTextStyle: TextStyle(
-            color: Color(0xFF001F3F),
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
+    return ValueListenableBuilder<String>(
+      valueListenable: AppLanguage.current,
+      builder: (context, language, _) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        locale: Locale(language),
+        supportedLocales: const [Locale('en'), Locale('fr'), Locale('rw')],
+        theme: ThemeData(
+          useMaterial3: true,
+          fontFamily: GoogleFonts.inter().fontFamily,
+          textTheme: GoogleFonts.interTextTheme(),
+          scaffoldBackgroundColor: const Color(0xFFF5F7FA),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.white,
+            foregroundColor: Color(0xFF001F3F),
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            centerTitle: true,
+            toolbarHeight: 64,
+            titleTextStyle: TextStyle(
+              color: Color(0xFF001F3F),
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+            ),
+            iconTheme: IconThemeData(color: Color(0xFF001F3F), size: 25),
+            actionsIconTheme: IconThemeData(color: Color(0xFF001F3F), size: 25),
+            surfaceTintColor: Colors.transparent,
+            shape: Border(
+              bottom: BorderSide(color: Color(0xFFE8EDF3), width: 1),
+            ),
           ),
-          iconTheme: IconThemeData(color: Color(0xFF001F3F), size: 25),
-          actionsIconTheme: IconThemeData(color: Color(0xFF001F3F), size: 25),
-          surfaceTintColor: Colors.transparent,
-          shape: Border(bottom: BorderSide(color: Color(0xFFE8EDF3), width: 1)),
         ),
+        home: const SplashScreen(),
       ),
-      home: const SplashScreen(),
     );
   }
 }
