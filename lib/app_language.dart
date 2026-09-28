@@ -12,6 +12,16 @@ class AppLanguage {
   static const _translations = <String, Map<String, String>>{
     'fr': {
       'Dashboard': 'Tableau de bord',
+      'My Services (Hierarchy)': 'Mes services (hiérarchie)',
+      'Link a New Service': 'Lier un nouveau service',
+      'Link Service': 'Lier le service',
+      'My Linked Services': 'Mes services liés',
+      'No services linked yet. Select a service from the hierarchy above.':
+          'Aucun service lié. Sélectionnez un service dans la hiérarchie ci-dessus.',
+      'Verified Skill': 'Compétence vérifiée',
+      'Unverified': 'Non vérifié',
+      'Are you sure you want to unlink this service?':
+          'Voulez-vous vraiment dissocier ce service ?',
       'Preview unavailable.': 'Aperçu indisponible.',
       'Save company profile': 'Enregistrer le profil de l’entreprise',
       'Uploading...': 'Téléversement...',

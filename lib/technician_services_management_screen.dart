@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'app_state.dart';
 import 'api_service.dart';
+import 'app_language.dart';
 
 class TechnicianServicesManagementScreen extends StatefulWidget {
   const TechnicianServicesManagementScreen({Key? key}) : super(key: key);
@@ -104,7 +105,9 @@ class _TechnicianServicesManagementScreenState
       });
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Service added successfully!')),
+          SnackBar(
+            content: Text(AppLanguage.text('Service added successfully!')),
+          ),
         );
     } catch (e) {
       if (mounted)
@@ -121,9 +124,9 @@ class _TechnicianServicesManagementScreenState
       await ApiService.instance.deleteTechnicianService(id);
       await _loadData();
       if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Service removed.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLanguage.text('Service removed.'))),
+        );
     } catch (e) {
       if (mounted)
         ScaffoldMessenger.of(
@@ -137,8 +140,8 @@ class _TechnicianServicesManagementScreenState
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9),
       appBar: AppBar(
-        title: const Text(
-          'My Services (Hierarchy)',
+        title: Text(
+          AppLanguage.text('My Services (Hierarchy)'),
           style: TextStyle(
             color: Color(0xFF001F3F),
             fontWeight: FontWeight.w600,
@@ -158,8 +161,8 @@ class _TechnicianServicesManagementScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Link a New Service',
+                  Text(
+                    AppLanguage.text('Link a New Service'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -184,7 +187,7 @@ class _TechnicianServicesManagementScreenState
                       children: [
                         DropdownButtonFormField<int>(
                           value: _selectedCategory,
-                          hint: const Text('Select Category'),
+                          hint: Text(AppLanguage.text('Select Category')),
                           items: _categories
                               .map(
                                 (c) => DropdownMenuItem<int>(
@@ -208,7 +211,7 @@ class _TechnicianServicesManagementScreenState
                         const SizedBox(height: 12),
                         DropdownButtonFormField<int>(
                           value: _selectedSubcategory,
-                          hint: const Text('Select Subcategory'),
+                          hint: Text(AppLanguage.text('Select Subcategory')),
                           items: _subcategories
                               .map(
                                 (c) => DropdownMenuItem<int>(
@@ -232,7 +235,7 @@ class _TechnicianServicesManagementScreenState
                         const SizedBox(height: 12),
                         DropdownButtonFormField<int>(
                           value: _selectedService,
-                          hint: const Text('Select Service'),
+                          hint: Text(AppLanguage.text('Select Service')),
                           items: _services
                               .map(
                                 (c) => DropdownMenuItem<int>(
@@ -276,8 +279,8 @@ class _TechnicianServicesManagementScreenState
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : const Text(
-                                    'Link Service',
+                                : Text(
+                                    AppLanguage.text('Link Service'),
                                     style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 16,
@@ -289,8 +292,8 @@ class _TechnicianServicesManagementScreenState
                     ),
                   ),
                   const SizedBox(height: 32),
-                  const Text(
-                    'My Linked Services',
+                  Text(
+                    AppLanguage.text('My Linked Services'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -299,8 +302,10 @@ class _TechnicianServicesManagementScreenState
                   ),
                   const SizedBox(height: 16),
                   if (_myServices.isEmpty)
-                    const Text(
-                      'No services linked yet. Select a service from the hierarchy above.',
+                    Text(
+                      AppLanguage.text(
+                        'No services linked yet. Select a service from the hierarchy above.',
+                      ),
                       style: TextStyle(color: Colors.grey),
                     )
                   else
@@ -337,8 +342,8 @@ class _TechnicianServicesManagementScreenState
                                         color: Colors.green.withOpacity(0.1),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
-                                      child: const Text(
-                                        'Verified Skill',
+                                      child: Text(
+                                        AppLanguage.text('Verified Skill'),
                                         style: TextStyle(
                                           color: Colors.green,
                                           fontSize: 12,
@@ -356,8 +361,8 @@ class _TechnicianServicesManagementScreenState
                                         color: Colors.orange.withOpacity(0.1),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
-                                      child: const Text(
-                                        'Unverified',
+                                      child: Text(
+                                        AppLanguage.text('Unverified'),
                                         style: TextStyle(
                                           color: Colors.orange,
                                           fontSize: 12,
@@ -377,22 +382,28 @@ class _TechnicianServicesManagementScreenState
                                   showDialog(
                                     context: context,
                                     builder: (ctx) => AlertDialog(
-                                      title: const Text('Remove Service'),
-                                      content: const Text(
-                                        'Are you sure you want to unlink this service?',
+                                      title: Text(
+                                        AppLanguage.text('Remove Service'),
+                                      ),
+                                      content: Text(
+                                        AppLanguage.text(
+                                          'Are you sure you want to unlink this service?',
+                                        ),
                                       ),
                                       actions: [
                                         TextButton(
                                           onPressed: () => Navigator.pop(ctx),
-                                          child: const Text('Cancel'),
+                                          child: Text(
+                                            AppLanguage.text('Cancel'),
+                                          ),
                                         ),
                                         TextButton(
                                           onPressed: () {
                                             Navigator.pop(ctx);
                                             _removeService(s['id']);
                                           },
-                                          child: const Text(
-                                            'Remove',
+                                          child: Text(
+                                            AppLanguage.text('Remove'),
                                             style: TextStyle(color: Colors.red),
                                           ),
                                         ),
