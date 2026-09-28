@@ -12,6 +12,19 @@ class AppLanguage {
   static const _translations = <String, Map<String, String>>{
     'fr': {
       'Dashboard': 'Tableau de bord',
+      'Search projects, clients or locations':
+          'Rechercher des projets, clients ou lieux',
+      'Withdraw bid?': 'Retirer l’offre ?',
+      'My Bids': 'Mes offres',
+      'Submit work for inspection': 'Soumettre le travail pour inspection',
+      'Submit project quotation': 'Soumettre un devis de projet',
+      'Send quote': 'Envoyer le devis',
+      'Open project dispute': 'Ouvrir un litige de projet',
+      'Accept project offer': 'Accepter l’offre de projet',
+      'Quote type': 'Type de devis',
+      'Fixed quote': 'Devis fixe',
+      'Your fixed quote amount': 'Montant de votre devis fixe',
+      'Delivery duration': 'Délai de livraison',
       'This permanently removes your account. Type DELETE to confirm.':
           'Cette action supprime définitivement votre compte. Saisissez DELETE pour confirmer.',
       'Edit profile': 'Modifier le profil',

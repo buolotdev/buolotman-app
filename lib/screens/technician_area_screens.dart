@@ -8,6 +8,7 @@ import '../attachment_actions.dart';
 import 'login_screen.dart';
 import 'technician_messages_screen.dart';
 import 'technician_navigation.dart';
+import '../app_language.dart';
 
 const _navy = Color(0xFF001F3F),
     _orange = Color(0xFFFF4500),
@@ -67,7 +68,7 @@ class _ProjectsState extends State<TechnicianProjectsScreen> {
   @override
   Widget build(BuildContext c) => Scaffold(
     appBar: AppBar(
-      title: const Text('Projects'),
+      title: Text(AppLanguage.text('Projects')),
       foregroundColor: _navy,
       backgroundColor: Colors.white,
       actions: [
@@ -108,9 +109,11 @@ class _ProjectsState extends State<TechnicianProjectsScreen> {
             children: [
               TextField(
                 onChanged: (v) => setState(() => query = v),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   prefixIcon: Icon(Icons.search),
-                  labelText: 'Search projects, clients or locations',
+                  labelText: AppLanguage.text(
+                    'Search projects, clients or locations',
+                  ),
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(),
@@ -299,7 +302,7 @@ class _TasksGateState extends State<TechnicianTasksScreen> {
       if (!verified)
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Browse Tasks'),
+            title: Text(AppLanguage.text('Browse Tasks')),
             foregroundColor: _navy,
             backgroundColor: Colors.white,
           ),
@@ -313,7 +316,7 @@ class _TasksGateState extends State<TechnicianTasksScreen> {
         );
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Browse Tasks'),
+          title: Text(AppLanguage.text('Browse Tasks')),
           foregroundColor: _navy,
           backgroundColor: Colors.white,
           actions: [
@@ -346,9 +349,11 @@ class _TasksGateState extends State<TechnicianTasksScreen> {
                 children: [
                   TextField(
                     onChanged: (v) => setState(() => query = v),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       prefixIcon: Icon(Icons.search),
-                      labelText: 'Search tasks, skills, city or location',
+                      labelText: AppLanguage.text(
+                        'Search tasks, skills, city or location',
+                      ),
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(),
@@ -397,8 +402,8 @@ class _TasksGateState extends State<TechnicianTasksScreen> {
                           ),
                           onChanged: (v) =>
                               setState(() => minBudget = double.tryParse(v)),
-                          decoration: const InputDecoration(
-                            labelText: 'Minimum budget',
+                          decoration: InputDecoration(
+                            labelText: AppLanguage.text('Minimum budget'),
                             filled: true,
                             fillColor: Colors.white,
                             border: OutlineInputBorder(),
@@ -413,8 +418,8 @@ class _TasksGateState extends State<TechnicianTasksScreen> {
                           ),
                           onChanged: (v) =>
                               setState(() => maxBudget = double.tryParse(v)),
-                          decoration: const InputDecoration(
-                            labelText: 'Maximum budget',
+                          decoration: InputDecoration(
+                            labelText: AppLanguage.text('Maximum budget'),
                             filled: true,
                             fillColor: Colors.white,
                             border: OutlineInputBorder(),
@@ -489,7 +494,7 @@ class _TasksGateState extends State<TechnicianTasksScreen> {
       isExpanded: true,
       initialValue: values.contains(value) ? value : 'all',
       decoration: InputDecoration(
-        labelText: label,
+        labelText: AppLanguage.text(label),
         filled: true,
         fillColor: Colors.white,
         border: const OutlineInputBorder(),
@@ -523,16 +528,16 @@ class _BidsState extends State<TechnicianBidsScreen> {
     final yes = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Withdraw bid?'),
+        title: Text(AppLanguage.text('Withdraw bid?')),
         content: const Text('You can submit a new proposal after withdrawal.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Withdraw'),
+            child: Text(AppLanguage.text('Withdraw')),
           ),
         ],
       ),
@@ -552,7 +557,7 @@ class _BidsState extends State<TechnicianBidsScreen> {
   @override
   Widget build(BuildContext c) => Scaffold(
     appBar: AppBar(
-      title: const Text('My Bids'),
+      title: Text(AppLanguage.text('My Bids')),
       foregroundColor: _navy,
       backgroundColor: Colors.white,
     ),
@@ -766,7 +771,9 @@ class _ServicesState extends State<LegacyTechnicianServicesScreen> {
                 _field(desc, 'Description', lines: 3),
                 DropdownButtonFormField<String>(
                   value: serviceType,
-                  decoration: const InputDecoration(labelText: 'Service type'),
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('Service type'),
+                  ),
                   items: const [
                     DropdownMenuItem(value: 'onsite', child: Text('On-site')),
                     DropdownMenuItem(value: 'remote', child: Text('Remote')),
@@ -776,7 +783,9 @@ class _ServicesState extends State<LegacyTechnicianServicesScreen> {
                 ),
                 DropdownButtonFormField<String>(
                   value: pricingModel,
-                  decoration: const InputDecoration(labelText: 'Pricing model'),
+                  decoration: InputDecoration(
+                    labelText: AppLanguage.text('Pricing model'),
+                  ),
                   items: const [
                     DropdownMenuItem(value: 'fixed', child: Text('Fixed')),
                     DropdownMenuItem(value: 'hourly', child: Text('Hourly')),
@@ -806,11 +815,11 @@ class _ServicesState extends State<LegacyTechnicianServicesScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(AppLanguage.text('Cancel')),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Save'),
+              child: Text(AppLanguage.text('Save')),
             ),
           ],
         ),
@@ -845,7 +854,7 @@ class _ServicesState extends State<LegacyTechnicianServicesScreen> {
   @override
   Widget build(BuildContext c) => Scaffold(
     appBar: AppBar(
-      title: const Text('My Services'),
+      title: Text(AppLanguage.text('My Services')),
       foregroundColor: _navy,
       backgroundColor: Colors.white,
       actions: [
@@ -918,7 +927,7 @@ class LegacyTechnicianSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext c) => Scaffold(
     appBar: AppBar(
-      title: const Text('Settings'),
+      title: Text(AppLanguage.text('Settings')),
       foregroundColor: _navy,
       backgroundColor: Colors.white,
     ),
@@ -941,7 +950,7 @@ class LegacyTechnicianSettingsScreen extends StatelessWidget {
           elevation: 0,
           child: ListTile(
             leading: const Icon(Icons.logout, color: _orange),
-            title: const Text('Log out'),
+            title: Text(AppLanguage.text('Log out')),
             onTap: () => _logout(c),
           ),
         ),
@@ -965,7 +974,7 @@ class LegacyTechnicianSettingsScreen extends StatelessWidget {
     final ok = await showDialog<bool>(
       context: c,
       builder: (_) => AlertDialog(
-        title: const Text('Delete account?'),
+        title: Text(AppLanguage.text('Delete account?')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -976,11 +985,11 @@ class LegacyTechnicianSettingsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(c, input.text == 'DELETE'),
-            child: const Text('Delete'),
+            child: Text(AppLanguage.text('Delete')),
           ),
         ],
       ),
@@ -1093,7 +1102,7 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (_, setDialog) => AlertDialog(
-          title: const Text('Submit work for inspection'),
+          title: Text(AppLanguage.text('Submit work for inspection')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1146,11 +1155,11 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
+              child: Text(AppLanguage.text('Cancel')),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Submit'),
+              child: Text(AppLanguage.text('Submit')),
             ),
           ],
         ),
@@ -1190,7 +1199,7 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (d) => AlertDialog(
-        title: const Text('Submit project quotation'),
+        title: Text(AppLanguage.text('Submit project quotation')),
         content: _field(
           quote,
           'Quotation amount (XOF)',
@@ -1199,11 +1208,11 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(d),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(d, true),
-            child: const Text('Send quote'),
+            child: Text(AppLanguage.text('Send quote')),
           ),
         ],
       ),
@@ -1289,7 +1298,7 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (d) => AlertDialog(
-        title: const Text('Open project dispute'),
+        title: Text(AppLanguage.text('Open project dispute')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1300,11 +1309,11 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(d),
-            child: const Text('Cancel'),
+            child: Text(AppLanguage.text('Cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(d, true),
-            child: const Text('Submit'),
+            child: Text(AppLanguage.text('Submit')),
           ),
         ],
       ),
@@ -1329,7 +1338,7 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
   @override
   Widget build(BuildContext c) => Scaffold(
     appBar: AppBar(
-      title: const Text('Task details'),
+      title: Text(AppLanguage.text('Task details')),
       foregroundColor: _navy,
       backgroundColor: Colors.white,
     ),
@@ -1444,7 +1453,7 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
                   backgroundColor: _orange,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Submit work for inspection'),
+                child: Text(AppLanguage.text('Submit work for inspection')),
               ),
               const SizedBox(height: 8),
               OutlinedButton(
@@ -1482,11 +1491,13 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
                           backgroundColor: _orange,
                           foregroundColor: Colors.white,
                         ),
-                        child: const Text('Accept project offer'),
+                        child: Text(AppLanguage.text('Accept project offer')),
                       ),
                       OutlinedButton(
                         onPressed: _quote,
-                        child: const Text('Submit project quotation'),
+                        child: Text(
+                          AppLanguage.text('Submit project quotation'),
+                        ),
                       ),
                     ],
                   ),
@@ -1530,8 +1541,8 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
                     children: [
                       DropdownButtonFormField<String>(
                         initialValue: amountType,
-                        decoration: const InputDecoration(
-                          labelText: 'Quote type',
+                        decoration: InputDecoration(
+                          labelText: AppLanguage.text('Quote type'),
                           border: OutlineInputBorder(),
                         ),
                         items: const [
@@ -1560,8 +1571,8 @@ class _TaskState extends State<TechnicianTaskDetailScreen> {
                         padding: const EdgeInsets.only(top: 10),
                         child: DropdownButtonFormField<String>(
                           initialValue: duration,
-                          decoration: const InputDecoration(
-                            labelText: 'Delivery duration',
+                          decoration: InputDecoration(
+                            labelText: AppLanguage.text('Delivery duration'),
                             border: OutlineInputBorder(),
                           ),
                           items:
@@ -1882,7 +1893,7 @@ Widget _field(
     maxLines: lines,
     keyboardType: keyboard,
     decoration: InputDecoration(
-      hintText: hint,
+      hintText: AppLanguage.text(hint),
       border: const OutlineInputBorder(),
     ),
   ),
@@ -1892,17 +1903,20 @@ Widget _locked(String title, String message) => Card(
   child: ListTile(
     leading: const Icon(Icons.lock_outline, color: _orange),
     title: Text(
-      title,
+      AppLanguage.text(title),
       style: const TextStyle(color: _navy, fontWeight: FontWeight.w600),
     ),
-    subtitle: Text(message, style: const TextStyle(color: _muted)),
+    subtitle: Text(
+      AppLanguage.text(message),
+      style: const TextStyle(color: _muted),
+    ),
   ),
 );
 Widget _center(String text) => Center(
   child: Padding(
     padding: const EdgeInsets.all(28),
     child: Text(
-      text,
+      AppLanguage.text(text),
       textAlign: TextAlign.center,
       style: const TextStyle(color: _muted),
     ),
