@@ -1944,6 +1944,9 @@ class _ClientSettingsState extends State<ClientSettingsScreen> {
       confirm = TextEditingController();
   String language = 'en';
   bool saving = false;
+  bool showCurrentPassword = false;
+  bool showNewPassword = false;
+  bool showConfirmPassword = false;
   @override
   void dispose() {
     current.dispose();
@@ -2055,27 +2058,87 @@ class _ClientSettingsState extends State<ClientSettingsScreen> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: current,
-                  obscureText: true,
+                  obscureText: !showCurrentPassword,
                   decoration: InputDecoration(
                     labelText: AppLanguage.text('Current password'),
+                    filled: true,
+                    fillColor: Colors.white,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 16,
+                    ),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      tooltip: AppLanguage.text(
+                        'Show or hide current password',
+                      ),
+                      onPressed: () => setState(
+                        () => showCurrentPassword = !showCurrentPassword,
+                      ),
+                      icon: Icon(
+                        showCurrentPassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
                 TextField(
                   controller: next,
-                  obscureText: true,
+                  obscureText: !showNewPassword,
                   decoration: InputDecoration(
                     labelText: AppLanguage.text(
                       'New password (minimum 8 characters)',
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 16,
+                    ),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      tooltip: AppLanguage.text('Show or hide new password'),
+                      onPressed: () =>
+                          setState(() => showNewPassword = !showNewPassword),
+                      icon: Icon(
+                        showNewPassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 10),
                 TextField(
                   controller: confirm,
-                  obscureText: true,
+                  obscureText: !showConfirmPassword,
                   decoration: InputDecoration(
                     labelText: AppLanguage.text('Confirm new password'),
+                    filled: true,
+                    fillColor: Colors.white,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 16,
+                    ),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      tooltip: AppLanguage.text(
+                        'Show or hide confirmation password',
+                      ),
+                      onPressed: () => setState(
+                        () => showConfirmPassword = !showConfirmPassword,
+                      ),
+                      icon: Icon(
+                        showConfirmPassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),

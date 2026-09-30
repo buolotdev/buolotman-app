@@ -135,6 +135,13 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
         obscureText: obscure,
         decoration: InputDecoration(
           labelText: label,
+          filled: true,
+          fillColor: Colors.white,
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 16,
+          ),
           border: const OutlineInputBorder(),
         ),
       );

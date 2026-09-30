@@ -12,6 +12,12 @@ class AppLanguage {
   static const _translations = <String, Map<String, String>>{
     'fr': {
       'Dashboard': 'Tableau de bord',
+      'Show or hide current password':
+          'Afficher ou masquer le mot de passe actuel',
+      'Show or hide new password':
+          'Afficher ou masquer le nouveau mot de passe',
+      'Show or hide confirmation password':
+          'Afficher ou masquer la confirmation du mot de passe',
       'Edit bid': 'Modifier l’offre',
       'Save bid': 'Enregistrer l’offre',
       'Withdraw pending bid?': 'Retirer l’offre en attente ?',
