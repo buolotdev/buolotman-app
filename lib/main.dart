@@ -57,6 +57,32 @@ class MyApp extends StatelessWidget {
           fontFamily: GoogleFonts.inter().fontFamily,
           textTheme: GoogleFonts.interTextTheme(),
           scaffoldBackgroundColor: const Color(0xFFF5F7FA),
+          inputDecorationTheme: const InputDecorationTheme(
+            filled: true,
+            fillColor: Colors.white,
+            isDense: true,
+            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+            border: OutlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFFCBD5E1)),
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFFCBD5E1)),
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6B4DB3), width: 2),
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFFD32F2F)),
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFFD32F2F), width: 2),
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+            ),
+          ),
           appBarTheme: const AppBarTheme(
             backgroundColor: Colors.white,
             foregroundColor: Color(0xFF001F3F),
